@@ -47,7 +47,7 @@ var presentateur = (function () {
      * @param {object} services { vault, cadre, planifier(fn) } ; planifier
      *     rend la main au navigateur avant d'appeler fn (setTimeout)
      * @param {Function} fabriqueVue reçoit les actions, rend la vue
-     *     { progression(texte, fait, total), erreur(m), rendre(modele), message(m) }
+     *     { progression(texte, fait, total), erreur(m), refuser(m), rendre(modele), message(m) }
      * @returns {object} { demarrer }
      */
     function creer(services, fabriqueVue) {
@@ -123,7 +123,6 @@ var presentateur = (function () {
                     personne: pourVue(p),
                     responsable: p.responsableId !== null ? pourVue(annuaire.parId[p.responsableId]) : null,
                     equipe: p.equipe.map(function (id) { return pourVue(annuaire.parId[id]); }),
-                    ouvrable: Boolean(services.cadre),
                     dansMFiles: Boolean(services.cadre && objVers.hasOwnProperty(p.id))
                 };
             }
@@ -234,9 +233,18 @@ var presentateur = (function () {
             var cercles = [];
             var debut = new Date().getTime();
             var lecture;
+            var verdict = acces.verifier(services.vault);
 
             lectureEnCours += 1;
             lecture = lectureEnCours;
+            // Défense en profondeur : la commande n'est posée qu'aux membres,
+            // mais une page ouverte autrement ne lit ni n'affiche rien.
+            if (!verdict.autorise) {
+                console.log(PREFIXE_JOURNAL + " annuaire non affiché : " + verdict.raison);
+                annuaire = null;
+                vue.refuser("Cette application n'est pas disponible pour votre compte.");
+                return;
+            }
             annuaire = null;
             objVers = {};
             vue.progression("Recherche des collaborateurs…", 0, 0);
@@ -379,20 +387,6 @@ var presentateur = (function () {
                 }
             },
             /**
-             * Fait ouvrir le collaborateur par le client (le cadre navigue
-             * vers l'objet) ; un refus devient un message discret.
-             * @param {number} id ID du collaborateur
-             * @returns {void}
-             */
-            ouvrirDansMFiles: function (id) {
-                var ok = Boolean(services.cadre) &&
-                    coffre.naviguerVersObjet(services.cadre, PARAMETRAGE.typeCollaborateur, Number(id));
-
-                if (!ok) {
-                    vue.message("M-Files n'a pas pu ouvrir ce collaborateur depuis le trombinoscope.");
-                }
-            },
-            /**
              * Montre la fiche native du collaborateur dans le volet de droite
              * (sélection virtuelle sur l'ObjVer de la recherche).
              * @param {number} id ID du collaborateur
@@ -453,9 +447,8 @@ function OnNewDashboard(dashboard) {
         return rendu.creer(document, actions);
     });
 
-    if (vault) {
-        p.demarrer();
-    }
+    // Sans coffre, le contrôle d'accès refuse (échec fermé) : la page le dit
+    p.demarrer();
 }
 
 /**

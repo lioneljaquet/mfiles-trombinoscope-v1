@@ -3,13 +3,15 @@
    MODULE SHELLUI — UIX v1, client classique (ES5, synchrone)
 
    Pose la commande « Trombinoscope » dans le volet des tâches de chaque
-   cadre ; un clic affiche le tableau de bord dans la zone de listage
+   cadre, aux SEULS membres du groupe autorisé (model/acces.js, échec
+   fermé) ; un clic affiche le tableau de bord dans la zone de listage
    (ShowDashboard). La page lit elle-même le coffre (dashboard.Vault) :
    le module ne transmet que son cadre et la version.
 
    Un état PAR cadre : le client ouvre plusieurs cadres (fenêtres, boîtes
    de dialogue) et un état global faisait réagir chacun au clic d'un
-   autre. Dépend de model/parametrage.js, chargé avant lui.
+   autre. Dépend de model/parametrage.js et model/acces.js, chargés avant
+   lui.
    ===================================================================== */
 
 /**
@@ -27,10 +29,32 @@ function OnNewShellUI(shellUI) {
         var etat = { commande: null };
 
         shellFrame.Events.Register(Event_Started, function () {
+            var verdict = acces.verifier(coffreDe(shellUI));
+
             journal("version " + VERSION_PAQUET + " — nouveau cadre" + genreDuCadre(shellFrame));
+            // Échec fermé : sans appartenance établie au groupe, pas de commande
+            if (!verdict.autorise) {
+                journal("commande non ajoutée : " + verdict.raison);
+                return;
+            }
+            journal("accès accordé : " + verdict.raison);
             creerCommande(shellFrame, etat);
         });
     });
+}
+
+/**
+ * Coffre de la session, ou null s'il est illisible.
+ *
+ * @param {object} shellUI interface ShellUI
+ * @returns {object|null} coffre COM
+ */
+function coffreDe(shellUI) {
+    try {
+        return shellUI.Vault || null;
+    } catch (e) {
+        return null;
+    }
 }
 
 /**

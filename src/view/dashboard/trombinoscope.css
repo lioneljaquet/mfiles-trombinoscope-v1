@@ -101,6 +101,10 @@ button:focus, input:focus, select:focus, .carte:focus { outline: 2px solid #004f
 .jauge { height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
 .jauge-barre { height: 6px; width: 0; background: #004f9f; }
 .erreur { background: #fde8e2; border: 1px solid #ed3200; color: #a02200; }
+.refus { display: none; margin: 40px 20px; padding: 24px; text-align: center; color: #4a5568;
+    background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; }
+.refus.est-visible { display: block; }
+.page.est-refusee .controles, .page.est-refusee .barre-actions .bouton { display: none; }
 .message {
     display: none; position: fixed; left: 20px; bottom: 16px; padding: 10px 14px; border-radius: 6px;
     background: #1a202c; color: #ffffff; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);

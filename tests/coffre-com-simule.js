@@ -58,7 +58,9 @@ function typedValueLue(valeur) {
  * Construit MFiles + vault simulés.
  *
  * @param {object} [options] { objets: [{ type, id, titre, supprime, props: { id: { type, valeur } } }],
- *     limiteServeur: plafond de résultats, guid, echecNavigation: NavigateToObject lève }
+ *     limiteServeur: plafond de résultats, guid,
+ *     session: { utilisateur, groupes: ID des groupes directs, parents: { groupe: [groupes qui le contiennent] },
+ *     echec: lecture de SessionInfo en échec } }
  * @returns {object} { MFiles, vault, journal, cadre }
  */
 function creerCoffreCom(options) {
@@ -136,7 +138,44 @@ function creerCoffreCom(options) {
 
     const objetDe = (ov) => objets.filter((o) => o.type === ov.Type && o.id === ov.ID)[0];
 
+    /**
+     * UserAndGroupMemberships simulé : l'utilisateur, puis ses groupes
+     * directs ET indirects, comme le serveur les rend (référence COM :
+     * « groups to which the user belongs either directly or indirectly »).
+     *
+     * @param {object} s session simulée
+     * @returns {object} UserOrUserGroupIDs
+     */
+    function appartenances(s) {
+        const groupes = [];
+        const aVoir = (s.groupes || []).slice();
+        while (aVoir.length) {
+            const g = aVoir.shift();
+            if (groupes.indexOf(g) < 0) {
+                groupes.push(g);
+                aVoir.push(...((s.parents || {})[g] || []));
+            }
+        }
+        const elements = [{ UserOrGroupID: s.utilisateur || 7, UserOrGroupType: 1 }]
+            .concat(groupes.map((g) => ({ UserOrGroupID: g, UserOrGroupType: 2 })));
+        const c = collection(elements, "UserOrUserGroupIDs");
+        c.GetUserOrUserGroupIDIndex = (id, type) => {
+            if (typeof id !== "number" || typeof type !== "number") { throw new Error("Long attendus"); }
+            for (let i = 0; i < elements.length; i += 1) {
+                if (elements[i].UserOrGroupID === id && elements[i].UserOrGroupType === type) { return i + 1; }
+            }
+            return -1;
+        };
+        return c;
+    }
+
     const vault = {
+        get SessionInfo() {
+            journal.appels.push("SessionInfo");
+            const s = opts.session || {};
+            if (s.echec) { throw new Error("session illisible"); }
+            return { UserID: s.utilisateur || 7, get UserAndGroupMemberships() { return appartenances(s); } };
+        },
         GetGUID() { return opts.guid || "{1A2B3C4D-0000-1111-2222-333344445555}"; },
         ObjectSearchOperations: {
             SearchForObjectsByConditionsEx(conditions, drapeaux, trier, limite) {
@@ -176,16 +215,7 @@ function creerCoffreCom(options) {
         }
     };
 
-    // Le cadre n'accepte qu'un ObjID construit par MFiles.ObjID ; échec injectable
-    const cadre = {
-        ActiveListing: listing,
-        CurrentPath: "",
-        NavigateToObject(objId) {
-            if (!objId || objId.genre !== "ObjID") { throw new Error("IObjID attendu"); }
-            if (opts.echecNavigation) { throw new Error("navigation refusée"); }
-            journal.navigation = { Type: objId.Type, ID: objId.ID };
-        }
-    };
+    const cadre = { ActiveListing: listing, CurrentPath: "" };
 
     return { MFiles, vault, journal, cadre };
 }

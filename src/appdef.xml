@@ -17,6 +17,7 @@
     <publisher>tebicom SA</publisher>
     <copyright>(c) tebicom SA 2026</copyright>
     <required-mfiles-version>20.12.0.0</required-mfiles-version>
+    <optional>true</optional>
 
     <files>
         <file>{DOSSIER}/icones/app.ico</file>
@@ -31,6 +32,7 @@
     <modules>
         <module environment="shellui" fast-browsing-compatible="true">
             <file>{DOSSIER}/model/parametrage.js</file>
+            <file>{DOSSIER}/model/acces.js</file>
             <file>{DOSSIER}/presenter/shellui.js</file>
         </module>
     </modules>

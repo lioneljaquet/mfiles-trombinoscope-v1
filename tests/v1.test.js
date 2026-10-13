@@ -9,6 +9,7 @@ const os = require("os");
 const path = require("path");
 const { execFileSync } = require("child_process");
 const { charger } = require("./charger");
+const { creerCoffreCom } = require("./coffre-com-simule");
 
 const RACINE = path.join(__dirname, "..");
 const EVENEMENTS = {
@@ -43,16 +44,19 @@ function cadre(nom, options) {
 /**
  * Charge le module avec deux cadres : A normal, B dialogue.
  *
- * @returns {object} { a, b, affichages }
+ * @param {object} [session] session simulée (par défaut : membre direct du groupe 3524)
+ * @returns {object} { a, b, affichages, journal }
  */
-function deuxCadres() {
+function deuxCadres(session) {
     const options = { prochain: { n: 100 }, affichages: [] };
-    const ctx = charger(["model/parametrage.js", "presenter/shellui.js"], EVENEMENTS);
+    const c = creerCoffreCom({ session: session || { groupes: [3524] } });
+    const ctx = charger(["model/parametrage.js", "model/acces.js", "presenter/shellui.js"], EVENEMENTS);
     const a = cadre("A", options);
     const b = cadre("B", Object.assign({}, options, { dialogue: true }));
 
-    ctx.OnNewShellUI({ Events: { Register(e, cb) { assert.strictEqual(e, "NewShellFrame"); cb(a); cb(b); } } });
-    return { a, b, affichages: options.affichages };
+    ctx.OnNewShellUI({ Vault: c.vault,
+        Events: { Register(e, cb) { assert.strictEqual(e, "NewShellFrame"); cb(a); cb(b); } } });
+    return { a, b, affichages: options.affichages, journal: ctx.__journal };
 }
 
 test("module : commande « Trombinoscope » dans le volet des tâches, icône du dossier versionné", () => {
@@ -89,6 +93,27 @@ test("module : une boîte de dialogue (sans volet des tâches) ne fait pas écho
     assert.strictEqual(typeof b._h.cmd, "function");
 });
 
+test("accès : membre par un groupe imbriqué, la commande est posée", () => {
+    const { a } = deuxCadres({ groupes: [10], parents: { 10: [3524] } });
+
+    assert.strictEqual(a._h.libelle, "Trombinoscope");
+});
+
+test("accès : un non-membre ne reçoit pas la commande, et le journal dit pourquoi", () => {
+    const { a, b, journal } = deuxCadres({ groupes: [1, 10] });
+
+    assert.strictEqual(a._h.libelle, undefined);
+    assert.strictEqual(b._h.libelle, undefined);
+    assert.ok(journal.some((l) => /\[trombinoscope\] commande non ajoutée : l'utilisateur n'est pas membre du groupe 3524/.test(l)));
+});
+
+test("accès : appartenance illisible, pas de commande (échec fermé)", () => {
+    const { a, journal } = deuxCadres({ echec: true });
+
+    assert.strictEqual(a._h.libelle, undefined);
+    assert.ok(journal.some((l) => /commande non ajoutée : appartenance illisible : session illisible/.test(l)));
+});
+
 /**
  * Copie le dépôt (sans node_modules ni dist) dans un dossier temporaire,
  * node_modules relié par une jonction.
@@ -110,6 +135,15 @@ test("construction : refuse un script non ES5", () => {
         /non ES5/);
 });
 
+test("construction : refuse un groupe autorisé non renseigné", () => {
+    const tmp = copieDuDepot();
+    const p = path.join(tmp, "src", "model", "parametrage.js");
+    fs.writeFileSync(p, fs.readFileSync(p, "utf8").replace(/groupeAutorise: \d+/, "groupeAutorise: 0"));
+
+    assert.throws(() => execFileSync("node", [path.join(tmp, "build.js"), "9.9.9", "--sans-zip"], { stdio: "pipe" }),
+        /groupe autorisé/);
+});
+
 test("construction : page autonome, jetons remplis, manifeste à la racine", () => {
     const tmp = copieDuDepot();
     execFileSync("node", [path.join(tmp, "build.js"), "9.9.9", "--sans-zip"], { stdio: "pipe" });
@@ -124,6 +158,9 @@ test("construction : page autonome, jetons remplis, manifeste à la racine", () 
     // (m-files://, mailto:) par une boîte d'erreur du client (docs/adr/0004)
     assert.ok(!/href/i.test(page), "lien href dans la page");
     assert.ok(/<file>v999\/icones\/app\.ico<\/file>/.test(appdef));
+    assert.ok(/<file>v999\/model\/acces\.js<\/file>/.test(appdef), "contrôle d'accès absent du module");
+    assert.ok(/var acces = /.test(page), "contrôle d'accès absent de la page");
+    assert.ok(/<optional>true<\/optional>/.test(appdef), "optional explicite");
     assert.ok(/<content>v999\/view\/dashboard\/index\.html<\/content>/.test(appdef));
     const balises = appdef.replace(/<!--[\s\S]*?-->/g, "");
     assert.ok(balises.indexOf("<files>") > balises.indexOf("<required-mfiles-version>") &&

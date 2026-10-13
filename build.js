@@ -19,6 +19,7 @@
 const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
+const vm = require("vm");
 const acorn = require("acorn");
 
 const ARGS = process.argv.slice(2);
@@ -86,6 +87,23 @@ function verifierEs5(code, nom) {
     }
 }
 
+/**
+ * Refuse de livrer sans groupe autorisé : l'application est réservée à un
+ * groupe d'utilisateurs M-Files (src/model/parametrage.js), et un ID non
+ * renseigné fermerait l'application à tous sans le dire.
+ *
+ * @returns {void}
+ */
+function verifierGroupe() {
+    const ctx = vm.createContext({ console });
+    vm.runInContext(fs.readFileSync(path.join(SRC, "model", "parametrage.js"), "utf8"), ctx);
+    const groupe = ctx.PARAMETRAGE && ctx.PARAMETRAGE.groupeAutorise;
+    if (!Number.isInteger(groupe) || groupe <= 0) {
+        throw new Error("groupe autorisé non renseigné dans src/model/parametrage.js : " + groupe);
+    }
+}
+
+verifierGroupe();
 fs.rmSync(DIST, { recursive: true, force: true });
 copier(SRC, CIBLE);
 

@@ -9,7 +9,8 @@ const assert = require("node:assert");
 const { charger, simple } = require("./charger");
 const { creerCoffreCom, valeur } = require("./coffre-com-simule");
 
-const SOURCES = ["model/parametrage.js", "model/regles.js", "model/vault-com.js", "presenter/trombinoscope.js"];
+const SOURCES = ["model/parametrage.js", "model/acces.js", "model/regles.js", "model/vault-com.js",
+    "presenter/trombinoscope.js"];
 
 /**
  * Collaborateur fictif.
@@ -56,9 +57,10 @@ function objetsFictifs() {
  */
 function preparer(options) {
     const opts = options || {};
-    const c = creerCoffreCom({ objets: opts.objets || objetsFictifs(), limiteServeur: opts.limiteServeur });
+    const c = creerCoffreCom({ objets: opts.objets || objetsFictifs(), limiteServeur: opts.limiteServeur,
+        session: opts.session || { groupes: [3524] } });
     const ctx = charger(SOURCES, { MFiles: c.MFiles });
-    const vue = { appels: [], progressions: [], erreurs: [], modeles: [] };
+    const vue = { appels: [], progressions: [], erreurs: [], modeles: [], refus: [] };
     const file = [];
     const p = ctx.presentateur.creer({
         vault: c.vault,
@@ -69,6 +71,7 @@ function preparer(options) {
         return {
             progression: (texte, fait, total) => vue.progressions.push([texte, fait, total]),
             erreur: (m) => vue.erreurs.push(m),
+            refuser: (m) => vue.refus.push(m),
             rendre: (m) => vue.modeles.push(m),
             message: (m) => vue.appels.push(["message", m])
         };
@@ -187,8 +190,8 @@ test("vue : grille ou liste, tri, et l'état est conservé", () => {
 });
 
 test("page : OnNewDashboard lit le coffre du tableau de bord et journalise la version", () => {
-    const c = creerCoffreCom({ objets: objetsFictifs() });
-    const vueFactice = { progression() {}, erreur() {}, rendre() {}, message() {}, version: null };
+    const c = creerCoffreCom({ objets: objetsFictifs(), session: { groupes: [3524] } });
+    const vueFactice = { progression() {}, erreur() {}, refuser() {}, rendre() {}, message() {}, version: null };
     const ctx = charger(SOURCES, {
         MFiles: c.MFiles,
         setTimeout: (fn) => fn(),
@@ -232,40 +235,21 @@ test("relire pendant une lecture : la lecture précédente s'arrête, une seule 
     assert.strictEqual(vue.modeles[0].total, 46);
 });
 
-test("fiche : « Ouvrir dans M-Files » fait naviguer le cadre vers le collaborateur", () => {
-    const { p, vue, vider, c } = preparer();
+test("accès : un non-membre ouvrant la page ne voit pas l'annuaire, et rien n'est lu", () => {
+    const { p, vue, vider, c } = preparer({ session: { groupes: [1] } });
 
     p.demarrer();
     vider();
-    vue.actions.ouvrir(3);
-    assert.strictEqual(dernier(vue).fiche.ouvrable, true);
-    assert.strictEqual("lien" in dernier(vue).fiche, false, "plus de lien m-files:// dans la page");
-    vue.actions.ouvrirDansMFiles(3);
-    assert.deepStrictEqual(c.journal.navigation, { Type: 104, ID: 3 });
-    assert.strictEqual(vue.appels.length, 0);
+    assert.strictEqual(vue.modeles.length, 0);
+    assert.strictEqual(c.journal.appels.indexOf("Search"), -1);
+    assert.deepStrictEqual(vue.refus, ["Cette application n'est pas disponible pour votre compte."]);
 });
 
-test("fiche : un échec de l'ouverture devient un message discret, sans exception", () => {
-    const c = creerCoffreCom({ objets: objetsFictifs(), echecNavigation: true });
-    const ctx = charger(SOURCES, { MFiles: c.MFiles });
-    const messages = [];
-    const p2 = {};
-    const p = ctx.presentateur.creer({ vault: c.vault, cadre: c.cadre, planifier: (fn) => fn() }, (actions) => {
-        p2.actions = actions;
-        return { progression() {}, erreur() {}, rendre() {}, message: (m) => messages.push(m) };
-    });
-
-    p.demarrer();
-    assert.doesNotThrow(() => p2.actions.ouvrirDansMFiles(3));
-    assert.strictEqual(messages.length, 1);
-    assert.match(messages[0], /M-Files/);
-});
-
-test("fiche : sans cadre, « Ouvrir dans M-Files » n'est pas proposé", () => {
-    const { p, vue, vider } = preparer({ cadre: null });
+test("accès : appartenance illisible, la page refuse aussi (échec fermé)", () => {
+    const { p, vue, vider } = preparer({ session: { echec: true } });
 
     p.demarrer();
     vider();
-    vue.actions.ouvrir(3);
-    assert.strictEqual(dernier(vue).fiche.ouvrable, false);
+    assert.strictEqual(vue.modeles.length, 0);
+    assert.strictEqual(vue.refus.length, 1);
 });

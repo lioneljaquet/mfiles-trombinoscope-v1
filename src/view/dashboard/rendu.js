@@ -280,10 +280,7 @@ var rendu = (function () {
                 el("div", { classe: "fiche-actions" }, [
                     f.dansMFiles ? el("button", { classe: "bouton bouton-primaire", texte: "Afficher la fiche M-Files",
                         attrs: { type: "button", "data-action": "mfiles", "data-id": p.id,
-                            title: "Affiche les propriétés du collaborateur dans le volet de droite du client" } }) : null,
-                    f.ouvrable ? el("button", { classe: "bouton bouton-secondaire", texte: "Ouvrir dans M-Files",
-                        attrs: { type: "button", "data-action": "ouvrir-mfiles", "data-id": p.id,
-                            title: "Quitte le trombinoscope et ouvre le collaborateur dans M-Files" } }) : null
+                            title: "Affiche les propriétés du collaborateur dans le volet de droite du client" } }) : null
                 ])
             ];
         }
@@ -428,6 +425,23 @@ var rendu = (function () {
         }
 
         /**
+         * Refus d'accès : message neutre, sans recherche, filtres ni
+         * annuaire.
+         *
+         * @param {string} texte message
+         * @returns {void}
+         */
+        function refuser(texte) {
+            basculer($("progression"), "est-visible", false);
+            basculer($("erreur"), "est-visible", false);
+            basculer(doc.body.firstElementChild || $("controles").parentNode, "est-refusee", true);
+            vider($("resultats"));
+            basculer($("fiche"), "est-ouverte", false);
+            $("refusTexte").textContent = texte;
+            basculer($("refus"), "est-visible", true);
+        }
+
+        /**
          * Message passager en bas de page.
          *
          * @param {string} texte message
@@ -519,7 +533,6 @@ var rendu = (function () {
                     actions.reinitialiser();
                     break;
                 case "mfiles": actions.afficherDansMFiles(Number(e.getAttribute("data-id"))); break;
-                case "ouvrir-mfiles": actions.ouvrirDansMFiles(Number(e.getAttribute("data-id"))); break;
                 default: break;
                 }
             } else if ((e = porteur(cible, "data-filtre"))) {
@@ -549,7 +562,7 @@ var rendu = (function () {
             }
         });
 
-        return { progression: progression, erreur: erreur, rendre: rendre, message: message };
+        return { progression: progression, erreur: erreur, refuser: refuser, rendre: rendre, message: message };
     }
 
     return { creer: creer };

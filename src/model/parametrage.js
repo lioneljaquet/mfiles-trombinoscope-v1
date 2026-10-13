@@ -23,12 +23,18 @@ var MF = {
     DT_BOOLEAN: 8, DT_LOOKUP: 9, DT_MULTI_LOOKUP: 10, DT_MULTI_LINE_TEXT: 13,
     EGAL: 1, DIFFERENT: 2,
     STATUS_DELETED: 5, STATUS_OBJECT_TYPE_ID: 6,
-    PARENT_CHILD_NONE: 0, SEARCH_FLAG_NONE: 0
+    PARENT_CHILD_NONE: 0, SEARCH_FLAG_NONE: 0,
+    TYPE_GROUPE: 2                 // MFUserOrUserGroupTypeUserGroup
 };
 
 var PARAMETRAGE = {
     dashboard: "trombinoscope",
     commande: "Trombinoscope",
+
+    // Groupe d'utilisateurs M-Files auquel l'application est réservée :
+    // « SI - membres primaires » (liste de valeurs 16), groupes imbriqués
+    // compris. Entier positif exigé à la construction (build.js).
+    groupeAutorise: 3524,
 
     // Types d'objets (alias tebifiles.ot.collaborateur pour 104)
     typeCollaborateur: 104,

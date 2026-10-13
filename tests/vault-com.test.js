@@ -1,7 +1,7 @@
 /**
  * Accès COM au coffre (src/model/vault-com.js) contre le coffre simulé :
  * recherches par étape et par type, liste blanche des propriétés, lectures
- * par lots, sélection virtuelle, ouverture par le cadre. Données fictives ; les
+ * par lots, sélection virtuelle. Données fictives ; les
  * valeurs « POISON » imitent les champs RH que la fiche porte aussi.
  */
 const test = require("node:test");
@@ -110,20 +110,4 @@ test("sélection virtuelle : collection ObjOrFileVers sur le listing actif", () 
 
     assert.strictEqual(coffre.selectionVirtuelle(c.cadre, { Type: 104, ID: 1, Version: 7 }), true);
     assert.strictEqual(c.journal.selection.Count, 1);
-});
-
-test("ouvrir : le cadre navigue vers l'objet par NavigateToObject(ObjID), sans navigation de la page", () => {
-    const { c, coffre } = preparer([]);
-
-    assert.strictEqual(coffre.naviguerVersObjet(c.cadre, 104, 12), true);
-    assert.deepStrictEqual(c.journal.navigation, { Type: 104, ID: 12 });
-});
-
-test("ouvrir : un refus du client est rattrapé et journalisé, jamais propagé", () => {
-    const c = creerCoffreCom({ echecNavigation: true });
-    const ctx = charger(["model/parametrage.js", "model/vault-com.js"], { MFiles: c.MFiles });
-
-    assert.strictEqual(ctx.coffre.naviguerVersObjet(c.cadre, 104, 12), false);
-    assert.strictEqual(ctx.coffre.naviguerVersObjet(null, 104, 12), false);
-    assert.ok(ctx.__journal.some((l) => /\[trombinoscope\] ouverture dans M-Files refusée : navigation refusée/.test(l)));
 });

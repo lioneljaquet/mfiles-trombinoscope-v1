@@ -303,44 +303,12 @@ var coffre = (function () {
         }
     }
 
-    /**
-     * Fait ouvrir un objet par le client : le cadre navigue vers son
-     * emplacement (IShellFrame.NavigateToObject, référence UIX v1), ce qui
-     * remplace le tableau de bord par l'objet et sa fiche. Lecture seule.
-     *
-     * La page ne navigue JAMAIS elle-même vers m-files:// : le contrôle web
-     * du tableau de bord le refuse par une boîte d'erreur du client
-     * (« Le tableau de bord peut ne pas accepter d'utiliser de contenu non
-     * approuvé », constaté sur M-Files 26.9, docs/adr/0004). Tout échec est
-     * rattrapé ici et journalisé.
-     *
-     * @param {object|null} cadre ShellFrame du client
-     * @param {number} typeId type d'objet
-     * @param {number} id identifiant
-     * @returns {boolean} vrai si le client a accepté la navigation
-     */
-    function naviguerVersObjet(cadre, typeId, id) {
-        var objId;
-
-        try {
-            objId = new MFiles.ObjID();
-            objId.SetIDs(typeId, id);
-            cadre.NavigateToObject(objId);
-            return true;
-        } catch (e) {
-            console.log(PREFIXE_JOURNAL + " ouverture dans M-Files refusée : " +
-                ((e && (e.message || e.description)) || e));
-            return false;
-        }
-    }
-
     return {
         enTableau: enTableau,
         chercherCollaborateurs: chercherCollaborateurs,
         chercherCercles: chercherCercles,
         lireFiches: lireFiches,
         lireCercles: lireCercles,
-        selectionVirtuelle: selectionVirtuelle,
-        naviguerVersObjet: naviguerVersObjet
+        selectionVirtuelle: selectionVirtuelle
     };
 }());

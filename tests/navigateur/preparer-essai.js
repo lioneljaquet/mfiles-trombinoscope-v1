@@ -74,7 +74,7 @@ function objetsFictifs() {
 
 const simulateur = fs.readFileSync(path.join(RACINE, "tests", "coffre-com-simule.js"), "utf8");
 const injection = "<script>\n(function () {\nvar module = {};\n" + simulateur +
-    "\nvar c = module.exports.creerCoffreCom({ objets: " + JSON.stringify(objetsFictifs()) + " });\n" +
+    "\nvar c = module.exports.creerCoffreCom({ objets: " + JSON.stringify(objetsFictifs()) + ", session: { groupes: [3524] } });\n" +
     "window.MFiles = c.MFiles;\nc.cadre.ShowDefaultContent = function () { console.log('ShowDefaultContent appelé'); };\n" +
     "window.__essai = c;\nwindow.addEventListener('load', function () {\n" +
     "  OnNewDashboard({ Vault: c.vault, CustomData: { cadre: c.cadre, version: 'essai' } });\n});\n}());\n</script>\n";
