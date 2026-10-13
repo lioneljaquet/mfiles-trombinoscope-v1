@@ -1,6 +1,7 @@
 # 0008 — Photo du collaborateur lue en mémoire, en URI data:
 
-Date : 2026-10-13. Statut : accepté (version 1.1.0) ; amendé en 1.1.1 (plus de plafond, note courte). Remplace 0003 pour l'onglet du volet de droite ; la grille et la
+Date : 2026-10-13. Statut : accepté (version 1.1.0) ; amendé en 1.1.1 (plus de plafond, note courte) et en 1.1.2
+(bouton « Afficher la photo » dans la fiche du tableau de bord). Remplace 0003 pour l'onglet du volet de droite ; la grille et la
 liste du tableau de bord restent sans photo (non demandé).
 
 ## Décision
@@ -41,3 +42,22 @@ et note.
 
 D'après l'état enregistré par le Cockpit (42 portraits servis, sources : 29 jpg, 1 jpeg, 8 png, 4 pdf), environ 38 photos
 s'afficheront et 4 non (les PDF), sauf si un document plus ancien affichable prend le relais.
+
+## Amendement 1.1.2 — « Afficher la photo » dans la fiche du tableau de bord
+
+Demande de Lionel : à côté de « Afficher la fiche M-Files », un bouton « Afficher la photo » si elle existe, qui remplace
+le rond au trigramme.
+
+- **Savoir s'il y a une photo sans la télécharger** : à l'ouverture d'une fiche (pas à la lecture de l'annuaire, qui
+  ferait une recherche par personne), `portraits.photoDisponible` cherche les documents de portrait de la personne et
+  lit l'extension de leurs fichiers (`GetFiles`). Vrai s'il existe un fichier JPEG, PNG, GIF ou BMP. Résultat gardé
+  pour la page ; une erreur vaut « non » (pas de bouton) et se journalise.
+- **Au clic** : `portraits.portraitDe` (mêmes règles que l'onglet, sans plafond), en mémoire, avec un cache pour la
+  page. La photo remplace le trigramme ; le bouton devient « Afficher le trigramme » (décision : bascule offerte, pour
+  revenir au rond sans changer de fiche).
+- **Fiche suivante ou précédente, autre personne, fermeture** : chaque fiche s'ouvre sur le trigramme ; la photo
+  affichée ne suit jamais une autre personne. Revenir à une personne et réafficher sa photo la reprend du cache.
+- **Échec de lecture** : trigramme gardé, message discret « La photo n'a pas pu être lue. », ligne de console ; aucune
+  exception, aucune boîte d'erreur.
+- **Onglet du volet de droite** : inchangé, la photo y est affichée d'office, sans bouton.
+- Grille et liste : toujours sans photo.

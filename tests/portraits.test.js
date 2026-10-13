@@ -153,3 +153,13 @@ test("photo : la recherche elle-même en échec donne l'avatar, jamais une excep
 
     assert.strictEqual(portrait(ctx, c).dataUri, null);
 });
+
+test("disponibilité : vrai s'il existe un fichier JPEG, PNG, GIF ou BMP, sans rien télécharger", () => {
+    const avec = preparer([photo(9, [{ id: 2, version: 1, extension: "pdf", taille: 1 }]),
+        photo(5, [{ id: 1, version: 1, extension: "PNG", taille: 1 }])]);
+    const sans = preparer([photo(9, [{ id: 2, version: 1, extension: "pdf", taille: 1 }])]);
+
+    assert.strictEqual(avec.ctx.portraits.photoDisponible(avec.c.vault, 12), true);
+    assert.strictEqual(sans.ctx.portraits.photoDisponible(sans.c.vault, 12), false);
+    assert.strictEqual(avec.c.journal.appels.filter((a) => /^Download/.test(a)).length, 0);
+});

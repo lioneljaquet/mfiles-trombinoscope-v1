@@ -69,6 +69,13 @@ function objetsFictifs() {
             }
         });
     });
+    // Bruno Fictif (2) a un document de portrait affichable ; Chloé (3) seulement un PDF
+    objets.push({ type: 0, id: 950, titre: "Photo", version: 1,
+        props: { 100: lk(88, "!! Photo collaborateur"), 1077: lk(2, "x") },
+        fichiers: [{ id: 51, version: 1, extension: "bmp", taille: 14454 }] });
+    objets.push({ type: 0, id: 951, titre: "Photo", version: 1,
+        props: { 100: lk(88, "!! Photo collaborateur"), 1077: lk(3, "x") },
+        fichiers: [{ id: 52, version: 1, extension: "pdf", taille: 300000 }] });
     return objets;
 }
 
@@ -108,6 +115,7 @@ const simulateur = fs.readFileSync(path.join(RACINE, "tests", "coffre-com-simule
 const coffreJs = "var module = {};\n" + simulateur +
     "\nvar c = module.exports.creerCoffreCom({ objets: " + JSON.stringify(objetsFictifs()) + ", session: { groupes: [3524] } });\n" +
     "window.MFiles = c.MFiles;\nc.cadre.ShowDefaultContent = function () { console.log('ShowDefaultContent appelé'); };\n" +
+    "c.vault.ObjectFileOperations.DownloadFileAsDataURI = function () { return " + JSON.stringify(portraitFictif()) + "; };\n" +
     "window.__liens = [];\nc.cadre.ShowDashboard = function (id, d) { window.__liens.push({ id: id, action: d.action }); };\n" +
     "window.__essai = c;\n";
 const injection = "<script>\n(function () {\n" + coffreJs + "window.addEventListener('load', function () {\n" +

@@ -1,6 +1,6 @@
 {
   "name": "mfiles-trombinoscope-v1",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "private": true,
   "description": "Trombinoscope tebicom dans le client classique M-Files (UI Extensibility Framework v1).",
   "scripts": {

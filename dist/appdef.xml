@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
     Manifeste UIX v1 (client classique). Schéma v4.
-    Modèle : 1.1.1 et v111 sont remplis par build.js.
+    Modèle : 1.1.2 et v112 sont remplis par build.js.
     Ordre imposé par le schéma : <files> APRÈS <required-mfiles-version>
     et AVANT <platforms>. Toute ressource chargée par une page (image,
     icône) doit y figurer, sinon elle n'est jamais servie.
@@ -12,7 +12,7 @@
 
     <guid>dc30b326-fec0-4189-8c3b-898b28db3225</guid>
     <name>Trombinoscope tebicom (UIX v1)</name>
-    <version>1.1.1</version>
+    <version>1.1.2</version>
     <description>Trombinoscope des collaborateurs (étapes En fonction et Offboarding), lu directement dans le coffre. Lecture seule. Client classique.</description>
     <publisher>tebicom SA</publisher>
     <copyright>(c) tebicom SA 2026</copyright>
@@ -20,7 +20,7 @@
     <optional>true</optional>
 
     <files>
-        <file>v111/icones/app.ico</file>
+        <file>v112/icones/app.ico</file>
     </files>
 
     <platforms>
@@ -31,20 +31,20 @@
 
     <modules>
         <module environment="shellui" fast-browsing-compatible="true">
-            <file>v111/model/compat.js</file>
-            <file>v111/model/parametrage.js</file>
-            <file>v111/model/acces.js</file>
-            <file>v111/model/regles.js</file>
-            <file>v111/model/vault-com.js</file>
-            <file>v111/model/portraits.js</file>
-            <file>v111/presenter/onglet.js</file>
-            <file>v111/presenter/shellui.js</file>
+            <file>v112/model/compat.js</file>
+            <file>v112/model/parametrage.js</file>
+            <file>v112/model/acces.js</file>
+            <file>v112/model/regles.js</file>
+            <file>v112/model/vault-com.js</file>
+            <file>v112/model/portraits.js</file>
+            <file>v112/presenter/onglet.js</file>
+            <file>v112/presenter/shellui.js</file>
         </module>
     </modules>
 
     <dashboards>
         <dashboard id="trombinoscope">
-            <content>v111/view/dashboard/index.html</content>
+            <content>v112/view/dashboard/index.html</content>
             <allow-selection>true</allow-selection>
         </dashboard>
     </dashboards>

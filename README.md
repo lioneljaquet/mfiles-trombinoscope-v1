@@ -27,7 +27,8 @@ Lecture seule : l'application n'écrit rien dans le coffre.
 - Fiche (volet latéral du tableau de bord et onglet) : titre, trigramme, fonctions, succursale, cercle principal,
   e-mail (texte à sélectionner), cercles et rôles, responsable et équipe directe ; titre, fonctions, succursale,
   cercles et personnes sont des liens. Dans le tableau de bord, **Afficher la fiche M-Files** montre la fiche native
-  dans le volet de droite sans quitter le trombinoscope.
+  dans le volet de droite sans quitter le trombinoscope, et **Afficher la photo** (si la personne en a une
+  affichable) remplace le rond au trigramme par sa photo ; **Afficher le trigramme** revient en arrière.
 - **Vue M-Files** (barre du tableau de bord) rend la zone de listage au client. À ne pas confondre avec la bascule
   « Grille / Liste » du trombinoscope, inchangée.
 - Version affichée dans la barre de titre et journalisée en console.
@@ -48,6 +49,22 @@ Mise en place (une fois, dans M-Files Admin › coffre tebifiles › Utilisateur
 Ensuite, ajouter ou retirer des personnes ou des groupes dans ce groupe suffit : rien à reconstruire ni à
 réinstaller. La prise en compte se fait à la **prochaine ouverture du client** (ou d'une nouvelle fenêtre) pour la
 commande et l'onglet ; la page la revérifie à chaque ouverture.
+
+## Essai par Lionel (version 1.1.2)
+
+Nouveau en 1.1.2, après installation de `dist/trombinoscope-uixv1-1.1.2.zip` (remplace la 1.1.1) et redémarrage du
+client :
+
+1. Ouvrir le tableau de bord, puis la fiche d'une personne qui a une photo (une sur deux environ) : à côté de
+   « Afficher la fiche M-Files », un bouton **Afficher la photo**. Une personne sans photo affichable (aucun document,
+   ou seulement un PDF) n'a pas ce bouton.
+2. Cliquer **Afficher la photo** : la photo remplace le rond au trigramme ; le bouton devient **Afficher le
+   trigramme**, qui revient au rond.
+3. Passer à la fiche suivante ou précédente (flèches) : elle s'ouvre sur le trigramme, la photo ne reste pas ; revenir
+   et réafficher la photo est immédiat (gardée en mémoire).
+4. Une photo illisible : le trigramme reste, message discret « La photo n'a pas pu être lue. », aucune boîte
+   d'erreur ; console `portrait illisible (document …)`.
+5. L'onglet du volet de droite montre toujours la photo d'office, sans bouton.
 
 ## Essai par Lionel (version 1.1.1)
 
@@ -90,14 +107,14 @@ Ordre à respecter : **le groupe doit exister avec son alias AVANT d'installer l
 Lignes de console attendues (outils F12 attachés au client, par exemple `C:\Windows\System32\F12\IEChooser.exe`) :
 
 ```text
-[trombinoscope] version 1.1.1 (UIX v1) — nouveau cadre (type 1)        module, à chaque fenêtre
+[trombinoscope] version 1.1.2 (UIX v1) — nouveau cadre (type 1)        module, à chaque fenêtre
 [trombinoscope] accès accordé : membre du groupe tebifiles.group.trombinoscope (ID …)        module, membre
 [trombinoscope] commande non ajoutée : l'utilisateur n'est pas membre du groupe tebifiles.group.trombinoscope (ID …)
 [trombinoscope] commande non ajoutée : groupe d'accès introuvable : alias tebifiles.group.trombinoscope
 [trombinoscope] commande non ajoutée : appartenance illisible : …     module, lecture impossible (échec fermé)
 [trombinoscope] annuaire de l'onglet lu : 94 personnes, … ms           module, première sélection d'un collaborateur
-[trombinoscope] version 1.1.1 (UIX v1) — onglet ouvert                 onglet, à chaque collaborateur affiché
-[trombinoscope] version 1.1.1 (UIX v1) — page ouverte                  tableau de bord, à chaque ouverture
+[trombinoscope] version 1.1.2 (UIX v1) — onglet ouvert                 onglet, à chaque collaborateur affiché
+[trombinoscope] version 1.1.2 (UIX v1) — page ouverte                  tableau de bord, à chaque ouverture
 [trombinoscope] annuaire lu : 94 personnes, 348 cercles et rôles, … ms
 ```
 
@@ -105,10 +122,10 @@ En cas de problème : `lecture interrompue : …` (la page affiche le même mess
 affiché : …` (page ouverte sans appartenance au groupe : message neutre « Cette application n'est pas disponible pour
 votre compte. »), `onglet non affiché : …`, `portraits non lus : …`, `trombinoscope non ouvert depuis l'onglet : …`,
 `cadre du client introuvable …`, `sélection virtuelle refusée : …`. La version affichée en haut à droite
-(« v1.1.1 (UIX v1) ») dit quel paquet le client sert réellement.
+(« v1.1.2 (UIX v1) ») dit quel paquet le client sert réellement.
 
 **Mettre à jour** : incrémenter la version de `package.json`, reconstruire avec `node build.js` (le dossier versionné
-change, `v112`…, et le .zip est refait), réinstaller le .zip et redémarrer le client (cache).
+change, `v113`…, et le .zip est refait), réinstaller le .zip et redémarrer le client (cache).
 
 ## Données lues (liste blanche)
 
@@ -132,7 +149,9 @@ lus mais écartés avant l'affichage ; ni les uns ni les autres n'apparaissent n
 
 ## Limites connues
 
-- **Photos dans l'onglet seulement** : la grille et la liste du tableau de bord gardent l'avatar au trigramme. Formats
+- **Photos dans l'onglet, et à la demande dans la fiche du tableau de bord** : la grille et la liste gardent
+  l'avatar au trigramme. Dans la fiche, l'ouverture fait une recherche des documents de portrait de la personne (sans
+  télécharger) pour proposer le bouton ; la photo n'est lue qu'au clic. Formats
   affichés : JPEG, PNG, GIF, BMP, sans plafond de taille ; PDF (même s'il enveloppe une photo), JPEG 2000, WebP, HEIC,
   .msg… : avatar et note courte. D'après l'état du Cockpit (42 portraits servis : 29 jpg, 1 jpeg, 8 png, 4 pdf),
   environ **38 photos s'afficheront et 4 non** (les PDF), sauf document plus ancien affichable. Lecture en mémoire
@@ -171,7 +190,7 @@ npm install
 npm test                 tests node:test (règles, accès, accès COM simulé, portraits, présentateurs, module,
                          onglet, construction) et, sous Windows, le module rejoué dans cscript //E:jscript
 npm run lint             ESLint, ES5 pour src/
-node build.js            dist/appdef.xml, dist/v111/ et dist/trombinoscope-uixv1-1.1.1.zip
+node build.js            dist/appdef.xml, dist/v112/ et dist/trombinoscope-uixv1-1.1.2.zip
 node build.js --sans-zip (attention : supprime le .zip de dist/, ne pas commiter dans cet état)
 node tests/navigateur/preparer-essai.js   pages d'essai hors M-Files (tableau de bord et onglet, coffre simulé)
 node scripts/generer-icone.js             régénère src/icones/app.ico
@@ -202,6 +221,9 @@ tests/                            projet de tests séparé, non livré
 
 ## Journal des versions
 
+- **1.1.2** (13.10.2026) — fiche du tableau de bord : bouton « Afficher la photo » (si la personne a une photo
+  affichable), qui remplace le trigramme ; « Afficher le trigramme » pour revenir ; la photo ne suit pas la fiche
+  suivante.
 - **1.1.1** (13.10.2026) — groupe d'accès désigné par l'alias `tebifiles.group.trombinoscope`, résolu à l'exécution
   (`GetUserGroupIDByAlias`) : l'accès se règle dans M-Files Admin sans reconstruire ; plus aucun ID de groupe dans le
   paquet ; alias introuvable = personne n'a accès. Retour d'essai de la 1.1.0 : plus de plafond de taille des

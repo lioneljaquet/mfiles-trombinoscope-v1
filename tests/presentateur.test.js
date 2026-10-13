@@ -10,7 +10,7 @@ const { charger, simple } = require("./charger");
 const { creerCoffreCom, valeur } = require("./coffre-com-simule");
 
 const SOURCES = ["model/parametrage.js", "model/acces.js", "model/regles.js", "model/vault-com.js",
-    "presenter/trombinoscope.js"];
+    "model/portraits.js", "presenter/trombinoscope.js"];
 
 /**
  * Collaborateur fictif.
@@ -397,4 +397,100 @@ test("onglet (page) : un affichage refusé par le client devient un message disc
     p.demarrer();
     assert.doesNotThrow(() => vue.actions.filtrer("succursale", "Gland"));
     assert.strictEqual(vue.messages.length, 1);
+});
+
+/**
+ * Coffre fictif avec documents de portrait : 1 en JPEG, 2 en PDF seulement,
+ * 3 en JPEG illisible ; les autres sans document.
+ *
+ * @returns {Array} objets
+ */
+function objetsAvecPhotos() {
+    const doc = (id, personne, extension, plus) => Object.assign({
+        type: 0, id, titre: "Photo " + id, version: 2,
+        props: { 100: valeur.lookup(88, "!! Photo collaborateur"), 1077: valeur.lookup(personne, "x") },
+        fichiers: [{ id: id + 1000, version: 1, extension, taille: 9 * 1024 * 1024 }]
+    }, plus || {});
+    return objetsFictifs().concat([doc(901, 1, "jpg"), doc(902, 2, "pdf"), doc(903, 3, "jpg", { echecTelechargement: true })]);
+}
+
+/**
+ * Téléchargements de portrait faits par le coffre simulé.
+ *
+ * @param {object} c coffre simulé
+ * @returns {Array} appels DownloadFileAsDataURI
+ */
+function telechargements(c) {
+    return c.journal.appels.filter((a) => /^DownloadFileAsDataURI/.test(a));
+}
+
+test("photo (tableau de bord) : à l'ouverture de la fiche, on sait si une photo existe, sans la télécharger", () => {
+    const { p, vue, vider, c } = preparer({ objets: objetsAvecPhotos() });
+
+    p.demarrer();
+    vider();
+    assert.strictEqual(c.journal.appels.filter((a) => a === "GetFiles").length, 0, "rien n'est lu à l'ouverture de l'annuaire");
+    vue.actions.ouvrir(1);
+    assert.deepStrictEqual(simple(dernier(vue).fiche.photo), { disponible: true, affichee: false, dataUri: null });
+    assert.strictEqual(telechargements(c).length, 0);
+    vue.actions.ouvrir(2);
+    assert.strictEqual(dernier(vue).fiche.photo.disponible, false, "un PDF n'est pas une photo affichable");
+    vue.actions.ouvrir(4);
+    assert.strictEqual(dernier(vue).fiche.photo.disponible, false, "sans document");
+});
+
+test("photo (tableau de bord) : « Afficher la photo » la lit en mémoire et remplace le trigramme ; « Afficher le trigramme » revient", () => {
+    const { p, vue, vider, c } = preparer({ objets: objetsAvecPhotos() });
+
+    p.demarrer();
+    vider();
+    vue.actions.ouvrir(1);
+    vue.actions.afficherPhoto(1);
+    assert.deepStrictEqual(simple(dernier(vue).fiche.photo),
+        { disponible: true, affichee: true, dataUri: "data:image/jpeg;base64,QUJD" });
+    vue.actions.masquerPhoto(1);
+    assert.strictEqual(dernier(vue).fiche.photo.affichee, false);
+    assert.strictEqual(dernier(vue).fiche.photo.dataUri, null);
+});
+
+test("photo (tableau de bord) : la photo ne reste pas sur une autre personne ; revenir la relit du cache", () => {
+    const { p, vue, vider, c } = preparer({ objets: objetsAvecPhotos() });
+
+    p.demarrer();
+    vider();
+    vue.actions.ouvrir(1);
+    vue.actions.afficherPhoto(1);
+    vue.actions.voisine(1);
+    assert.notStrictEqual(dernier(vue).fiche.personne.id, 1);
+    assert.strictEqual(dernier(vue).fiche.photo.affichee, false);
+    vue.actions.voisine(-1);
+    assert.strictEqual(dernier(vue).fiche.personne.id, 1);
+    assert.strictEqual(dernier(vue).fiche.photo.affichee, false, "chaque fiche s'ouvre sur le trigramme");
+    vue.actions.afficherPhoto(1);
+    assert.strictEqual(dernier(vue).fiche.photo.affichee, true);
+    assert.strictEqual(telechargements(c).length, 1, "deuxième affichage pris dans le cache");
+});
+
+test("photo (tableau de bord) : un échec de lecture garde le trigramme, un message discret, jamais d'exception", () => {
+    const { p, vue, vider, ctx } = preparer({ objets: objetsAvecPhotos() });
+
+    p.demarrer();
+    vider();
+    vue.actions.ouvrir(3);
+    assert.strictEqual(dernier(vue).fiche.photo.disponible, true);
+    assert.doesNotThrow(() => vue.actions.afficherPhoto(3));
+    assert.strictEqual(dernier(vue).fiche.photo.affichee, false);
+    assert.strictEqual(vue.appels.filter((a) => a[0] === "message").length, 1);
+    assert.ok(ctx.__journal.some((l) => /portrait illisible/.test(l)));
+});
+
+test("photo (tableau de bord) : une recherche des portraits en échec à l'ouverture de la fiche ne la bloque pas", () => {
+    const { p, vue, vider, c } = preparer({ objets: objetsAvecPhotos() });
+
+    p.demarrer();
+    vider();
+    c.vault.ObjectSearchOperations.SearchForObjectsByConditionsEx = () => { throw new Error("coffre indisponible"); };
+    assert.doesNotThrow(() => vue.actions.ouvrir(1));
+    assert.strictEqual(dernier(vue).fiche.personne.id, 1);
+    assert.strictEqual(dernier(vue).fiche.photo.disponible, false);
 });

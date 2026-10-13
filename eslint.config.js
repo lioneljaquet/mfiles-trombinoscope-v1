@@ -39,7 +39,7 @@ module.exports = [
     { files: ["src/view/**/*.js"], languageOptions: { ...v1, globals: ro(navigateur.concat(["VERSION_PAQUET"])) },
       plugins: { security }, rules: regles },
     { files: ["src/presenter/trombinoscope.js"],
-      languageOptions: { ...v1, globals: ro(navigateur.concat(["acces", "regles", "coffre", "rendu", "PARAMETRAGE",
+      languageOptions: { ...v1, globals: ro(navigateur.concat(["acces", "regles", "coffre", "portraits", "rendu", "PARAMETRAGE",
           "PREFIXE_JOURNAL", "VERSION_PAQUET"])) },
       plugins: { security }, rules: regles },
     { files: ["src/presenter/shellui.js"],

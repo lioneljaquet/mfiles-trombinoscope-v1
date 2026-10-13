@@ -336,7 +336,7 @@ body.mode-onglet .fiche-corps { padding: 12px 14px; }
    professionnel (2823) n'est volontairement pas repris.
    ===================================================================== */
 
-var VERSION_PAQUET = "1.1.1 (UIX v1)";
+var VERSION_PAQUET = "1.1.2 (UIX v1)";
 var PREFIXE_JOURNAL = "[trombinoscope]";
 
 var MF = {
@@ -1768,6 +1768,168 @@ var coffre = (function () {
 
 </script>
 <script>
+/* exported portraits */
+/* =====================================================================
+   PORTRAITS \u2014 choix et lecture de la photo d'un collaborateur (ES5 ;
+   s'ex\u00e9cute aussi dans le moteur JScript du module, avec compat.js)
+
+   Couche model. R\u00e8gles reprises du Cockpit PRO
+   (cockpit_pro/model/portrait_library.py) : un collaborateur peut avoir
+   plusieurs documents \u00ab !! Photo collaborateur \u00bb ; on les essaie du plus
+   r\u00e9cent au plus ancien et on sert le premier qui donne une image.
+
+   Diff\u00e9rences avec le Cockpit : aucun fichier sur disque (le fichier est
+   lu en URI data: par DownloadFileAsDataURI et gard\u00e9 en m\u00e9moire), pas de
+   conversion d'image : seuls les formats que le contr\u00f4le web IE11 affiche
+   (JPEG, PNG, GIF, BMP) sont propos\u00e9s, sans plafond de taille (demande de
+   Lionel, 1.1.1). Une note courte n'est donn\u00e9e que si aucune image ne sert
+   et qu'un format non pris en charge en est la cause. Lecture seule.
+   ===================================================================== */
+
+var portraits = (function () {
+    "use strict";
+
+    // Seule forme accept\u00e9e : une image base64 d'un type que la page affiche
+    var MOTIF_DATA_URI = /^data:image\/(jpeg|png|gif|bmp);base64,[A-Za-z0-9+\/=\r\n]+$/;
+
+    /**
+     * Message lisible d'une erreur COM.
+     *
+     * @param {*} e erreur
+     * @returns {string} message
+     */
+    function messageDe(e) {
+        return (e && (e.message || e.description)) || String(e);
+    }
+
+    /**
+     * Vide le cache s'il a trop d'entr\u00e9es (les portraits sont lourds).
+     *
+     * @param {object} cache cache du cadre
+     * @returns {void}
+     */
+    function contenir(cache) {
+        var n = 0;
+        var cle;
+
+        for (cle in cache) {
+            if (cache.hasOwnProperty(cle)) {
+                n += 1;
+            }
+        }
+        if (n >= PARAMETRAGE.portrait.cacheMax) {
+            for (cle in cache) {
+                if (cache.hasOwnProperty(cle)) {
+                    delete cache[cle];
+                }
+            }
+        }
+    }
+
+    /**
+     * Note d'un portrait non affich\u00e9 \u00e0 cause de formats non pris en charge.
+     *
+     * @param {Array} formats extensions \u00e9cart\u00e9es, en majuscules, sans doublon
+     * @returns {string|null} \u00ab Portrait non affich\u00e9 : format PDF non pris en charge. \u00bb, ou null
+     */
+    function noteFormats(formats) {
+        if (!formats.length) {
+            return null;
+        }
+        return "Portrait non affich\u00e9 : " + (formats.length > 1 ? "formats " : "format ") +
+            (formats.length > 1 ? formats.slice(0, -1).join(", ") + " et " + formats[formats.length - 1] : formats[0]) +
+            " non pris en charge.";
+    }
+
+    /**
+     * Portrait d'un collaborateur : la premi\u00e8re image affichable de ses
+     * documents, du plus r\u00e9cent au plus ancien. Toute erreur est rattrap\u00e9e
+     * et journalis\u00e9e ; elle ne donne pas de note.
+     *
+     * @param {object} vault coffre COM
+     * @param {number} personneId ID du collaborateur
+     * @param {object} cache cache du cadre : URI par document, version et fichier
+     * @returns {object} { dataUri: texte ou null, note: texte ou null }
+     */
+    function portraitDe(vault, personneId, cache) {
+        var docs;
+        var formats = [];
+        var i;
+        var j;
+        var doc;
+        var f;
+        var format;
+        var cle;
+        var uri;
+
+        try {
+            docs = coffre.chercherPortraits(vault, personneId);
+        } catch (e) {
+            console.log(PREFIXE_JOURNAL + " portraits non lus : " + messageDe(e));
+            return { dataUri: null, note: null };
+        }
+
+        for (i = 0; i < docs.length; i += 1) {
+            doc = docs[i];
+            for (j = 0; j < doc.fichiers.length; j += 1) {
+                f = doc.fichiers[j];
+                if (!PARAMETRAGE.portrait.formats.hasOwnProperty(f.extension)) {
+                    format = (f.extension || "sans extension").toUpperCase();
+                    if (formats.indexOf(format) < 0) {
+                        formats.push(format);
+                    }
+                    continue;
+                }
+                // M\u00eame document, m\u00eame version, m\u00eame fichier : d\u00e9j\u00e0 en m\u00e9moire
+                cle = doc.id + "-" + doc.objVer.Version + "-" + f.id + "-" + f.version;
+                if (cache.hasOwnProperty(cle)) {
+                    return { dataUri: cache[cle], note: null };
+                }
+                try {
+                    uri = coffre.lireDataUri(vault, doc.objVer, f.id, f.version);
+                } catch (e) {
+                    console.log(PREFIXE_JOURNAL + " portrait illisible (document " + doc.id + ") : " + messageDe(e));
+                    continue;
+                }
+                if (!MOTIF_DATA_URI.test(uri)) {
+                    console.log(PREFIXE_JOURNAL + " portrait \u00e9cart\u00e9 (document " + doc.id + ") : pas une image JPEG, PNG, GIF ou BMP");
+                    continue;
+                }
+                contenir(cache);
+                cache[cle] = uri;
+                return { dataUri: uri, note: null };
+            }
+        }
+        return { dataUri: null, note: noteFormats(formats) };
+    }
+
+    /**
+     * Vrai si le collaborateur a au moins un fichier de portrait dans un
+     * format affichable, sans rien t\u00e9l\u00e9charger : une recherche et la liste
+     * des fichiers de ses documents (GetFiles). Toute erreur vaut \u00ab non \u00bb.
+     *
+     * @param {object} vault coffre COM
+     * @param {number} personneId ID du collaborateur
+     * @returns {boolean} une photo peut \u00eatre propos\u00e9e
+     */
+    function photoDisponible(vault, personneId) {
+        try {
+            return coffre.chercherPortraits(vault, personneId).some(function (doc) {
+                return doc.fichiers.some(function (f) {
+                    return PARAMETRAGE.portrait.formats.hasOwnProperty(f.extension);
+                });
+            });
+        } catch (e) {
+            console.log(PREFIXE_JOURNAL + " portraits non lus : " + messageDe(e));
+            return false;
+        }
+    }
+
+    return { portraitDe: portraitDe, photoDisponible: photoDisponible, MOTIF_DATA_URI: MOTIF_DATA_URI };
+}());
+
+</script>
+<script>
 /* exported rendu */
 /* =====================================================================
    RENDU DE LA PAGE \u2014 couche view (ES5, contr\u00f4le web IE11)
@@ -2081,7 +2243,13 @@ var rendu = (function () {
                 el("div", { classe: "fiche-actions" }, [
                     f.dansMFiles ? el("button", { classe: "bouton bouton-primaire", texte: "Afficher la fiche M-Files",
                         attrs: { type: "button", "data-action": "mfiles", "data-id": p.id,
-                            title: "Affiche les propri\u00e9t\u00e9s du collaborateur dans le volet de droite du client" } }) : null
+                            title: "Affiche les propri\u00e9t\u00e9s du collaborateur dans le volet de droite du client" } }) : null,
+                    // Tableau de bord seulement (l'onglet montre la photo d'office) : propos\u00e9 s'il existe une photo affichable
+                    f.photo && f.photo.disponible ? el("button", { classe: "bouton bouton-secondaire",
+                        texte: f.photo.affichee ? "Afficher le trigramme" : "Afficher la photo",
+                        attrs: { type: "button", "data-action": f.photo.affichee ? "trigramme" : "photo", "data-id": p.id,
+                            title: f.photo.affichee ? "Revient au rond avec le trigramme" :
+                                "Remplace le rond avec le trigramme par la photo de M-Files" } }) : null
                 ])
             ];
         }
@@ -2184,7 +2352,8 @@ var rendu = (function () {
             basculer($("fiche"), "est-ouverte", ficheOuverte);
             vider($("ficheCorps"));
             if (m.fiche) {
-                contenuFiche(m.fiche).forEach(function (e) {
+                contenuFiche(m.fiche, m.fiche.photo && m.fiche.photo.affichee ?
+                    { dataUri: m.fiche.photo.dataUri, note: null } : null).forEach(function (e) {
                     if (e) {
                         $("ficheCorps").appendChild(e);
                     }
@@ -2360,6 +2529,8 @@ var rendu = (function () {
                     actions.reinitialiser();
                     break;
                 case "mfiles": actions.afficherDansMFiles(Number(e.getAttribute("data-id"))); break;
+                case "photo": actions.afficherPhoto(Number(e.getAttribute("data-id"))); break;
+                case "trigramme": actions.masquerPhoto(); break;
                 default: break;
                 }
             } else if ((e = porteur(cible, "data-filtre"))) {
@@ -2458,6 +2629,12 @@ var presentateur = (function () {
         var ouverte = null;
         var annuaire = null;
         var objVers = {};
+        // Photos du volet lat\u00e9ral : disponibilit\u00e9 par personne (vue \u00e0 l'ouverture
+        // de sa fiche), personne dont la photo est affich\u00e9e, URI lues, cache
+        var photoDe = {};
+        var photoAffichee = null;
+        var photoUri = {};
+        var cachePhotos = {};
         // Num\u00e9ro de la lecture en cours : une lecture relanc\u00e9e arr\u00eate la pr\u00e9c\u00e9dente
         var lectureEnCours = 0;
         var vue = null;
@@ -2492,6 +2669,11 @@ var presentateur = (function () {
                 fiche = regles.ficheDe(annuaire, ouverte);
                 if (fiche) {
                     fiche.dansMFiles = Boolean(services.cadre && objVers.hasOwnProperty(ouverte));
+                    fiche.photo = {
+                        disponible: Boolean(photoDe[ouverte]),
+                        affichee: photoAffichee === ouverte,
+                        dataUri: photoAffichee === ouverte ? photoUri[ouverte] : null
+                    };
                 }
             }
 
@@ -2540,10 +2722,27 @@ var presentateur = (function () {
                 if (a.filtre && regles.FACETTES.hasOwnProperty(a.filtre.cle)) {
                     etat[a.filtre.cle] = String(a.filtre.valeur);
                 } else if (a.ouvrir !== undefined && a.ouvrir !== null && annuaire.parId.hasOwnProperty(a.ouvrir)) {
-                    ouverte = Number(a.ouvrir);
+                    changerFiche(Number(a.ouvrir));
                 }
             } catch (e) {
                 console.log(PREFIXE_JOURNAL + " action du lien ignor\u00e9e : " + messageDe(e));
+            }
+        }
+
+        /**
+         * Change la fiche ouverte. Chaque fiche s'ouvre sur le trigramme : la
+         * photo affich\u00e9e pour une personne ne reste jamais sur une autre. On
+         * regarde alors (une fois par personne, sans t\u00e9l\u00e9charger) si une
+         * photo peut \u00eatre propos\u00e9e.
+         *
+         * @param {number|null} id personne, ou null pour fermer
+         * @returns {void}
+         */
+        function changerFiche(id) {
+            ouverte = id;
+            photoAffichee = null;
+            if (id !== null && !photoDe.hasOwnProperty(id)) {
+                photoDe[id] = portraits.photoDisponible(services.vault, id);
             }
         }
 
@@ -2766,12 +2965,43 @@ var presentateur = (function () {
              * @returns {void}
              */
             ouvrir: function (id) {
-                ouverte = annuaire && annuaire.parId.hasOwnProperty(id) ? Number(id) : null;
+                changerFiche(annuaire && annuaire.parId.hasOwnProperty(id) ? Number(id) : null);
                 rendre();
             },
             /** Ferme la fiche. @returns {void} */
             fermer: function () {
-                ouverte = null;
+                changerFiche(null);
+                rendre();
+            },
+            /**
+             * \u00ab Afficher la photo \u00bb : lit la photo en m\u00e9moire (cache) et la
+             * met \u00e0 la place du trigramme ; un \u00e9chec garde le trigramme.
+             * @param {number} id personne de la fiche ouverte
+             * @returns {void}
+             */
+            afficherPhoto: function (id) {
+                var r;
+
+                if (Number(id) !== ouverte) {
+                    return;
+                }
+                r = portraits.portraitDe(services.vault, ouverte, cachePhotos);
+                if (r.dataUri) {
+                    photoUri[ouverte] = r.dataUri;
+                    photoAffichee = ouverte;
+                } else {
+                    console.log(PREFIXE_JOURNAL + " photo non affich\u00e9e (collaborateur " + ouverte + ")" +
+                        (r.note ? " : " + r.note : ""));
+                    vue.message("La photo n'a pas pu \u00eatre lue.");
+                }
+                rendre();
+            },
+            /**
+             * \u00ab Afficher le trigramme \u00bb : revient au trigramme (la photo reste en cache).
+             * @returns {void}
+             */
+            masquerPhoto: function () {
+                photoAffichee = null;
                 rendre();
             },
             /**
@@ -2785,7 +3015,7 @@ var presentateur = (function () {
 
                 for (i = 0; i < liste.length; i += 1) {
                     if (liste[i].id === ouverte && liste[i + sens]) {
-                        ouverte = liste[i + sens].id;
+                        changerFiche(liste[i + sens].id);
                         rendre();
                         return;
                     }

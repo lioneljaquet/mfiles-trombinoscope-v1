@@ -58,6 +58,12 @@ var presentateur = (function () {
         var ouverte = null;
         var annuaire = null;
         var objVers = {};
+        // Photos du volet lat\u00e9ral : disponibilit\u00e9 par personne (vue \u00e0 l'ouverture
+        // de sa fiche), personne dont la photo est affich\u00e9e, URI lues, cache
+        var photoDe = {};
+        var photoAffichee = null;
+        var photoUri = {};
+        var cachePhotos = {};
         // Num\u00e9ro de la lecture en cours : une lecture relanc\u00e9e arr\u00eate la pr\u00e9c\u00e9dente
         var lectureEnCours = 0;
         var vue = null;
@@ -92,6 +98,11 @@ var presentateur = (function () {
                 fiche = regles.ficheDe(annuaire, ouverte);
                 if (fiche) {
                     fiche.dansMFiles = Boolean(services.cadre && objVers.hasOwnProperty(ouverte));
+                    fiche.photo = {
+                        disponible: Boolean(photoDe[ouverte]),
+                        affichee: photoAffichee === ouverte,
+                        dataUri: photoAffichee === ouverte ? photoUri[ouverte] : null
+                    };
                 }
             }
 
@@ -140,10 +151,27 @@ var presentateur = (function () {
                 if (a.filtre && regles.FACETTES.hasOwnProperty(a.filtre.cle)) {
                     etat[a.filtre.cle] = String(a.filtre.valeur);
                 } else if (a.ouvrir !== undefined && a.ouvrir !== null && annuaire.parId.hasOwnProperty(a.ouvrir)) {
-                    ouverte = Number(a.ouvrir);
+                    changerFiche(Number(a.ouvrir));
                 }
             } catch (e) {
                 console.log(PREFIXE_JOURNAL + " action du lien ignor\u00e9e : " + messageDe(e));
+            }
+        }
+
+        /**
+         * Change la fiche ouverte. Chaque fiche s'ouvre sur le trigramme : la
+         * photo affich\u00e9e pour une personne ne reste jamais sur une autre. On
+         * regarde alors (une fois par personne, sans t\u00e9l\u00e9charger) si une
+         * photo peut \u00eatre propos\u00e9e.
+         *
+         * @param {number|null} id personne, ou null pour fermer
+         * @returns {void}
+         */
+        function changerFiche(id) {
+            ouverte = id;
+            photoAffichee = null;
+            if (id !== null && !photoDe.hasOwnProperty(id)) {
+                photoDe[id] = portraits.photoDisponible(services.vault, id);
             }
         }
 
@@ -366,12 +394,43 @@ var presentateur = (function () {
              * @returns {void}
              */
             ouvrir: function (id) {
-                ouverte = annuaire && annuaire.parId.hasOwnProperty(id) ? Number(id) : null;
+                changerFiche(annuaire && annuaire.parId.hasOwnProperty(id) ? Number(id) : null);
                 rendre();
             },
             /** Ferme la fiche. @returns {void} */
             fermer: function () {
-                ouverte = null;
+                changerFiche(null);
+                rendre();
+            },
+            /**
+             * \u00ab Afficher la photo \u00bb : lit la photo en m\u00e9moire (cache) et la
+             * met \u00e0 la place du trigramme ; un \u00e9chec garde le trigramme.
+             * @param {number} id personne de la fiche ouverte
+             * @returns {void}
+             */
+            afficherPhoto: function (id) {
+                var r;
+
+                if (Number(id) !== ouverte) {
+                    return;
+                }
+                r = portraits.portraitDe(services.vault, ouverte, cachePhotos);
+                if (r.dataUri) {
+                    photoUri[ouverte] = r.dataUri;
+                    photoAffichee = ouverte;
+                } else {
+                    console.log(PREFIXE_JOURNAL + " photo non affich\u00e9e (collaborateur " + ouverte + ")" +
+                        (r.note ? " : " + r.note : ""));
+                    vue.message("La photo n'a pas pu \u00eatre lue.");
+                }
+                rendre();
+            },
+            /**
+             * \u00ab Afficher le trigramme \u00bb : revient au trigramme (la photo reste en cache).
+             * @returns {void}
+             */
+            masquerPhoto: function () {
+                photoAffichee = null;
                 rendre();
             },
             /**
@@ -385,7 +444,7 @@ var presentateur = (function () {
 
                 for (i = 0; i < liste.length; i += 1) {
                     if (liste[i].id === ouverte && liste[i + sens]) {
-                        ouverte = liste[i + sens].id;
+                        changerFiche(liste[i + sens].id);
                         rendre();
                         return;
                     }

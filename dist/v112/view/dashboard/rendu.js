@@ -311,7 +311,13 @@ var rendu = (function () {
                 el("div", { classe: "fiche-actions" }, [
                     f.dansMFiles ? el("button", { classe: "bouton bouton-primaire", texte: "Afficher la fiche M-Files",
                         attrs: { type: "button", "data-action": "mfiles", "data-id": p.id,
-                            title: "Affiche les propri\u00e9t\u00e9s du collaborateur dans le volet de droite du client" } }) : null
+                            title: "Affiche les propri\u00e9t\u00e9s du collaborateur dans le volet de droite du client" } }) : null,
+                    // Tableau de bord seulement (l'onglet montre la photo d'office) : propos\u00e9 s'il existe une photo affichable
+                    f.photo && f.photo.disponible ? el("button", { classe: "bouton bouton-secondaire",
+                        texte: f.photo.affichee ? "Afficher le trigramme" : "Afficher la photo",
+                        attrs: { type: "button", "data-action": f.photo.affichee ? "trigramme" : "photo", "data-id": p.id,
+                            title: f.photo.affichee ? "Revient au rond avec le trigramme" :
+                                "Remplace le rond avec le trigramme par la photo de M-Files" } }) : null
                 ])
             ];
         }
@@ -414,7 +420,8 @@ var rendu = (function () {
             basculer($("fiche"), "est-ouverte", ficheOuverte);
             vider($("ficheCorps"));
             if (m.fiche) {
-                contenuFiche(m.fiche).forEach(function (e) {
+                contenuFiche(m.fiche, m.fiche.photo && m.fiche.photo.affichee ?
+                    { dataUri: m.fiche.photo.dataUri, note: null } : null).forEach(function (e) {
                     if (e) {
                         $("ficheCorps").appendChild(e);
                     }
@@ -590,6 +597,8 @@ var rendu = (function () {
                     actions.reinitialiser();
                     break;
                 case "mfiles": actions.afficherDansMFiles(Number(e.getAttribute("data-id"))); break;
+                case "photo": actions.afficherPhoto(Number(e.getAttribute("data-id"))); break;
+                case "trigramme": actions.masquerPhoto(); break;
                 default: break;
                 }
             } else if ((e = porteur(cible, "data-filtre"))) {

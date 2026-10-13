@@ -133,5 +133,27 @@ var portraits = (function () {
         return { dataUri: null, note: noteFormats(formats) };
     }
 
-    return { portraitDe: portraitDe, MOTIF_DATA_URI: MOTIF_DATA_URI };
+    /**
+     * Vrai si le collaborateur a au moins un fichier de portrait dans un
+     * format affichable, sans rien t\u00e9l\u00e9charger : une recherche et la liste
+     * des fichiers de ses documents (GetFiles). Toute erreur vaut \u00ab non \u00bb.
+     *
+     * @param {object} vault coffre COM
+     * @param {number} personneId ID du collaborateur
+     * @returns {boolean} une photo peut \u00eatre propos\u00e9e
+     */
+    function photoDisponible(vault, personneId) {
+        try {
+            return coffre.chercherPortraits(vault, personneId).some(function (doc) {
+                return doc.fichiers.some(function (f) {
+                    return PARAMETRAGE.portrait.formats.hasOwnProperty(f.extension);
+                });
+            });
+        } catch (e) {
+            console.log(PREFIXE_JOURNAL + " portraits non lus : " + messageDe(e));
+            return false;
+        }
+    }
+
+    return { portraitDe: portraitDe, photoDisponible: photoDisponible, MOTIF_DATA_URI: MOTIF_DATA_URI };
 }());
