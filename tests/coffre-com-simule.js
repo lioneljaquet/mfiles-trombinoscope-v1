@@ -60,7 +60,10 @@ function typedValueLue(valeur) {
  * @param {object} [options] { objets: [{ type, id, titre, supprime, props: { id: { type, valeur } } }],
  *     limiteServeur: plafond de résultats, guid,
  *     session: { utilisateur, groupes: ID des groupes directs, parents: { groupe: [groupes qui le contiennent] },
- *     echec: lecture de SessionInfo en échec } }
+ *     echec: lecture de SessionInfo en échec ; sans « parents », SI - membres primaires (3524) est
+ *     membre du groupe « Trombinoscope » (7001), comme dans le coffre réel },
+ *     aliasGroupes: { alias: ID } (par défaut tebifiles.group.trombinoscope → 7001),
+ *     echecAlias: GetUserGroupIDByAlias lève }
  *     Un document porte en plus { version, fichiers: [{ id, version, extension, taille }],
  *     echecTelechargement, mimeForce } pour GetFiles et DownloadFileAsDataURI.
  * @returns {object} { MFiles, vault, journal, cadre }
@@ -154,11 +157,12 @@ function creerCoffreCom(options) {
     function appartenances(s) {
         const groupes = [];
         const aVoir = (s.groupes || []).slice();
+        const parents = s.parents || { 3524: [7001] };
         while (aVoir.length) {
             const g = aVoir.shift();
             if (groupes.indexOf(g) < 0) {
                 groupes.push(g);
-                aVoir.push(...((s.parents || {})[g] || []));
+                aVoir.push(...(parents[g] || []));
             }
         }
         const elements = [{ UserOrGroupID: s.utilisateur || 7, UserOrGroupType: 1 }]
@@ -174,7 +178,16 @@ function creerCoffreCom(options) {
         return c;
     }
 
+    const aliasGroupes = opts.aliasGroupes || { "tebifiles.group.trombinoscope": 7001 };
+
     const vault = {
+        UserGroupOperations: {
+            GetUserGroupIDByAlias(alias) {
+                journal.appels.push("GetUserGroupIDByAlias:" + alias);
+                if (opts.echecAlias) { throw new Error("alias illisible"); }
+                return Object.prototype.hasOwnProperty.call(aliasGroupes, alias) ? aliasGroupes[alias] : -1;
+            }
+        },
         get SessionInfo() {
             journal.appels.push("SessionInfo");
             const s = opts.session || {};

@@ -44,7 +44,7 @@ function cadre(nom, options) {
 /**
  * Charge le module avec deux cadres : A normal, B dialogue.
  *
- * @param {object} [session] session simulée (par défaut : membre direct du groupe 3524)
+ * @param {object} [session] session simulée (par défaut : dans SI - membres primaires, membre du groupe d'accès)
  * @returns {object} { a, b, affichages, journal }
  */
 function deuxCadres(session) {
@@ -95,7 +95,7 @@ test("module : une boîte de dialogue (sans volet des tâches) ne fait pas écho
 });
 
 test("accès : membre par un groupe imbriqué, la commande est posée", () => {
-    const { a } = deuxCadres({ groupes: [10], parents: { 10: [3524] } });
+    const { a } = deuxCadres({ groupes: [10], parents: { 10: [3524], 3524: [7001] } });
 
     assert.strictEqual(a._h.libelle, "Trombinoscope");
 });
@@ -105,7 +105,31 @@ test("accès : un non-membre ne reçoit pas la commande, et le journal dit pourq
 
     assert.strictEqual(a._h.libelle, undefined);
     assert.strictEqual(b._h.libelle, undefined);
-    assert.ok(journal.some((l) => /\[trombinoscope\] commande non ajoutée : l'utilisateur n'est pas membre du groupe 3524/.test(l)));
+    assert.ok(journal.some((l) => /\[trombinoscope\] commande non ajoutée : l'utilisateur n'est pas membre du groupe tebifiles\.group\.trombinoscope/.test(l)));
+});
+
+test("accès : groupe d'accès introuvable (alias absent du coffre), ni commande ni onglet", () => {
+    const options = { prochain: { n: 100 }, affichages: [] };
+    const c = creerCoffreCom({ session: { groupes: [3524] }, aliasGroupes: {} });
+    const ctx = charger(["model/compat.js", "model/parametrage.js", "model/acces.js", "model/regles.js",
+        "model/vault-com.js", "model/portraits.js", "presenter/onglet.js", "presenter/shellui.js"], EVENEMENTS);
+    const a = cadre("A", options);
+
+    ctx.OnNewShellUI({ Vault: c.vault, Events: { Register(e, cb) { cb(a); } } });
+    assert.strictEqual(a._h.libelle, undefined);
+    assert.ok(ctx.__journal.some((l) =>
+        l === "[trombinoscope] commande non ajoutée : groupe d'accès introuvable : alias tebifiles.group.trombinoscope"));
+});
+
+test("construction : refuse un alias de groupe vide ou mal formé", () => {
+    ["", "trombinoscope", "tebifiles..group", "tebifiles.group.trombi noscope"].forEach((alias) => {
+        const tmp = copieDuDepot();
+        const p = path.join(tmp, "src", "model", "parametrage.js");
+        fs.writeFileSync(p, fs.readFileSync(p, "utf8").replace(/groupeAutorise: "[^"]*"/, () => "groupeAutorise: \"" + alias + "\""));
+
+        assert.throws(() => execFileSync("node", [path.join(tmp, "build.js"), "9.9.9", "--sans-zip"], { stdio: "pipe" }),
+            /alias du groupe d'accès/, "alias accepté à tort : " + alias);
+    });
 });
 
 test("accès : appartenance illisible, pas de commande (échec fermé)", () => {
@@ -134,15 +158,6 @@ test("construction : refuse un script non ES5", () => {
 
     assert.throws(() => execFileSync("node", [path.join(tmp, "build.js"), "9.9.9", "--sans-zip"], { stdio: "pipe" }),
         /non ES5/);
-});
-
-test("construction : refuse un groupe autorisé non renseigné", () => {
-    const tmp = copieDuDepot();
-    const p = path.join(tmp, "src", "model", "parametrage.js");
-    fs.writeFileSync(p, fs.readFileSync(p, "utf8").replace(/groupeAutorise: \d+/, "groupeAutorise: 0"));
-
-    assert.throws(() => execFileSync("node", [path.join(tmp, "build.js"), "9.9.9", "--sans-zip"], { stdio: "pipe" }),
-        /groupe autorisé/);
 });
 
 test("construction : page autonome, jetons remplis, manifeste à la racine", () => {

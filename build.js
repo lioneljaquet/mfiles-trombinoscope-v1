@@ -88,18 +88,20 @@ function verifierEs5(code, nom) {
 }
 
 /**
- * Refuse de livrer sans groupe autorisé : l'application est réservée à un
- * groupe d'utilisateurs M-Files (src/model/parametrage.js), et un ID non
- * renseigné fermerait l'application à tous sans le dire.
+ * Refuse de livrer sans alias de groupe d'accès bien formé : l'application
+ * est réservée au groupe d'utilisateurs M-Files qui porte cet alias
+ * (src/model/parametrage.js), et un alias vide ou mal formé la fermerait à
+ * tous sans le dire. Même motif que model/acces.js.
  *
  * @returns {void}
  */
 function verifierGroupe() {
     const ctx = vm.createContext({ console });
     vm.runInContext(fs.readFileSync(path.join(SRC, "model", "parametrage.js"), "utf8"), ctx);
-    const groupe = ctx.PARAMETRAGE && ctx.PARAMETRAGE.groupeAutorise;
-    if (!Number.isInteger(groupe) || groupe <= 0) {
-        throw new Error("groupe autorisé non renseigné dans src/model/parametrage.js : " + groupe);
+    vm.runInContext(fs.readFileSync(path.join(SRC, "model", "acces.js"), "utf8"), ctx);
+    const alias = ctx.PARAMETRAGE && ctx.PARAMETRAGE.groupeAutorise;
+    if (typeof alias !== "string" || !ctx.acces.MOTIF_ALIAS.test(alias)) {
+        throw new Error("alias du groupe d'accès vide ou mal formé dans src/model/parametrage.js : « " + alias + " »");
     }
 }
 

@@ -178,13 +178,17 @@ var MFiles = {
 /**
  * Coffre simulé pour une session.
  *
- * @param {boolean} membre vrai si l'utilisateur est du groupe 3524
+ * @param {boolean} membre vrai si l'utilisateur est du groupe d'accès (ID fictif 7001)
+ * @param {boolean} [sansAlias] vrai si l'alias du groupe n'existe pas dans le coffre
  * @returns {object} vault
  */
-function coffreSimule(membre) {
+function coffreSimule(membre, sansAlias) {
     return {
+        UserGroupOperations: { GetUserGroupIDByAlias: function (alias) {
+            return !sansAlias && alias === "tebifiles.group.trombinoscope" ? 7001 : -1;
+        } },
         SessionInfo: { UserAndGroupMemberships: { GetUserOrUserGroupIDIndex: function (id, type) {
-            return membre && id === 3524 && type === 2 ? 2 : -1;
+            return membre && id === 7001 && type === 2 ? 2 : -1;
         } } },
         ObjectSearchOperations: { SearchForObjectsByConditionsEx: function (conditions) {
             var trouves = [];
@@ -255,11 +259,12 @@ function cadreSimule() {
  * Lance OnNewShellUI sur un cadre.
  *
  * @param {boolean} membre appartenance au groupe
+ * @param {boolean} [sansAlias] alias du groupe absent du coffre
  * @returns {object} cadre simulé
  */
-function demarrer(membre) {
+function demarrer(membre, sansAlias) {
     var f = cadreSimule();
-    OnNewShellUI({ Vault: coffreSimule(membre), Events: { Register: function (e, cb) { cb(f); } } });
+    OnNewShellUI({ Vault: coffreSimule(membre, sansAlias), Events: { Register: function (e, cb) { cb(f); } } });
     return f;
 }
 
@@ -307,6 +312,13 @@ try {
     var autre = demarrer(false);
     verifier(autre.j.commandes === 0, "non-membre : commande créée");
     verifier(autre.j.selection === null && autre.j.onglets.length === 0, "non-membre : sélection suivie");
+
+    console.lignes = [];
+    var sansGroupe = demarrer(true, true);
+    verifier(sansGroupe.j.commandes === 0 && sansGroupe.j.selection === null, "alias absent : commande ou onglet posé");
+    // Texte ASCII seulement : cscript lit ce fichier en ANSI, les sources du module en UTF-8
+    verifier(/commande non ajout.+introuvable : alias tebifiles\.group\.trombinoscope$/.test(console.lignes.join("|")),
+        "alias absent : ligne de console manquante (" + console.lignes.join(" | ") + ")");
 } catch (e) {
     erreurs.push("exception : " + (e.message || e.description || e));
 }
