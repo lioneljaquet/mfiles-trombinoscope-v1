@@ -5,15 +5,15 @@
     Ordre imposé par le schéma : <files> APRÈS <required-mfiles-version>
     et AVANT <platforms>. Toute ressource chargée par une page (image,
     icône) doit y figurer, sinon elle n'est jamais servie.
-    GUID distinct de la version v2 : les deux paquets cohabitent.
+    GUID propre à ce paquet (aucune version v2 à ce jour).
 -->
 <application xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:noNamespaceSchemaLocation="http://www.m-files.com/schemas/appdef-client-v4.xsd">
 
-    <guid>00000000-0000-0000-0000-000000000001</guid>
-    <name>Mon application (UIX v1)</name>
+    <guid>dc30b326-fec0-4189-8c3b-898b28db3225</guid>
+    <name>Trombinoscope tebicom (UIX v1)</name>
     <version>{VERSION}</version>
-    <description>À décrire. Client classique.</description>
+    <description>Trombinoscope des collaborateurs (étapes En fonction et Offboarding), lu directement dans le coffre. Lecture seule. Client classique.</description>
     <publisher>tebicom SA</publisher>
     <copyright>(c) tebicom SA 2026</copyright>
     <required-mfiles-version>20.12.0.0</required-mfiles-version>
@@ -36,7 +36,7 @@
     </modules>
 
     <dashboards>
-        <dashboard id="mon-dashboard">
+        <dashboard id="trombinoscope">
             <content>{DOSSIER}/view/dashboard/index.html</content>
             <allow-selection>true</allow-selection>
         </dashboard>

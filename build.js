@@ -10,13 +10,20 @@
    4. REFUSE de livrer si un script n'est pas de l'ES5 valide, ou si deux
       scripts d'une même page déclarent le même nom global.
 
-   Usage : node build.js 1.0.0
+   5. empaquette dist/ en trombinoscope-uixv1-X.Y.Z.zip, appdef.xml à la
+      racine (tar.exe de Windows, ou zip ailleurs), sauf --sans-zip.
+
+   Usage : node build.js [X.Y.Z] [--sans-zip]
+           (version par défaut : celle de package.json)
    ===================================================================== */
 const fs = require("fs");
 const path = require("path");
+const { execFileSync } = require("child_process");
 const acorn = require("acorn");
 
-const VERSION = process.argv[2] || "1.0.0";
+const ARGS = process.argv.slice(2);
+const VERSION = ARGS.filter((a) => !a.startsWith("--"))[0] || require("./package.json").version;
+const SANS_ZIP = ARGS.indexOf("--sans-zip") >= 0;
 const DOSSIER = "v" + VERSION.replace(/\./g, "");
 const SRC = path.join(__dirname, "src");
 const DIST = path.join(__dirname, "dist");
@@ -126,3 +133,24 @@ fs.rmSync(path.join(CIBLE, "appdef.xml"));
 })(CIBLE);
 
 console.log("paquet construit : dist/ (dossier " + DOSSIER + ")");
+
+/**
+ * Empaquette dist/ : appdef.xml et le dossier versionné à la racine de
+ * l'archive, chemins à barres obliques (Compress-Archive de Windows
+ * PowerShell 5.1 écrirait des barres inverses).
+ *
+ * @returns {string} nom de l'archive créée dans dist/
+ */
+function empaqueter() {
+    const nom = "trombinoscope-uixv1-" + VERSION + ".zip";
+    const windows = process.platform === "win32";
+    const outil = windows ? path.join(process.env.SystemRoot || "C:\\Windows", "System32", "tar.exe") : "zip";
+    const args = windows ? ["-a", "-c", "-f", nom, "appdef.xml", DOSSIER] : ["-r", nom, "appdef.xml", DOSSIER];
+
+    execFileSync(outil, args, { cwd: DIST, stdio: "inherit" });
+    return nom;
+}
+
+if (!SANS_ZIP) {
+    console.log("archive : dist/" + empaqueter());
+}
