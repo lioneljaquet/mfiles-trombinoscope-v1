@@ -23,6 +23,8 @@
         </div>
     </header>
 
+    <p id="bandeau" class="bandeau"></p>
+
     <section id="controles" class="controles" aria-label="Recherche et filtres">
         <div class="ligne">
             <div class="recherche">
@@ -42,13 +44,11 @@
                     <option value="titre">Titre</option>
                     <option value="succursale">Succursale</option>
                     <option value="cercle">Cercle/rôle</option>
-                    <option value="etape">Étape</option>
                 </select>
             </label>
         </div>
         <div id="cercles" class="pastilles" role="group" aria-label="Filtrer par cercle"></div>
         <div class="ligne facettes">
-            <label class="facette">Étape <select data-facette="etape"></select></label>
             <label class="facette">Succursale <select data-facette="succursale"></select></label>
             <label class="facette">Titre <select data-facette="titre"></select></label>
             <label class="facette">Fonction <select data-facette="fonction"></select></label>

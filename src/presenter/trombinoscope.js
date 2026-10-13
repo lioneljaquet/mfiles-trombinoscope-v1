@@ -17,7 +17,8 @@ var presentateur = (function () {
     "use strict";
 
     var VUES = ["grille", "liste"];
-    var TRIS = ["nom", "prenom", "titre", "succursale", "cercle", "etape"];
+    // Pas de tri par étape : l'étape n'apparaît nulle part (docs/adr/0005)
+    var TRIS = ["nom", "prenom", "titre", "succursale", "cercle"];
     // Fonctions montrées sur une carte ; les autres se résument en « +n »
     var FONCTIONS_MONTREES = 2;
 
@@ -132,8 +133,10 @@ var presentateur = (function () {
                 compteur: regles.filtreActif(etat) ? personnes(liste.length) + " sur " + total : personnes(total),
                 personnes: liste.map(pourVue),
                 facettes: facettes,
-                etat: { q: etat.q, cercle: etat.cercle, etape: etat.etape, succursale: etat.succursale,
+                etat: { q: etat.q, cercle: etat.cercle, succursale: etat.succursale,
                     titre: etat.titre, fonction: etat.fonction },
+                // Même mention que l'export du Cockpit (model/export_page.py)
+                bandeau: "Données internes : collaborateurs rattachés à un cercle (" + personnes(total) + ").",
                 filtreActif: regles.filtreActif(etat),
                 affichage: { vue: affichage.vue, tri: affichage.tri },
                 fiche: fiche,
@@ -310,7 +313,7 @@ var presentateur = (function () {
             },
             /**
              * Pose ou retire le filtre d'une facette ; une clé inconnue est ignorée.
-             * @param {string} cle facette (cercle, etape, succursale, titre, fonction)
+             * @param {string} cle facette (cercle, succursale, titre, fonction)
              * @param {string} valeur valeur retenue, regles.AUCUN, ou "" pour retirer
              * @returns {void}
              */

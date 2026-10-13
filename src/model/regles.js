@@ -4,7 +4,13 @@
 
    Des fiches Collaborateur et des objets Cercle/rôle déjà réduits à la
    liste blanche (vault-com.js), ce module construit l'annuaire que la
-   page affiche, puis filtre, cherche et trie. Aucun DOM, aucun accès au
+   page affiche, puis filtre, cherche et trie.
+
+   Population limitée comme l'export autonome du Cockpit (ADR 0013 du
+   Cockpit, docs/adr/0005) : seules les personnes rattachées à un cercle
+   de l'organisation ; l'étape de workflow ne sert qu'à l'inclusion et
+   n'apparaît nulle part (ni clé, ni filtre, ni tri) ; un responsable
+   exclu est remplacé par le premier responsable retenu au-dessus. Aucun DOM, aucun accès au
    coffre : tout ce qui se teste sans M-Files est ici. Règles reprises du
    Cockpit PRO (model/directory.py, model/organization.py,
    model/titles.py, trombinoscope/model/directory.js).
@@ -244,7 +250,6 @@ var regles = (function () {
     function personneDe(fiche) {
         var prenom = casseAffichage(fiche.prenom);
         var nom = casseAffichage(fiche.nom);
-        var etape = etapeListee(fiche.etape);
         var fonctionPrincipale = nettoyer(fiche.fonctionPrincipale);
         var cercle = fiche.cercle && nettoyer(fiche.cercle.nom) ? fiche.cercle : null;
 
@@ -257,8 +262,6 @@ var regles = (function () {
             monogramme: monogramme(prenom, nom),
             teinte: Math.round(fiche.id * PAS_TEINTE) % 360,
             titre: titreAffiche(fiche.titreManuel, fiche.titre, fonctionPrincipale),
-            etape: etape.nom,
-            partant: etape.partant,
             fonctionPrincipale: fonctionPrincipale,
             fonctions: sansDoublon(fiche.fonctions),
             succursale: nettoyer(fiche.succursale),
@@ -526,23 +529,61 @@ var regles = (function () {
     }
 
     /**
+     * Premier responsable retenu au-dessus d'une personne, par-dessus les
+     * exclus (repli de l'export du Cockpit, _kept_manager).
+     *
+     * @param {object} tous personnes listées, par ID (hiérarchie déjà liée)
+     * @param {object} retenues personnes retenues, par ID
+     * @param {number} id personne
+     * @returns {number|null} ID du responsable retenu, ou null
+     */
+    function responsableRetenu(tous, retenues, id) {
+        var vus = {};
+        var courant = tous[id].responsableId;
+
+        vus[id] = true;
+        while (courant !== null && courant !== undefined && !vus[courant]) {
+            if (retenues.hasOwnProperty(courant)) {
+                return courant;
+            }
+            vus[courant] = true;
+            courant = tous.hasOwnProperty(courant) ? tous[courant].responsableId : null;
+        }
+        return null;
+    }
+
+    /**
      * Assemble l'annuaire à partir des fiches et des cercles bruts.
      *
      * @param {Array} fiches fiches Collaborateur (liste blanche)
      * @param {Array} cercles objets Cercle/rôle { id, nom, enfants }
-     * @returns {object} { personnes, parId } ; seules les personnes aux
-     *     étapes listées y figurent, triées par nom ; une personne d'une
-     *     autre étape n'est mentionnée nulle part
+     * @returns {object} { personnes, parId } ; n'y figurent que les
+     *     personnes aux étapes listées ET rattachées à un cercle de
+     *     l'organisation, triées par nom ; aucune autre n'est mentionnée,
+     *     pas même comme responsable ou membre d'une équipe
      */
     function construireAnnuaire(fiches, cercles) {
-        var personnes = fiches.filter(estListee).map(personneDe).sort(parNom);
+        var listees = fiches.filter(estListee).map(personneDe).sort(parNom);
+        var tous = {};
+        var personnes;
         var parId = {};
 
-        personnes.forEach(function (p) {
-            parId[p.id] = p;
+        listees.forEach(function (p) {
+            tous[p.id] = p;
             p.recherche = texteRecherche(p);
         });
-        poserCercles(personnes, construireOrganisation(cercles || []));
+        poserCercles(listees, construireOrganisation(cercles || []));
+        // Hiérarchie de toutes les personnes listées, pour pouvoir remonter
+        // par-dessus un responsable exclu
+        lierHierarchie(listees, tous);
+
+        personnes = listees.filter(function (p) { return p.cercles.length > 0; });
+        personnes.forEach(function (p) {
+            parId[p.id] = p;
+        });
+        personnes.forEach(function (p) {
+            p.responsableDemande = responsableRetenu(tous, parId, p.id);
+        });
         lierHierarchie(personnes, parId);
         return { personnes: personnes, parId: parId };
     }
@@ -569,16 +610,13 @@ var regles = (function () {
     var AUCUN = "__aucun__";
 
     /**
-     * Les cinq informations par lesquelles on filtre. `valeurs` rend ce
+     * Les quatre informations par lesquelles on filtre (pas l'étape). `valeurs` rend ce
      * qu'une personne porte : [{ valeur, libelle }] (le cercle est retenu
      * par son ID, deux cercles de même nom restant distincts).
      */
     var FACETTES = {
         cercle: { libelle: "Cercle", aucun: "Sans cercle", valeurs: function (p) {
             return p.cercles.map(function (c) { return { valeur: String(c.id), libelle: c.nom }; });
-        } },
-        etape: { libelle: "Étape", aucun: "Sans étape", valeurs: function (p) {
-            return p.etape ? [{ valeur: p.etape, libelle: p.etape }] : [];
         } },
         succursale: { libelle: "Succursale", aucun: "Sans succursale", valeurs: function (p) {
             return p.succursale ? [{ valeur: p.succursale, libelle: p.succursale }] : [];
@@ -590,15 +628,15 @@ var regles = (function () {
             return p.fonctions.map(function (f) { return { valeur: f, libelle: f }; });
         } }
     };
-    var CLES_FACETTES = ["cercle", "etape", "succursale", "titre", "fonction"];
+    var CLES_FACETTES = ["cercle", "succursale", "titre", "fonction"];
 
     /**
      * État vide : aucune recherche, aucun filtre.
      *
-     * @returns {object} { q, cercle, etape, succursale, titre, fonction }
+     * @returns {object} { q, cercle, succursale, titre, fonction }
      */
     function etatInitial() {
-        return { q: "", cercle: null, etape: null, succursale: null, titre: null, fonction: null };
+        return { q: "", cercle: null, succursale: null, titre: null, fonction: null };
     }
 
     /**
@@ -724,7 +762,7 @@ var regles = (function () {
      * Copie triée des personnes.
      *
      * @param {Array} personnes personnes
-     * @param {string} cle nom, prenom, titre, succursale, cercle ou etape
+     * @param {string} cle nom, prenom, titre, succursale ou cercle (autre : par nom)
      * @returns {Array} nouveau tableau ; l'original n'est pas modifié
      */
     function trier(personnes, cle) {
@@ -733,8 +771,7 @@ var regles = (function () {
             prenom: function (a, b) { return comparerTextes(a.prenom, b.prenom) || parNom(a, b); },
             titre: function (a, b) { return comparerTextes(a.titre, b.titre) || parNom(a, b); },
             succursale: function (a, b) { return comparerTextes(a.succursale, b.succursale) || parNom(a, b); },
-            cercle: function (a, b) { return comparerTextes(a.cercle, b.cercle) || parNom(a, b); },
-            etape: function (a, b) { return comparerTextes(a.etape, b.etape) || parNom(a, b); }
+            cercle: function (a, b) { return comparerTextes(a.cercle, b.cercle) || parNom(a, b); }
         };
 
         return personnes.slice().sort(ordres.hasOwnProperty(cle) ? ordres[cle] : parNom);

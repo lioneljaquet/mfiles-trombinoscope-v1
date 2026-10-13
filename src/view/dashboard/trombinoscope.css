@@ -55,6 +55,12 @@ a { color: #004f9f; }
 .bouton-icone:hover { background: #eaf1f9; color: #004f9f; }
 button:focus, input:focus, select:focus, .carte:focus { outline: 2px solid #004f9f; outline-offset: 1px; }
 
+.bandeau {
+    margin: 0; padding: 6px 20px; background: #eaf1f9; color: #004f9f; font-size: 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+.bandeau:empty { display: none; }
+
 /* ---- Recherche et filtres -------------------------------------------- */
 .controles { padding: 12px 20px 4px 20px; background: #ffffff; border-bottom: 1px solid #e2e8f0; }
 .ligne { display: flex; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
@@ -104,7 +110,7 @@ button:focus, input:focus, select:focus, .carte:focus { outline: 2px solid #004f
 .refus { display: none; margin: 40px 20px; padding: 24px; text-align: center; color: #4a5568;
     background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; }
 .refus.est-visible { display: block; }
-.page.est-refusee .controles, .page.est-refusee .barre-actions .bouton { display: none; }
+.page.est-refusee .controles, .page.est-refusee #btnRelire { display: none; }
 .message {
     display: none; position: fixed; left: 20px; bottom: 16px; padding: 10px 14px; border-radius: 6px;
     background: #1a202c; color: #ffffff; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);

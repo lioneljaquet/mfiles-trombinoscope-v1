@@ -15,6 +15,5 @@ absent de l'annuaire est ignoré.
 
 Conséquences : ajouter un champ commence par une décision, puis par une ligne de `PARAMETRAGE.proprietes`. Un test
 glisse des valeurs « poison » (mobile, succursale confidentielle, salaire) dans des fiches fictives et exige qu'aucune
-ne ressorte ni ne soit lue. L'étape reste affichée seulement comme filtre et comme tri, comme dans le Cockpit en
-direct ; c'est une donnée sensible (« Offboarding licenciement » dit le motif d'un départ) à reconsidérer si
-l'application est ouverte au-delà de Lionel.
+ne ressorte ni ne soit lue. Depuis la 1.0.2, l'étape n'est plus affichée nulle part, ni comme filtre ni comme tri
+(règles de l'export du Cockpit, voir 0005) : elle ne sert qu'à choisir qui est lu.

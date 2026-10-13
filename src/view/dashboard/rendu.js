@@ -348,6 +348,7 @@ var rendu = (function () {
             basculer($("progression"), "est-visible", false);
             basculer($("erreur"), "est-visible", false);
             $("compteur").textContent = m.compteur;
+            $("bandeau").textContent = m.bandeau;
             basculer($("effacer"), "est-visible", Boolean(m.etat.q));
             $("tri").value = m.affichage.tri;
             for (i = 0; i < boutonsVue.length; i += 1) {
@@ -437,6 +438,9 @@ var rendu = (function () {
             basculer(doc.body.firstElementChild || $("controles").parentNode, "est-refusee", true);
             vider($("resultats"));
             basculer($("fiche"), "est-ouverte", false);
+            // Rien de l'annuaire ne reste à l'écran : ni compteur, ni bandeau
+            $("compteur").textContent = "";
+            $("bandeau").textContent = "";
             $("refusTexte").textContent = texte;
             basculer($("refus"), "est-visible", true);
         }

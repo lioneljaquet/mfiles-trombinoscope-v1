@@ -25,27 +25,32 @@ function collaborateur(id, etape, plus) {
         type: 104, id, titre: "C" + id,
         props: Object.assign({
             39: valeur.lookup(etape, { 319: "En fonction", 1475: "Offboarding démission", 999: "Fin" }[etape]),
-            1387: valeur.texte("Prénom" + id), 1386: valeur.texte("Nom" + String(id).padStart(3, "0"))
+            1387: valeur.texte("Prénom" + id), 1386: valeur.texte("Nom" + String(id).padStart(3, "0")),
+            2928: valeur.multi([[501, "INFRA"]])
         }, plus || {})
     };
 }
 
 /**
- * Coffre fictif : 45 personnes en fonction, une en offboarding, une
- * partie (étape non listée) qui est la responsable de la personne 1.
+ * Coffre fictif : 45 personnes en fonction et une en offboarding, toutes
+ * membres du cercle INFRA ; une partie (étape non listée), responsable de
+ * la personne 1 ; une personne en fonction SANS cercle (47), responsable
+ * de la personne 2 et elle-même sous la personne 1.
  *
  * @returns {Array} objets
  */
 function objetsFictifs() {
     const objets = [];
     for (let id = 1; id <= 45; id += 1) {
-        objets.push(collaborateur(id, 319, id === 2 ? { 1217: valeur.lookup(1, "Prénom1 Nom001") } : {}));
+        objets.push(collaborateur(id, 319, id === 2 ? { 1217: valeur.lookup(47, "Prénom47 Nom047") } : {}));
     }
     objets[0].props[1217] = valeur.lookup(99, "Prénom99 Nom099");
     objets[0].props[2414] = valeur.lookup(5, "Gland");
     objets.push(collaborateur(46, 1475, { 2414: valeur.lookup(5, "Gland") }));
+    objets.push(collaborateur(47, 319, { 2928: valeur.multi([]), 1217: valeur.lookup(1, "Prénom1 Nom001") }));
     objets.push(collaborateur(99, 999));
-    objets.push({ type: 362, id: 500, titre: "tebicom SA", props: {} });
+    objets.push({ type: 362, id: 500, titre: "tebicom SA", props: { 2926: valeur.multi([[501, "INFRA"]]) } });
+    objets.push({ type: 362, id: 501, titre: "INFRA", props: {} });
     return objets;
 }
 
@@ -97,13 +102,13 @@ test("chargement : par lots, en rendant la main entre chaque lot, avec progressi
     assert.strictEqual(vue.modeles.length, 0, "rien n'est rendu avant la lecture");
     const taches = vider();
 
-    // 46 fiches listées en lots de 20 : trois allers-retours, plus un pour les cercles
+    // 47 fiches listées en lots de 20 : trois allers-retours, plus un pour les cercles
     assert.deepStrictEqual(c.journal.appels.filter((a) => a.indexOf("GetPropertiesOfMultipleObjects") === 0),
         ["GetPropertiesOfMultipleObjects:20", "GetPropertiesOfMultipleObjects:20",
-            "GetPropertiesOfMultipleObjects:6", "GetPropertiesOfMultipleObjects:1"]);
+            "GetPropertiesOfMultipleObjects:7", "GetPropertiesOfMultipleObjects:2"]);
     assert.ok(taches >= 5, "la main est rendue entre les étapes (" + taches + " tâches)");
     const fiches = vue.progressions.filter((x) => /fiches/.test(x[0])).map((x) => x[1]);
-    assert.deepStrictEqual(fiches, [0, 20, 40, 46]);
+    assert.deepStrictEqual(fiches, [0, 20, 40, 47]);
     assert.strictEqual(dernier(vue).total, 46);
     assert.strictEqual(dernier(vue).compteur, "46 personnes");
 });
@@ -126,7 +131,7 @@ test("recherche et filtres : liste, compteur et effectifs suivent", () => {
     assert.strictEqual(dernier(vue).compteur, "2 personnes sur 46");
     vue.actions.rechercher("nom046");
     assert.deepStrictEqual(simple(dernier(vue).personnes.map((x) => x.id)), [46]);
-    assert.strictEqual(dernier(vue).facettes.etape.options.filter((o) => o.valeur === "Offboarding démission")[0].effectif, 1);
+    assert.strictEqual(dernier(vue).facettes.succursale.options.filter((o) => o.valeur === "Gland")[0].effectif, 1);
     vue.actions.reinitialiser();
     assert.strictEqual(dernier(vue).compteur, "46 personnes");
 });
@@ -252,4 +257,34 @@ test("accès : appartenance illisible, la page refuse aussi (échec fermé)", ()
     vider();
     assert.strictEqual(vue.modeles.length, 0);
     assert.strictEqual(vue.refus.length, 1);
+});
+
+test("population limitée : aucune trace d'étape ni de la personne sans cercle dans le modèle rendu", () => {
+    const { p, vue, vider } = preparer();
+
+    p.demarrer();
+    vider();
+    vue.actions.ouvrir(1);
+    const texte = JSON.stringify(simple(dernier(vue)));
+    assert.ok(!/etape|partant|Offboarding|En fonction/i.test(texte), "trace d'étape");
+    assert.ok(!/Nom047|Prénom47|"id":47/.test(texte), "personne sans cercle mentionnée");
+    assert.deepStrictEqual(Object.keys(dernier(vue).facettes).sort(), ["cercle", "fonction", "succursale", "titre"]);
+    assert.strictEqual("etape" in dernier(vue).etat, false);
+});
+
+test("population limitée : bandeau « collaborateurs rattachés à un cercle », comme l'export du Cockpit", () => {
+    const { p, vue, vider } = preparer();
+
+    p.demarrer();
+    vider();
+    assert.strictEqual(dernier(vue).bandeau, "Données internes : collaborateurs rattachés à un cercle (46 personnes).");
+});
+
+test("tri : l'étape n'est plus une clé de tri", () => {
+    const { p, vue, vider } = preparer();
+
+    p.demarrer();
+    vider();
+    vue.actions.trier("etape");
+    assert.strictEqual(dernier(vue) && dernier(vue).affichage.tri, "nom");
 });
