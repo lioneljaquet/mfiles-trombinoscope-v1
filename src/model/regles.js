@@ -24,7 +24,11 @@ var regles = (function () {
         "della", "le", "la", "el", "al", "ten", "ter", "zu"];
     // Écart de teinte entre deux ID : l'angle d'or répartit les couleurs sans cycle visible
     var PAS_TEINTE = 137.508;
-    // Adresse simple : rien qui plie un lien mailto: (? & % # /) ni qui en cumule plusieurs (; , espace)
+    // Adresse simple : rien qui plie un lien mailto: (? & % # /) ni qui en cumule plusieurs (; , espace).
+    // Les segments du domaine sont séparés par des points obligatoires : pas de retour arrière
+    // exponentiel ; la longueur est de plus bornée avant le test (LONGUEUR_EMAIL).
+    var LONGUEUR_EMAIL = 254;
+    // eslint-disable-next-line security/detect-unsafe-regex
     var MOTIF_EMAIL = /^[A-Za-z0-9._+'-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
     // Trois lettres exactement (latin étendu, sans × ni ÷)
     var MOTIF_TRIGRAMME = /^[A-Za-zÀ-ÖØ-öø-ɏ]{3}$/;
@@ -173,7 +177,7 @@ var regles = (function () {
      */
     function emailValide(texte) {
         var adresse = nettoyer(texte);
-        return adresse && MOTIF_EMAIL.test(adresse) ? adresse : null;
+        return adresse && adresse.length <= LONGUEUR_EMAIL && MOTIF_EMAIL.test(adresse) ? adresse : null;
     }
 
     /**

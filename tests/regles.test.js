@@ -288,3 +288,9 @@ test("état : un filtre ou une recherche rend la liste filtrée", () => {
     assert.strictEqual(regles.filtreActif(Object.assign(regles.etatInitial(), { q: "  " })), false);
     assert.strictEqual(regles.filtreActif(Object.assign(regles.etatInitial(), { titre: "Comptable" })), true);
 });
+
+test("annuaire : une adresse e-mail démesurée est refusée sans être analysée", () => {
+    const a = regles.construireAnnuaire([fiche(1, { email: "a".repeat(300) + "@exemple.ch" })], []);
+
+    assert.strictEqual(personne(a, 1).email, null);
+});
