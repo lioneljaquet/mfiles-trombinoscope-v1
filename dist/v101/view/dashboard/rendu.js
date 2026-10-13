@@ -196,7 +196,7 @@ var rendu = (function () {
                         el("td", { texte: p.trigramme }),
                         el("td", {}, [p.responsable ? el("button", { classe: "lien-personne", texte: p.responsable.nomComplet,
                             attrs: { type: "button", "data-personne": p.responsable.id } }) : tiret]),
-                        el("td", {}, [p.email ? el("a", { texte: p.email, attrs: { href: "mailto:" + p.email } }) : tiret])
+                        el("td", {}, [p.email ? el("span", { classe: "email", texte: p.email }) : tiret])
                     ]);
                 }))
             ]);
@@ -248,7 +248,9 @@ var rendu = (function () {
                 faits.push(["Cercle/rôle principal", [el("span", { classe: "badge-cercle", texte: p.cercle })]]);
             }
             if (p.email) {
-                faits.push(["E-mail", [el("a", { texte: p.email, attrs: { href: "mailto:" + p.email } })]]);
+                // Texte à sélectionner, sans lien mailto: : le tableau de bord refuse de naviguer
+                // vers un autre schéma que le sien (boîte d'erreur du client, docs/adr/0004)
+                faits.push(["E-mail", [el("span", { classe: "email", texte: p.email })]]);
             }
             if (p.cerclesEtRoles.length) {
                 faits.push(["Cercles et rôles (" + p.cerclesEtRoles.length + ")", p.cerclesEtRoles.map(function (c) {
@@ -279,8 +281,9 @@ var rendu = (function () {
                     f.dansMFiles ? el("button", { classe: "bouton bouton-primaire", texte: "Afficher la fiche M-Files",
                         attrs: { type: "button", "data-action": "mfiles", "data-id": p.id,
                             title: "Affiche les propriétés du collaborateur dans le volet de droite du client" } }) : null,
-                    f.lien ? el("a", { classe: "bouton bouton-secondaire", texte: "Ouvrir dans M-Files",
-                        attrs: { href: f.lien } }) : null
+                    f.ouvrable ? el("button", { classe: "bouton bouton-secondaire", texte: "Ouvrir dans M-Files",
+                        attrs: { type: "button", "data-action": "ouvrir-mfiles", "data-id": p.id,
+                            title: "Quitte le trombinoscope et ouvre le collaborateur dans M-Files" } }) : null
                 ])
             ];
         }
@@ -516,6 +519,7 @@ var rendu = (function () {
                     actions.reinitialiser();
                     break;
                 case "mfiles": actions.afficherDansMFiles(Number(e.getAttribute("data-id"))); break;
+                case "ouvrir-mfiles": actions.ouvrirDansMFiles(Number(e.getAttribute("data-id"))); break;
                 default: break;
                 }
             } else if ((e = porteur(cible, "data-filtre"))) {

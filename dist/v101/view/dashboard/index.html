@@ -203,6 +203,7 @@ button:focus, input:focus, select:focus, .carte:focus { outline: 2px solid #004f
 .fiche-actions { margin-top: 16px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
 .fiche-actions .bouton { margin: 0 8px 8px 0; display: inline-block; text-decoration: none; }
 .note { color: #5f6b7d; font-size: 12px; margin-top: 8px; }
+.email { color: #1a202c; -ms-user-select: text; user-select: text; cursor: text; }
 
 </style>
 </head>
@@ -297,7 +298,7 @@ button:focus, input:focus, select:focus, .carte:focus { outline: 2px solid #004f
    professionnel (2823) n'est volontairement pas repris.
    ===================================================================== */
 
-var VERSION_PAQUET = "1.0.0 (UIX v1)";
+var VERSION_PAQUET = "1.0.1 (UIX v1)";
 var PREFIXE_JOURNAL = "[trombinoscope]";
 
 var MF = {
@@ -1140,9 +1141,6 @@ var regles = (function () {
 var coffre = (function () {
     "use strict";
 
-    // GUID de coffre accepté pour un lien m-files:// (rien d'autre ne passe)
-    var MOTIF_GUID = /^\{?([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})\}?$/;
-
     /**
      * Convertit une collection COM (base 1, .Count/.Item) en tableau.
      *
@@ -1429,28 +1427,34 @@ var coffre = (function () {
     }
 
     /**
-     * Lien m-files:// vers un objet, ou null si le GUID du coffre n'a pas
-     * la forme attendue.
+     * Fait ouvrir un objet par le client : le cadre navigue vers son
+     * emplacement (IShellFrame.NavigateToObject, référence UIX v1), ce qui
+     * remplace le tableau de bord par l'objet et sa fiche. Lecture seule.
      *
-     * @param {object} vault coffre COM
+     * La page ne navigue JAMAIS elle-même vers m-files:// : le contrôle web
+     * du tableau de bord le refuse par une boîte d'erreur du client
+     * (« Le tableau de bord peut ne pas accepter d'utiliser de contenu non
+     * approuvé », constaté sur M-Files 26.9, docs/adr/0004). Tout échec est
+     * rattrapé ici et journalisé.
+     *
+     * @param {object|null} cadre ShellFrame du client
      * @param {number} typeId type d'objet
      * @param {number} id identifiant
-     * @returns {string|null} lien
+     * @returns {boolean} vrai si le client a accepté la navigation
      */
-    function lienObjet(vault, typeId, id) {
-        var guid;
-        var m;
+    function naviguerVersObjet(cadre, typeId, id) {
+        var objId;
 
         try {
-            guid = String(vault.GetGUID());
+            objId = new MFiles.ObjID();
+            objId.SetIDs(typeId, id);
+            cadre.NavigateToObject(objId);
+            return true;
         } catch (e) {
-            return null;
+            console.log(PREFIXE_JOURNAL + " ouverture dans M-Files refusée : " +
+                ((e && (e.message || e.description)) || e));
+            return false;
         }
-        m = MOTIF_GUID.exec(guid);
-        if (!m || typeof typeId !== "number" || typeof id !== "number") {
-            return null;
-        }
-        return "m-files://show/" + m[1] + "/" + typeId + "-" + id;
     }
 
     return {
@@ -1460,7 +1464,7 @@ var coffre = (function () {
         lireFiches: lireFiches,
         lireCercles: lireCercles,
         selectionVirtuelle: selectionVirtuelle,
-        lienObjet: lienObjet
+        naviguerVersObjet: naviguerVersObjet
     };
 }());
 
@@ -1664,7 +1668,7 @@ var rendu = (function () {
                         el("td", { texte: p.trigramme }),
                         el("td", {}, [p.responsable ? el("button", { classe: "lien-personne", texte: p.responsable.nomComplet,
                             attrs: { type: "button", "data-personne": p.responsable.id } }) : tiret]),
-                        el("td", {}, [p.email ? el("a", { texte: p.email, attrs: { href: "mailto:" + p.email } }) : tiret])
+                        el("td", {}, [p.email ? el("span", { classe: "email", texte: p.email }) : tiret])
                     ]);
                 }))
             ]);
@@ -1716,7 +1720,9 @@ var rendu = (function () {
                 faits.push(["Cercle/rôle principal", [el("span", { classe: "badge-cercle", texte: p.cercle })]]);
             }
             if (p.email) {
-                faits.push(["E-mail", [el("a", { texte: p.email, attrs: { href: "mailto:" + p.email } })]]);
+                // Texte à sélectionner, sans lien mailto: : le tableau de bord refuse de naviguer
+                // vers un autre schéma que le sien (boîte d'erreur du client, docs/adr/0004)
+                faits.push(["E-mail", [el("span", { classe: "email", texte: p.email })]]);
             }
             if (p.cerclesEtRoles.length) {
                 faits.push(["Cercles et rôles (" + p.cerclesEtRoles.length + ")", p.cerclesEtRoles.map(function (c) {
@@ -1747,8 +1753,9 @@ var rendu = (function () {
                     f.dansMFiles ? el("button", { classe: "bouton bouton-primaire", texte: "Afficher la fiche M-Files",
                         attrs: { type: "button", "data-action": "mfiles", "data-id": p.id,
                             title: "Affiche les propriétés du collaborateur dans le volet de droite du client" } }) : null,
-                    f.lien ? el("a", { classe: "bouton bouton-secondaire", texte: "Ouvrir dans M-Files",
-                        attrs: { href: f.lien } }) : null
+                    f.ouvrable ? el("button", { classe: "bouton bouton-secondaire", texte: "Ouvrir dans M-Files",
+                        attrs: { type: "button", "data-action": "ouvrir-mfiles", "data-id": p.id,
+                            title: "Quitte le trombinoscope et ouvre le collaborateur dans M-Files" } }) : null
                 ])
             ];
         }
@@ -1984,6 +1991,7 @@ var rendu = (function () {
                     actions.reinitialiser();
                     break;
                 case "mfiles": actions.afficherDansMFiles(Number(e.getAttribute("data-id"))); break;
+                case "ouvrir-mfiles": actions.ouvrirDansMFiles(Number(e.getAttribute("data-id"))); break;
                 default: break;
                 }
             } else if ((e = porteur(cible, "data-filtre"))) {
@@ -2146,7 +2154,7 @@ var presentateur = (function () {
                     personne: pourVue(p),
                     responsable: p.responsableId !== null ? pourVue(annuaire.parId[p.responsableId]) : null,
                     equipe: p.equipe.map(function (id) { return pourVue(annuaire.parId[id]); }),
-                    lien: coffre.lienObjet(services.vault, PARAMETRAGE.typeCollaborateur, p.id),
+                    ouvrable: Boolean(services.cadre),
                     dansMFiles: Boolean(services.cadre && objVers.hasOwnProperty(p.id))
                 };
             }
@@ -2399,6 +2407,20 @@ var presentateur = (function () {
                     services.cadre.ShowDefaultContent();
                 } catch (e) {
                     vue.message("Retour au listage impossible : " + messageDe(e));
+                }
+            },
+            /**
+             * Fait ouvrir le collaborateur par le client (le cadre navigue
+             * vers l'objet) ; un refus devient un message discret.
+             * @param {number} id ID du collaborateur
+             * @returns {void}
+             */
+            ouvrirDansMFiles: function (id) {
+                var ok = Boolean(services.cadre) &&
+                    coffre.naviguerVersObjet(services.cadre, PARAMETRAGE.typeCollaborateur, Number(id));
+
+                if (!ok) {
+                    vue.message("M-Files n'a pas pu ouvrir ce collaborateur depuis le trombinoscope.");
                 }
             },
             /**

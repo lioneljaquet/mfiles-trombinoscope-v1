@@ -15,4 +15,5 @@ l'écran ne se fige pas et la progression s'affiche. Une recherche plafonnée (p
 erreur franche plutôt qu'un annuaire amputé. Rien n'est mis en cache : chaque ouverture relit le coffre.
 
 **Fiche d'une personne.** Dans la page (panneau latéral), avec « Afficher la fiche M-Files » (sélection virtuelle,
-voie éprouvée) et un lien `m-files://show/…` au GUID du coffre contrôlé (à confirmer à l'essai).
+voie éprouvée) et « Ouvrir dans M-Files » par `IShellFrame.NavigateToObject` depuis la 1.0.1 : le lien `m-files://`
+de la 1.0.0 était refusé par le tableau de bord (voir 0004).

@@ -231,3 +231,41 @@ test("relire pendant une lecture : la lecture précédente s'arrête, une seule 
     assert.strictEqual(vue.modeles.length, 1);
     assert.strictEqual(vue.modeles[0].total, 46);
 });
+
+test("fiche : « Ouvrir dans M-Files » fait naviguer le cadre vers le collaborateur", () => {
+    const { p, vue, vider, c } = preparer();
+
+    p.demarrer();
+    vider();
+    vue.actions.ouvrir(3);
+    assert.strictEqual(dernier(vue).fiche.ouvrable, true);
+    assert.strictEqual("lien" in dernier(vue).fiche, false, "plus de lien m-files:// dans la page");
+    vue.actions.ouvrirDansMFiles(3);
+    assert.deepStrictEqual(c.journal.navigation, { Type: 104, ID: 3 });
+    assert.strictEqual(vue.appels.length, 0);
+});
+
+test("fiche : un échec de l'ouverture devient un message discret, sans exception", () => {
+    const c = creerCoffreCom({ objets: objetsFictifs(), echecNavigation: true });
+    const ctx = charger(SOURCES, { MFiles: c.MFiles });
+    const messages = [];
+    const p2 = {};
+    const p = ctx.presentateur.creer({ vault: c.vault, cadre: c.cadre, planifier: (fn) => fn() }, (actions) => {
+        p2.actions = actions;
+        return { progression() {}, erreur() {}, rendre() {}, message: (m) => messages.push(m) };
+    });
+
+    p.demarrer();
+    assert.doesNotThrow(() => p2.actions.ouvrirDansMFiles(3));
+    assert.strictEqual(messages.length, 1);
+    assert.match(messages[0], /M-Files/);
+});
+
+test("fiche : sans cadre, « Ouvrir dans M-Files » n'est pas proposé", () => {
+    const { p, vue, vider } = preparer({ cadre: null });
+
+    p.demarrer();
+    vider();
+    vue.actions.ouvrir(3);
+    assert.strictEqual(dernier(vue).fiche.ouvrable, false);
+});

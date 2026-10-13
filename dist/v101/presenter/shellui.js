@@ -67,7 +67,7 @@ function creerCommande(shellFrame, etat) {
     }
 
     try {
-        shellFrame.Commands.SetIconFromPath(etat.commande, "v100/icones/app.ico");
+        shellFrame.Commands.SetIconFromPath(etat.commande, "v101/icones/app.ico");
     } catch (e) {
         journal("icône non posée : " + messageDe(e));
     }

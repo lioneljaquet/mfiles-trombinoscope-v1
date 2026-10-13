@@ -18,9 +18,6 @@
 var coffre = (function () {
     "use strict";
 
-    // GUID de coffre accepté pour un lien m-files:// (rien d'autre ne passe)
-    var MOTIF_GUID = /^\{?([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})\}?$/;
-
     /**
      * Convertit une collection COM (base 1, .Count/.Item) en tableau.
      *
@@ -307,28 +304,34 @@ var coffre = (function () {
     }
 
     /**
-     * Lien m-files:// vers un objet, ou null si le GUID du coffre n'a pas
-     * la forme attendue.
+     * Fait ouvrir un objet par le client : le cadre navigue vers son
+     * emplacement (IShellFrame.NavigateToObject, référence UIX v1), ce qui
+     * remplace le tableau de bord par l'objet et sa fiche. Lecture seule.
      *
-     * @param {object} vault coffre COM
+     * La page ne navigue JAMAIS elle-même vers m-files:// : le contrôle web
+     * du tableau de bord le refuse par une boîte d'erreur du client
+     * (« Le tableau de bord peut ne pas accepter d'utiliser de contenu non
+     * approuvé », constaté sur M-Files 26.9, docs/adr/0004). Tout échec est
+     * rattrapé ici et journalisé.
+     *
+     * @param {object|null} cadre ShellFrame du client
      * @param {number} typeId type d'objet
      * @param {number} id identifiant
-     * @returns {string|null} lien
+     * @returns {boolean} vrai si le client a accepté la navigation
      */
-    function lienObjet(vault, typeId, id) {
-        var guid;
-        var m;
+    function naviguerVersObjet(cadre, typeId, id) {
+        var objId;
 
         try {
-            guid = String(vault.GetGUID());
+            objId = new MFiles.ObjID();
+            objId.SetIDs(typeId, id);
+            cadre.NavigateToObject(objId);
+            return true;
         } catch (e) {
-            return null;
+            console.log(PREFIXE_JOURNAL + " ouverture dans M-Files refusée : " +
+                ((e && (e.message || e.description)) || e));
+            return false;
         }
-        m = MOTIF_GUID.exec(guid);
-        if (!m || typeof typeId !== "number" || typeof id !== "number") {
-            return null;
-        }
-        return "m-files://show/" + m[1] + "/" + typeId + "-" + id;
     }
 
     return {
@@ -338,6 +341,6 @@ var coffre = (function () {
         lireFiches: lireFiches,
         lireCercles: lireCercles,
         selectionVirtuelle: selectionVirtuelle,
-        lienObjet: lienObjet
+        naviguerVersObjet: naviguerVersObjet
     };
 }());

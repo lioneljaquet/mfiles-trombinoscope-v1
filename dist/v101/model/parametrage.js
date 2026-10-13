@@ -15,7 +15,7 @@
    professionnel (2823) n'est volontairement pas repris.
    ===================================================================== */
 
-var VERSION_PAQUET = "1.0.0 (UIX v1)";
+var VERSION_PAQUET = "1.0.1 (UIX v1)";
 var PREFIXE_JOURNAL = "[trombinoscope]";
 
 var MF = {

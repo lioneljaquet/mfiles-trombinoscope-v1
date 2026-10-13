@@ -11,14 +11,15 @@ n'écrit rien dans le coffre.
 - Cinq filtres à effectifs contextuels : cercle (pastilles), étape, succursale, titre, fonction. Compteur « 12
   personnes sur 96 ».
 - Fiche latérale : titre, trigramme, fonctions, succursale, cercle principal, e-mail, cercles et rôles, responsable et
-  équipe directe (cliquables), « Afficher la fiche M-Files » (fiche native dans le volet de droite) et « Ouvrir dans
-  M-Files » (lien `m-files://`).
+  équipe directe (cliquables), « Afficher la fiche M-Files » (fiche native dans le volet de droite, sans quitter le
+  trombinoscope) et « Ouvrir dans M-Files » (le client navigue vers le collaborateur). L'e-mail est du texte à
+  sélectionner : la page ne contient aucun lien sortant (voir « Piège »).
 - Version affichée dans la barre de titre et journalisée en console.
 
 ## Essai par Lionel
 
 1. **Installer** : M-Files Admin › coffre tebifiles › Applications › Installer… ›
-   `dist/trombinoscope-uixv1-1.0.0.zip`. Accepter, puis vérifier que l'application « Trombinoscope tebicom (UIX v1) »
+   `dist/trombinoscope-uixv1-1.0.1.zip` (remplace la 1.0.0). Accepter, puis vérifier que l'application « Trombinoscope tebicom (UIX v1) »
    est activée.
 2. **Redémarrer le client** M-Files Desktop (le client ne recharge pas une application en cours de session).
 3. Ouvrir le coffre : la commande **Trombinoscope** apparaît dans le volet des tâches (groupe principal, avec l'icône
@@ -28,19 +29,24 @@ n'écrit rien dans le coffre.
 5. À essayer : rechercher « lja » (trigramme), un nom avec ou sans accent, une fonction ; une pastille de cercle ;
    l'étape « Offboarding démission » ; la liste et le tri par titre ; une carte, puis le responsable et un membre de
    l'équipe dans la fiche ; flèches gauche/droite, Échap ; **Afficher la fiche M-Files** (les propriétés doivent
-   s'afficher dans le volet de droite) ; **Ouvrir dans M-Files** ; **Revenir au listage**.
+   s'afficher dans le volet de droite) ; **Revenir au listage**.
+6. Nouveau en 1.0.1 : rouvrir le trombinoscope, ouvrir une fiche, puis **Ouvrir dans M-Files**. Attendu : **aucune
+   boîte d'erreur** ; le client quitte le trombinoscope et affiche le collaborateur (son emplacement, avec sa fiche).
+   Si le client refuse, la page affiche « M-Files n'a pas pu ouvrir ce collaborateur depuis le trombinoscope. » et la
+   console la ligne `ouverture dans M-Files refusée : …` : la noter telle quelle.
 
 Lignes de console attendues (outils F12 attachés au client, par exemple `C:\Windows\System32\F12\IEChooser.exe`) :
 
 ```text
-[trombinoscope] version 1.0.0 (UIX v1) — nouveau cadre (type 1)        module, à chaque fenêtre
-[trombinoscope] version 1.0.0 (UIX v1) — page ouverte                  page, à chaque ouverture
+[trombinoscope] version 1.0.1 (UIX v1) — nouveau cadre (type 1)        module, à chaque fenêtre
+[trombinoscope] version 1.0.1 (UIX v1) — page ouverte                  page, à chaque ouverture
 [trombinoscope] annuaire lu : 96 personnes, 348 cercles et rôles, … ms
 ```
 
 En cas de problème : `[trombinoscope] lecture interrompue : …` (la page affiche le même message et un bouton
 Relire), `cadre du client introuvable …` (retour au listage et fiche M-Files indisponibles), `sélection virtuelle
-refusée : …`. La version affichée en haut à droite dit quel paquet le client sert réellement.
+refusée : …`, `ouverture dans M-Files refusée : …`. La version affichée en haut à droite (« v1.0.1 (UIX v1) ») dit
+quel paquet le client sert réellement.
 
 **Mettre à jour** : incrémenter la version de `package.json`, reconstruire (le dossier versionné change, `v101`…),
 réinstaller le .zip et redémarrer le client (cache).
@@ -71,9 +77,17 @@ nulle part, pas même comme responsable.
   téléchargement laisserait la photo d'un collaborateur sur le disque. Avatar au trigramme à la place. Voir
   `docs/adr/0003`.
 - **Pas de vue Hiérarchie** ni de copie des e-mails (présentes dans le Cockpit, hors de la demande).
-- **« Ouvrir dans M-Files »** suit le lien `m-files://show/{coffre}/104-{id}` : la façon dont le contrôle web le passe
-  au client est à confirmer à l'essai. « Afficher la fiche M-Files » (sélection virtuelle `ObjOrFileVers`) est la voie
-  éprouvée.
+- **« Ouvrir dans M-Files »** fait quitter le trombinoscope (le cadre navigue vers l'objet) ; pour revenir, la
+  commande Trombinoscope relit le coffre. « Afficher la fiche M-Files » montre la fiche sans quitter la page.
+- **Pas de lien `mailto:`** : l'adresse se sélectionne et se copie à la main.
+
+## Piège : « contenu non approuvé » (constaté le 13.10.2026, M-Files 26.9)
+
+Une page de tableau de bord ne doit **jamais naviguer** vers une adresse hors du paquet : un lien
+`m-files://show/…` a produit une boîte d'erreur du client, « Le tableau de bord peut ne pas accepter d'utiliser de
+contenu non approuvé » (ActiveXWrapper_Explorer.cpp, 314), qu'aucun `try` de la page n'attrape. Ouvrir un objet passe
+par le client : `shellFrame.NavigateToObject(objId)` (référence UIX v1). Même prudence pour `mailto:`. Un test de
+construction refuse tout `href` dans la page. Détail : `docs/adr/0004`.
 - Vérifié sur coffre COM simulé et dans un navigateur Chromium avec des collaborateurs fictifs ; **à confirmer dans le
   client classique** (IE11).
 
@@ -85,7 +99,7 @@ Prérequis : Node.js (24 LTS). Dépendances de développement seulement (acorn, 
 npm install
 npm test                 tests node:test (règles, accès COM simulé, présentateur, module, construction)
 npm run lint             ESLint, ES5 pour src/
-node build.js            dist/appdef.xml, dist/v100/ et dist/trombinoscope-uixv1-1.0.0.zip
+node build.js            dist/appdef.xml, dist/v101/ et dist/trombinoscope-uixv1-1.0.1.zip
 node build.js --sans-zip
 node tests/navigateur/preparer-essai.js   page d'essai hors M-Files (coffre simulé, collaborateurs fictifs)
 node scripts/generer-icone.js             régénère src/icones/app.ico
@@ -111,5 +125,8 @@ tests/                            projet de tests séparé, non livré
 
 ## Journal des versions
 
+- **1.0.1** (13.10.2026) — « Ouvrir dans M-Files » par `IShellFrame.NavigateToObject` au lieu d'un lien
+  `m-files://`, refusé par le tableau de bord (boîte « contenu non approuvé ») ; e-mail en texte, sans `mailto:` ;
+  tout échec d'ouverture rattrapé dans la page.
 - **1.0.0** (13.10.2026) — première version : grille, liste, recherche, cinq filtres, fiche latérale, lecture par
   lots, liste blanche, sans portraits.

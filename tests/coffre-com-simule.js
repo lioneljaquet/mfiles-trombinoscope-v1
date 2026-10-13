@@ -58,7 +58,7 @@ function typedValueLue(valeur) {
  * Construit MFiles + vault simulés.
  *
  * @param {object} [options] { objets: [{ type, id, titre, supprime, props: { id: { type, valeur } } }],
- *     limiteServeur: plafond de résultats, guid }
+ *     limiteServeur: plafond de résultats, guid, echecNavigation: NavigateToObject lève }
  * @returns {object} { MFiles, vault, journal, cadre }
  */
 function creerCoffreCom(options) {
@@ -82,7 +82,7 @@ function creerCoffreCom(options) {
     const MFiles = {
         ObjVer: function () { this.SetIDs = function (t, id, v) { this.Type = t; this.ID = id; this.Version = v; }; },
         ObjVers: function () { return collection([], "ObjVers"); },
-        ObjID: function () { this.SetIDs = function (t, id) { this.Type = t; this.ID = id; }; },
+        ObjID: function () { this.genre = "ObjID"; this.SetIDs = function (t, id) { this.Type = t; this.ID = id; }; },
         TypedValue,
         SearchCondition: function () { this.ConditionType = 0; this.Expression = new Expression(); this.TypedValue = new TypedValue(); },
         SearchConditions: function () { return collection([], "SearchConditions"); },
@@ -176,7 +176,18 @@ function creerCoffreCom(options) {
         }
     };
 
-    return { MFiles, vault, journal, cadre: { ActiveListing: listing, CurrentPath: "" } };
+    // Le cadre n'accepte qu'un ObjID construit par MFiles.ObjID ; échec injectable
+    const cadre = {
+        ActiveListing: listing,
+        CurrentPath: "",
+        NavigateToObject(objId) {
+            if (!objId || objId.genre !== "ObjID") { throw new Error("IObjID attendu"); }
+            if (opts.echecNavigation) { throw new Error("navigation refusée"); }
+            journal.navigation = { Type: objId.Type, ID: objId.ID };
+        }
+    };
+
+    return { MFiles, vault, journal, cadre };
 }
 
 /**

@@ -120,6 +120,9 @@ test("construction : page autonome, jetons remplis, manifeste à la racine", () 
     assert.ok(!/<script[^>]+src=/i.test(page), "script externe dans la page");
     assert.ok(!/\{VERSION\}|\{DOSSIER\}/.test(page + appdef), "jeton non rempli");
     assert.ok(/var VERSION_PAQUET = "9\.9\.9 \(UIX v1\)"/.test(page));
+    // La page ne navigue jamais : le tableau de bord refuse tout lien sortant
+    // (m-files://, mailto:) par une boîte d'erreur du client (docs/adr/0004)
+    assert.ok(!/href/i.test(page), "lien href dans la page");
     assert.ok(/<file>v999\/icones\/app\.ico<\/file>/.test(appdef));
     assert.ok(/<content>v999\/view\/dashboard\/index\.html<\/content>/.test(appdef));
     const balises = appdef.replace(/<!--[\s\S]*?-->/g, "");

@@ -123,7 +123,7 @@ var presentateur = (function () {
                     personne: pourVue(p),
                     responsable: p.responsableId !== null ? pourVue(annuaire.parId[p.responsableId]) : null,
                     equipe: p.equipe.map(function (id) { return pourVue(annuaire.parId[id]); }),
-                    lien: coffre.lienObjet(services.vault, PARAMETRAGE.typeCollaborateur, p.id),
+                    ouvrable: Boolean(services.cadre),
                     dansMFiles: Boolean(services.cadre && objVers.hasOwnProperty(p.id))
                 };
             }
@@ -376,6 +376,20 @@ var presentateur = (function () {
                     services.cadre.ShowDefaultContent();
                 } catch (e) {
                     vue.message("Retour au listage impossible : " + messageDe(e));
+                }
+            },
+            /**
+             * Fait ouvrir le collaborateur par le client (le cadre navigue
+             * vers l'objet) ; un refus devient un message discret.
+             * @param {number} id ID du collaborateur
+             * @returns {void}
+             */
+            ouvrirDansMFiles: function (id) {
+                var ok = Boolean(services.cadre) &&
+                    coffre.naviguerVersObjet(services.cadre, PARAMETRAGE.typeCollaborateur, Number(id));
+
+                if (!ok) {
+                    vue.message("M-Files n'a pas pu ouvrir ce collaborateur depuis le trombinoscope.");
                 }
             },
             /**

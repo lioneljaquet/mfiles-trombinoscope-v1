@@ -1,7 +1,7 @@
 /**
  * Accès COM au coffre (src/model/vault-com.js) contre le coffre simulé :
  * recherches par étape et par type, liste blanche des propriétés, lectures
- * par lots, sélection virtuelle, lien m-files://. Données fictives ; les
+ * par lots, sélection virtuelle, ouverture par le cadre. Données fictives ; les
  * valeurs « POISON » imitent les champs RH que la fiche porte aussi.
  */
 const test = require("node:test");
@@ -112,11 +112,18 @@ test("sélection virtuelle : collection ObjOrFileVers sur le listing actif", () 
     assert.strictEqual(c.journal.selection.Count, 1);
 });
 
-test("lien : m-files://show/ avec le GUID du coffre sans accolades, refusé si le GUID est douteux", () => {
-    const bon = preparer([]);
-    const douteux = preparer([], { guid: "{x}/../autre" });
+test("ouvrir : le cadre navigue vers l'objet par NavigateToObject(ObjID), sans navigation de la page", () => {
+    const { c, coffre } = preparer([]);
 
-    assert.strictEqual(bon.coffre.lienObjet(bon.c.vault, 104, 12),
-        "m-files://show/1A2B3C4D-0000-1111-2222-333344445555/104-12");
-    assert.strictEqual(douteux.coffre.lienObjet(douteux.c.vault, 104, 12), null);
+    assert.strictEqual(coffre.naviguerVersObjet(c.cadre, 104, 12), true);
+    assert.deepStrictEqual(c.journal.navigation, { Type: 104, ID: 12 });
+});
+
+test("ouvrir : un refus du client est rattrapé et journalisé, jamais propagé", () => {
+    const c = creerCoffreCom({ echecNavigation: true });
+    const ctx = charger(["model/parametrage.js", "model/vault-com.js"], { MFiles: c.MFiles });
+
+    assert.strictEqual(ctx.coffre.naviguerVersObjet(c.cadre, 104, 12), false);
+    assert.strictEqual(ctx.coffre.naviguerVersObjet(null, 104, 12), false);
+    assert.ok(ctx.__journal.some((l) => /\[trombinoscope\] ouverture dans M-Files refusée : navigation refusée/.test(l)));
 });

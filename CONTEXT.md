@@ -21,4 +21,5 @@ Vocabulaire du domaine, partagé par le code, les tests et la documentation.
 - **Lecture** : une passe complète sur le coffre (recherche par étape, fiches par **lots**, cercles par lots), avec
   progression ; une lecture relancée arrête la précédente.
 - **Cadre** : le ShellFrame du client qui a ouvert la page ; il sert au retour au listage et à la **sélection
-  virtuelle** (fiche native d'un objet dans le volet de droite).
+  virtuelle** (fiche native d'un objet dans le volet de droite) et à la **navigation vers l'objet**
+  (`NavigateToObject`) ; la page elle-même ne navigue jamais (docs/adr/0004).
