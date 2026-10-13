@@ -777,8 +777,71 @@ var regles = (function () {
         return personnes.slice().sort(ordres.hasOwnProperty(cle) ? ordres[cle] : parNom);
     }
 
+    // ---- Vue d'une personne et fiche ---------------------------------------
+
+    /** Fonctions montrées sur une carte ; les autres se résument en « +n ». */
+    var FONCTIONS_MONTREES = 2;
+
+    /**
+     * Personne prête pour l'affichage (grille, liste, fiche, onglet) :
+     * trigramme, fonctions courtes, responsable nommé, cercle principal
+     * filtrable s'il est un cercle de l'organisation. Pas d'étape.
+     *
+     * @param {object} annuaire annuaire construit
+     * @param {object} p personne de l'annuaire
+     * @returns {object} personne pour la vue (données simples)
+     */
+    function personneVue(annuaire, p) {
+        var responsable = p.responsableId !== null ? annuaire.parId[p.responsableId] : null;
+
+        return {
+            id: p.id,
+            prenom: p.prenom,
+            nom: p.nom,
+            nomComplet: p.nomComplet,
+            trigramme: trigrammeDe(p),
+            teinte: p.teinte,
+            titre: p.titre,
+            succursale: p.succursale,
+            cercle: p.cercle,
+            cercleId: p.cercleId,
+            cercleFiltrable: p.cercles.some(function (c) { return c.id === p.cercleId; }),
+            fonctions: p.fonctions,
+            fonctionsCourtes: p.fonctions.slice(0, FONCTIONS_MONTREES),
+            fonctionsEnPlus: Math.max(0, p.fonctions.length - FONCTIONS_MONTREES),
+            email: p.email,
+            responsable: responsable ? { id: responsable.id, nomComplet: responsable.nomComplet } : null,
+            cerclesEtRoles: p.cerclesEtRoles,
+            tailleEquipe: p.tailleEquipe
+        };
+    }
+
+    /**
+     * Fiche d'une personne : elle, son responsable retenu et son équipe
+     * directe, prêts à afficher.
+     *
+     * @param {object} annuaire annuaire construit
+     * @param {number} id ID du collaborateur
+     * @returns {object|null} { personne, responsable, equipe }, ou null si
+     *     la personne n'est pas dans l'annuaire (exclue ou inconnue)
+     */
+    function ficheDe(annuaire, id) {
+        var p = annuaire.parId.hasOwnProperty(id) ? annuaire.parId[id] : null;
+
+        if (!p) {
+            return null;
+        }
+        return {
+            personne: personneVue(annuaire, p),
+            responsable: p.responsableId !== null ? personneVue(annuaire, annuaire.parId[p.responsableId]) : null,
+            equipe: p.equipe.map(function (membre) { return personneVue(annuaire, annuaire.parId[membre]); })
+        };
+    }
+
     return {
         AUCUN: AUCUN,
+        personneVue: personneVue,
+        ficheDe: ficheDe,
         CLES_FACETTES: CLES_FACETTES,
         FACETTES: FACETTES,
         plier: plier,

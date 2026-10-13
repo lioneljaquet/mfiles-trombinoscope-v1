@@ -19,8 +19,6 @@ var presentateur = (function () {
     var VUES = ["grille", "liste"];
     // Pas de tri par étape : l'étape n'apparaît nulle part (docs/adr/0005)
     var TRIS = ["nom", "prenom", "titre", "succursale", "cercle"];
-    // Fonctions montrées sur une carte ; les autres se résument en « +n »
-    var FONCTIONS_MONTREES = 2;
 
     /**
      * Message lisible d'une erreur COM.
@@ -63,36 +61,6 @@ var presentateur = (function () {
         var actions;
 
         /**
-         * Personne prête pour l'affichage : trigramme, fonctions courtes,
-         * responsable nommé (s'il est dans l'annuaire).
-         *
-         * @param {object} p personne de l'annuaire
-         * @returns {object} personne pour la vue
-         */
-        function pourVue(p) {
-            var responsable = p.responsableId !== null ? annuaire.parId[p.responsableId] : null;
-
-            return {
-                id: p.id,
-                prenom: p.prenom,
-                nom: p.nom,
-                nomComplet: p.nomComplet,
-                trigramme: regles.trigrammeDe(p),
-                teinte: p.teinte,
-                titre: p.titre,
-                succursale: p.succursale,
-                cercle: p.cercle,
-                fonctions: p.fonctions,
-                fonctionsCourtes: p.fonctions.slice(0, FONCTIONS_MONTREES),
-                fonctionsEnPlus: Math.max(0, p.fonctions.length - FONCTIONS_MONTREES),
-                email: p.email,
-                responsable: responsable ? { id: responsable.id, nomComplet: responsable.nomComplet } : null,
-                cerclesEtRoles: p.cerclesEtRoles,
-                tailleEquipe: p.tailleEquipe
-            };
-        }
-
-        /**
          * Personnes affichées : filtrées puis triées.
          *
          * @returns {Array} personnes de l'annuaire
@@ -111,27 +79,23 @@ var presentateur = (function () {
             var total = annuaire.personnes.length;
             var facettes = {};
             var fiche = null;
-            var p;
 
             regles.CLES_FACETTES.forEach(function (cle) {
                 facettes[cle] = regles.optionsFacette(annuaire.personnes, etat, cle);
                 facettes[cle].libelle = regles.FACETTES[cle].libelle;
             });
 
-            if (ouverte !== null && annuaire.parId.hasOwnProperty(ouverte)) {
-                p = annuaire.parId[ouverte];
-                fiche = {
-                    personne: pourVue(p),
-                    responsable: p.responsableId !== null ? pourVue(annuaire.parId[p.responsableId]) : null,
-                    equipe: p.equipe.map(function (id) { return pourVue(annuaire.parId[id]); }),
-                    dansMFiles: Boolean(services.cadre && objVers.hasOwnProperty(p.id))
-                };
+            if (ouverte !== null) {
+                fiche = regles.ficheDe(annuaire, ouverte);
+                if (fiche) {
+                    fiche.dansMFiles = Boolean(services.cadre && objVers.hasOwnProperty(ouverte));
+                }
             }
 
             return {
                 total: total,
                 compteur: regles.filtreActif(etat) ? personnes(liste.length) + " sur " + total : personnes(total),
-                personnes: liste.map(pourVue),
+                personnes: liste.map(function (p) { return regles.personneVue(annuaire, p); }),
                 facettes: facettes,
                 etat: { q: etat.q, cercle: etat.cercle, succursale: etat.succursale,
                     titre: etat.titre, fonction: etat.fonction },

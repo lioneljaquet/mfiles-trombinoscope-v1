@@ -356,3 +356,19 @@ test("état : un filtre ou une recherche rend la liste filtrée", () => {
     assert.strictEqual(regles.filtreActif(Object.assign(regles.etatInitial(), { q: "  " })), false);
     assert.strictEqual(regles.filtreActif(Object.assign(regles.etatInitial(), { titre: "Comptable" })), true);
 });
+
+test("fiche : personne prête à afficher, responsable et équipe ; cercle principal filtrable seulement s'il est de l'organisation", () => {
+    const a = equipeFictive();
+    const f = simple(regles.ficheDe(a, 2));
+    const alice = simple(regles.ficheDe(a, 1));
+
+    assert.strictEqual(f.personne.nomComplet, "Éric Oméga");
+    assert.strictEqual(f.personne.trigramme, "EOM");
+    assert.strictEqual(f.responsable.id, 1);
+    assert.deepStrictEqual(alice.equipe.map((p) => p.id), [2]);
+    assert.strictEqual(alice.personne.cercle, "INFRA");
+    assert.strictEqual(alice.personne.cercleFiltrable, true);
+    assert.deepStrictEqual(alice.personne.fonctionsCourtes, ["Formatrice", "Consultante"]);
+    assert.ok(!/etape|Offboarding/i.test(JSON.stringify(f)));
+    assert.strictEqual(regles.ficheDe(a, 5), null, "personne exclue : pas de fiche");
+});
