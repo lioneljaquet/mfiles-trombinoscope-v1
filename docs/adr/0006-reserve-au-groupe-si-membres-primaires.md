@@ -1,6 +1,8 @@
 # 0006 — Application réservée au groupe « SI - membres primaires »
 
-Date : 2026-10-13. Statut : accepté (version 1.0.2), demande de Lionel.
+Date : 2026-10-13. Statut : accepté (version 1.0.2), demande de Lionel ; **amendé en 1.1.1** : le groupe est
+désigné par un alias, voir « Amendement 1.1.1 » en fin de fichier. Les mentions de l'ID 3524 ci-dessous décrivent la
+1.0.2.
 
 ## Décision
 
@@ -30,3 +32,26 @@ Date : 2026-10-13. Statut : accepté (version 1.0.2), demande de Lionel.
 
 La réservation masque la commande et la page ; elle ne protège pas les données du coffre, que les droits M-Files
 gouvernent. Un non-membre qui a les droits de lecture sur les fiches Collaborateur les voit toujours dans M-Files.
+
+## Amendement 1.1.1 — groupe désigné par son alias
+
+Demande de Lionel : régler l'accès sans reconstruire. Lionel a créé dans le coffre le groupe d'utilisateurs
+« trombinoscope », qui contient « SI - membres primaires », avec l'alias **`tebifiles.group.trombinoscope`**.
+
+- `PARAMETRAGE.groupeAutorise` porte l'alias ; plus aucun ID de groupe dans les sources ni le paquet.
+- **Résolution** à l'exécution, dans le module (à chaque cadre) et dans la page (à chaque ouverture), par
+  `Vault.UserGroupOperations.GetUserGroupIDByAlias(Alias As String) As Long` (référence de l'API COM :
+  « Returns -1 if a match is not found or if more than one user group uses the specified alias »). Un retour de 0 ou
+  moins vaut introuvable, comme le skill le fait pour les autres alias. Puis contrôle d'appartenance inchangé
+  (`SessionInfo.UserAndGroupMemberships`, membres indirects compris).
+- **Droits** : la référence n'indique aucune restriction (ni mode, ni droit) pour cette méthode, qui ne fait pas
+  partie des méthodes « …Admin » de `VaultUserGroupOperations`. Qu'un utilisateur non administrateur puisse l'appeler
+  n'est pas démontré par la documentation : à confirmer par l'essai d'un compte non administrateur membre du groupe.
+  Si elle était refusée, l'échec reste fermé (personne n'a accès) et la console le dit.
+- **Échec fermé** : alias absent, ambigu, résolution en échec, appartenance illisible : ni commande, ni onglet, page
+  neutre. Console : `groupe d'accès introuvable : alias tebifiles.group.trombinoscope` (suivi de la cause quand la
+  résolution lève).
+- `build.js` refuse un alias vide ou mal formé (segments séparés par des points, même motif que `acces.js`).
+- **Ordre de déploiement** : le groupe et son alias doivent exister avant l'installation de la 1.1.1.
+- **Prise en compte d'un changement de membres** : à la prochaine ouverture du client ou d'une fenêtre pour la
+  commande et l'onglet ; à chaque ouverture pour la page.

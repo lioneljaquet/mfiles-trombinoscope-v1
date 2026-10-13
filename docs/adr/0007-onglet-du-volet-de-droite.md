@@ -25,7 +25,7 @@ s'affiche dans les onglets, comme onglet par défaut, avec la photo ; les liens 
 - **Données** : le module lit l'annuaire d'un bloc (mêmes recherches et lots que la page) à la première sélection
   d'un collaborateur, le garde 10 minutes pour le ShellUI, puis ne lit à chaque personne que ses documents de portrait
   (0008). Il passe à la page la fiche et la photo en **texte JSON** (`compat.versJson`), pas en objets d'un autre
-  moteur de script. La page de l'onglet revérifie l'accès (groupe 3524) et ne lit rien d'autre du coffre.
+  moteur de script. La page de l'onglet revérifie l'accès (groupe d'accès, 0006) et ne lit rien d'autre du coffre.
 - **Liens** : titre, fonctions, succursale, cercles de l'organisation, responsable et équipe ouvrent le trombinoscope
   dans la zone de listage, avec le filtre déjà posé ou la fiche ouverte (`CustomData.action`, appliquée une fois après
   la lecture). Aucun `href` (0004).

@@ -15,7 +15,7 @@
    professionnel (2823) n'est volontairement pas repris.
    ===================================================================== */
 
-var VERSION_PAQUET = "1.1.0 (UIX v1)";
+var VERSION_PAQUET = "1.1.1 (UIX v1)";
 var PREFIXE_JOURNAL = "[trombinoscope]";
 
 var MF = {
@@ -31,10 +31,11 @@ var PARAMETRAGE = {
     dashboard: "trombinoscope",
     commande: "Trombinoscope",
 
-    // Groupe d'utilisateurs M-Files auquel l'application est réservée :
-    // « SI - membres primaires » (liste de valeurs 16), groupes imbriqués
-    // compris. Entier positif exigé à la construction (build.js).
-    groupeAutorise: 3524,
+    // Groupe d'utilisateurs M-Files auquel l'application est réservée,
+    // désigné par son ALIAS (posé dans M-Files Admin) et résolu à
+    // l'exécution : qui a accès se règle dans le coffre, sans reconstruire.
+    // Groupes imbriqués compris. Alias bien formé exigé par build.js.
+    groupeAutorise: "tebifiles.group.trombinoscope",
 
     // Types d'objets (alias tebifiles.ot.collaborateur pour 104)
     typeCollaborateur: 104,

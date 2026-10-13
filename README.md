@@ -11,9 +11,10 @@ Trombinoscope du Cockpit PRO directement dans M-Files, en deux surfaces :
 
 Lecture seule : l'application n'écrit rien dans le coffre.
 
-- **Réservée au groupe d'utilisateurs M-Files « SI - membres primaires »** (ID 3524), groupes imbriqués compris : la
-  commande et l'onglet n'apparaissent qu'à ses membres, et la page refuse d'afficher quoi que ce soit aux autres (voir
-  `docs/adr/0006`).
+- **Réservée aux membres d'un groupe d'utilisateurs M-Files désigné par son alias, `tebifiles.group.trombinoscope`**
+  (groupe « trombinoscope », qui contient « SI - membres primaires »), groupes imbriqués compris : la commande et
+  l'onglet n'apparaissent qu'à ses membres, et la page refuse d'afficher quoi que ce soit aux autres. Qui a accès se
+  règle dans M-Files Admin, sans reconstruire (voir « Régler l'accès » et `docs/adr/0006`).
 - **Population limitée comme l'export du Cockpit** : collaborateurs En fonction ou en offboarding **rattachés à un
   cercle** de l'organisation ; l'étape n'apparaît nulle part (ni filtre, ni tri, ni mention) ; un responsable sans
   cercle est remplacé par le premier responsable retenu au-dessus. Bandeau « Données internes : collaborateurs
@@ -31,12 +32,37 @@ Lecture seule : l'application n'écrit rien dans le coffre.
   « Grille / Liste » du trombinoscope, inchangée.
 - Version affichée dans la barre de titre et journalisée en console.
 
-## Essai par Lionel (version 1.1.0)
+## Régler l'accès
 
+L'application cherche, à chaque ouverture de fenêtre du client, le groupe d'utilisateurs qui porte l'alias
+**`tebifiles.group.trombinoscope`**, puis vérifie que l'utilisateur connecté en est membre, directement ou par un
+groupe membre. Sans ce groupe, **personne n'a accès** (échec fermé).
+
+Mise en place (une fois, dans M-Files Admin › coffre tebifiles › Utilisateurs et groupes, ou « User Groups ») :
+
+1. Créer le groupe d'utilisateurs (nom libre, ici « trombinoscope »).
+2. Y ajouter le groupe « SI - membres primaires » comme membre.
+3. Dans les propriétés du groupe, onglet « Advanced » (ou « Avancé »), poser l'alias exactement
+   `tebifiles.group.trombinoscope`. Un alias porté par deux groupes vaut « introuvable ».
+
+Ensuite, ajouter ou retirer des personnes ou des groupes dans ce groupe suffit : rien à reconstruire ni à
+réinstaller. La prise en compte se fait à la **prochaine ouverture du client** (ou d'une nouvelle fenêtre) pour la
+commande et l'onglet ; la page la revérifie à chaque ouverture.
+
+## Essai par Lionel (version 1.1.1)
+
+Ordre à respecter : **le groupe doit exister avec son alias AVANT d'installer la 1.1.1**, sinon personne n'a accès
+(la commande disparaît pour tous, console `groupe d'accès introuvable : alias tebifiles.group.trombinoscope`).
+
+0. **Vérifier le groupe** : « trombinoscope » existe, contient « SI - membres primaires », et porte l'alias
+   `tebifiles.group.trombinoscope` (voir « Régler l'accès »).
 1. **Installer** : M-Files Admin › coffre tebifiles › Applications › Installer… ›
-   `dist/trombinoscope-uixv1-1.1.0.zip` (remplace la 1.0.2). Accepter, puis vérifier que l'application
+   `dist/trombinoscope-uixv1-1.1.1.zip` (remplace la 1.1.0). Accepter, puis vérifier que l'application
    « Trombinoscope tebicom (UIX v1) » est activée.
-2. **Redémarrer le client** M-Files Desktop (le client ne recharge pas une application en cours de session).
+2. **Redémarrer le client** M-Files Desktop (le client ne recharge pas une application en cours de session). En
+   console, attendu : `accès accordé : membre du groupe tebifiles.group.trombinoscope (ID …)`. Si l'essai se fait avec
+   un compte **non administrateur** membre du groupe, c'est la preuve que la résolution d'alias fonctionne sans droits
+   d'administration (point non garanti par la documentation).
 3. **Tableau de bord, inchangé sauf le bouton** : commande Trombinoscope, 94 personnes environ, bandeau bleu ; le
    bouton de la barre s'appelle désormais **Vue M-Files** et rend le listage.
 4. **Onglet, membre du groupe** : dans une vue quelconque (ou une recherche), sélectionner **un seul** objet
@@ -57,18 +83,21 @@ Lecture seule : l'application n'écrit rien dans le coffre.
    l'affichage d'une photo (image en URI data:, jamais essayée sur le client) ; si une boîte « contenu non approuvé »
    apparaissait, la noter telle quelle.
 8. **Non-membre** : avec un compte hors du groupe, ni commande ni onglet, et en console
-   `commande non ajoutée : l'utilisateur n'est pas membre du groupe 3524`.
+   `commande non ajoutée : l'utilisateur n'est pas membre du groupe tebifiles.group.trombinoscope (ID …)`.
+9. **Réglage sans reconstruire** : ajouter un compte d'essai au groupe « trombinoscope » dans M-Files Admin, puis
+   rouvrir le client avec ce compte : la commande apparaît. Le retirer : elle disparaît à la réouverture suivante.
 
 Lignes de console attendues (outils F12 attachés au client, par exemple `C:\Windows\System32\F12\IEChooser.exe`) :
 
 ```text
-[trombinoscope] version 1.1.0 (UIX v1) — nouveau cadre (type 1)        module, à chaque fenêtre
-[trombinoscope] accès accordé : membre du groupe 3524                 module, membre
-[trombinoscope] commande non ajoutée : l'utilisateur n'est pas membre du groupe 3524      module, non-membre
+[trombinoscope] version 1.1.1 (UIX v1) — nouveau cadre (type 1)        module, à chaque fenêtre
+[trombinoscope] accès accordé : membre du groupe tebifiles.group.trombinoscope (ID …)        module, membre
+[trombinoscope] commande non ajoutée : l'utilisateur n'est pas membre du groupe tebifiles.group.trombinoscope (ID …)
+[trombinoscope] commande non ajoutée : groupe d'accès introuvable : alias tebifiles.group.trombinoscope
 [trombinoscope] commande non ajoutée : appartenance illisible : …     module, lecture impossible (échec fermé)
 [trombinoscope] annuaire de l'onglet lu : 94 personnes, … ms           module, première sélection d'un collaborateur
-[trombinoscope] version 1.1.0 (UIX v1) — onglet ouvert                 onglet, à chaque collaborateur affiché
-[trombinoscope] version 1.1.0 (UIX v1) — page ouverte                  tableau de bord, à chaque ouverture
+[trombinoscope] version 1.1.1 (UIX v1) — onglet ouvert                 onglet, à chaque collaborateur affiché
+[trombinoscope] version 1.1.1 (UIX v1) — page ouverte                  tableau de bord, à chaque ouverture
 [trombinoscope] annuaire lu : 94 personnes, 348 cercles et rôles, … ms
 ```
 
@@ -76,10 +105,10 @@ En cas de problème : `lecture interrompue : …` (la page affiche le même mess
 affiché : …` (page ouverte sans appartenance au groupe : message neutre « Cette application n'est pas disponible pour
 votre compte. »), `onglet non affiché : …`, `portraits non lus : …`, `trombinoscope non ouvert depuis l'onglet : …`,
 `cadre du client introuvable …`, `sélection virtuelle refusée : …`. La version affichée en haut à droite
-(« v1.1.0 (UIX v1) ») dit quel paquet le client sert réellement.
+(« v1.1.1 (UIX v1) ») dit quel paquet le client sert réellement.
 
 **Mettre à jour** : incrémenter la version de `package.json`, reconstruire avec `node build.js` (le dossier versionné
-change, `v111`…, et le .zip est refait), réinstaller le .zip et redémarrer le client (cache).
+change, `v112`…, et le .zip est refait), réinstaller le .zip et redémarrer le client (cache).
 
 ## Données lues (liste blanche)
 
@@ -93,7 +122,7 @@ Les identifiants viennent des adaptateurs du Cockpit PRO, en service sur le coff
 | Étapes listées : En fonction, Offboarding démission, Offboarding licenciement (critère d'inclusion seulement) | 319, 1475, 1478 |
 | Fiche : Etape, Prénom, Nom, Initiales (trigramme), Titre, Titre (manuel), /Titre, >Fonctions, >Succursale, >Cercle/rôle, ~Cercles/rôles auto, >Responsable hiérarchique, Email prof. | 39, 1387, 1386, 1079, 2376, 4259, 3638, 3641, 2414, 2929, 2928, 1217, 2821 |
 | Cercle/rôle : titre (résultat de recherche), >Membres (cercles) | —, 2926 |
-| Groupe d'utilisateurs autorisé « SI - membres primaires » (liste de valeurs 16) | 3524 |
+| Groupe d'accès, par son alias (résolu à l'exécution, aucun ID dans le paquet) | `tebifiles.group.trombinoscope` |
 | Portraits : documents (type 0) de la classe « !! Photo collaborateur », liés par >Collaborateur ; leurs fichiers (GetFiles) | 88 (classe, propriété 100), 1077 |
 
 Rien d'autre n'est lu : chaque propriété est demandée par son ID (`SearchForProperty`), la fiche n'est jamais
@@ -133,14 +162,14 @@ npm install
 npm test                 tests node:test (règles, accès, accès COM simulé, portraits, présentateurs, module,
                          onglet, construction) et, sous Windows, le module rejoué dans cscript //E:jscript
 npm run lint             ESLint, ES5 pour src/
-node build.js            dist/appdef.xml, dist/v110/ et dist/trombinoscope-uixv1-1.1.0.zip
+node build.js            dist/appdef.xml, dist/v111/ et dist/trombinoscope-uixv1-1.1.1.zip
 node build.js --sans-zip (attention : supprime le .zip de dist/, ne pas commiter dans cet état)
 node tests/navigateur/preparer-essai.js   pages d'essai hors M-Files (tableau de bord et onglet, coffre simulé)
 node scripts/generer-icone.js             régénère src/icones/app.ico
 ```
 
 `build.js` refuse de livrer un script qui n'est pas de l'ES5 (acorn), deux scripts d'une même page qui déclarent le
-même nom global, ou un groupe autorisé non renseigné ; il intègre scripts et styles dans la page (un fichier externe se
+même nom global, ou un alias de groupe d'accès vide ou mal formé ; il intègre scripts et styles dans la page (un fichier externe se
 charge mal dans le contrôle web).
 
 Architecture (Model / View / Presenter) :
@@ -164,6 +193,9 @@ tests/                            projet de tests séparé, non livré
 
 ## Journal des versions
 
+- **1.1.1** (13.10.2026) — groupe d'accès désigné par l'alias `tebifiles.group.trombinoscope`, résolu à l'exécution
+  (`GetUserGroupIDByAlias`) : l'accès se règle dans M-Files Admin sans reconstruire ; plus aucun ID de groupe dans le
+  paquet ; alias introuvable = personne n'a accès.
 - **1.1.0** (13.10.2026) — onglet « Trombinoscope » du volet de droite pour un collaborateur sélectionné, avec photo
   (URI data: en mémoire, JPEG/PNG/GIF/BMP jusqu'à 4 Mo), liens vers le trombinoscope filtré ; « Revenir au listage »
   devient « Vue M-Files » ; titre et cercle principal de la fiche filtrables ; module compatible avec le JScript de
