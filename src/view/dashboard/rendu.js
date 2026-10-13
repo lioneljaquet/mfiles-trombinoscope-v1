@@ -17,15 +17,18 @@ var rendu = (function () {
     var DELAI_RECHERCHE = 120;
     // Durée d'affichage d'un message (ms)
     var DUREE_MESSAGE = 5000;
+    // Seule image acceptée pour un portrait : une URI data: d'un type affichable
+    var MOTIF_PHOTO = /^data:image\/(jpeg|png|gif|bmp);base64,[A-Za-z0-9+\/=\r\n]+$/;
 
     /**
      * Crée la vue d'une page.
      *
      * @param {object} doc document de la page
      * @param {object} actions actions du présentateur
-     * @returns {object} { progression, erreur, rendre, message }
+     * @param {string} [mode] « onglet » pour l'onglet du volet de droite
+     * @returns {object} { progression, erreur, refuser, rendre, rendreOnglet, message }
      */
-    function creer(doc, actions) {
+    function creer(doc, actions, mode) {
         var $ = function (id) { return doc.getElementById(id); };
         var minuterieRecherche = null;
         var minuterieMessage = null;
@@ -228,12 +231,34 @@ var rendu = (function () {
         }
 
         /**
-         * Contenu de la fiche latérale.
+         * Grand avatar, avec la photo par-dessus quand il y en a une. La
+         * photo est un fond (background-size: cover) : IE11 ne connaît pas
+         * object-fit ; si elle ne se charge pas, le trigramme reste visible.
+         *
+         * @param {object} p personne
+         * @param {object|null} photo { dataUri, note } passée par le module
+         * @returns {object} élément
+         */
+        function avatarAvecPhoto(p, photo) {
+            var a = avatar(p, "grand");
+            var image;
+
+            if (photo && typeof photo.dataUri === "string" && MOTIF_PHOTO.test(photo.dataUri)) {
+                image = el("span", { classe: "photo", attrs: { role: "img", "aria-label": "Portrait de " + p.nomComplet } });
+                image.style.backgroundImage = "url(\"" + photo.dataUri + "\")";
+                a.appendChild(image);
+            }
+            return a;
+        }
+
+        /**
+         * Contenu de la fiche (volet latéral du tableau de bord, ou onglet).
          *
          * @param {object} f fiche du modèle
+         * @param {object} [photo] { dataUri, note }, onglet seulement
          * @returns {Array} éléments
          */
-        function contenuFiche(f) {
+        function contenuFiche(f, photo) {
             var p = f.personne;
             var faits = [];
             var plus = p.tailleEquipe > f.equipe.length ? " · " + p.tailleEquipe + " au total" : "";
@@ -245,7 +270,10 @@ var rendu = (function () {
                 faits.push(["Succursale", [boutonFiltre("succursale", p.succursale, p.succursale)]]);
             }
             if (p.cercle) {
-                faits.push(["Cercle/rôle principal", [el("span", { classe: "badge-cercle", texte: p.cercle })]]);
+                // Filtrable seulement s'il est un cercle de l'organisation (un rôle n'a pas de filtre)
+                faits.push(["Cercle/rôle principal", [p.cercleFiltrable ?
+                    boutonFiltre("cercle", String(p.cercleId), p.cercle) :
+                    el("span", { classe: "badge-cercle", texte: p.cercle })]]);
             }
             if (p.email) {
                 // Texte à sélectionner, sans lien mailto: : le tableau de bord refuse de naviguer
@@ -268,10 +296,13 @@ var rendu = (function () {
 
             return [
                 el("div", { classe: "fiche-haut" }, [
-                    avatar(p, "grand"),
+                    avatarAvecPhoto(p, photo),
+                    photo && photo.note ? el("p", { classe: "note", texte: photo.note }) : null,
                     el("h2", {}, [el("span", { classe: "prenom", texte: p.prenom }), " ",
                         el("span", { classe: "famille", texte: p.nom })]),
-                    p.titre ? el("p", { classe: "fiche-titre", texte: p.titre }) : null,
+                    p.titre ? el("p", { classe: "fiche-titre" }, [el("button", { classe: "bouton-titre", texte: p.titre,
+                        attrs: { type: "button", "data-filtre": "titre", "data-valeur": p.titre,
+                            title: "Afficher seulement les personnes de ce titre" } })]) : null,
                     el("span", { classe: "trigramme", texte: p.trigramme, attrs: { title: "Trigramme" } })
                 ]),
                 el("dl", { classe: "faits" }, faits.map(function (fait) {
@@ -399,6 +430,25 @@ var rendu = (function () {
         }
 
         /**
+         * Onglet du volet de droite : la fiche seule, avec la photo ; ni
+         * recherche, ni filtres, ni grille.
+         *
+         * @param {object} m { fiche, photo }
+         * @returns {void}
+         */
+        function rendreOnglet(m) {
+            basculer(doc.body, "mode-onglet", true);
+            basculer($("progression"), "est-visible", false);
+            vider($("ficheCorps"));
+            contenuFiche(m.fiche, m.photo).forEach(function (e) {
+                if (e) {
+                    $("ficheCorps").appendChild(e);
+                }
+            });
+            basculer($("fiche"), "est-ouverte", true);
+        }
+
+        /**
          * Progression de la lecture du coffre.
          *
          * @param {string} texte étape en cours
@@ -496,6 +546,9 @@ var rendu = (function () {
         // ---- Écouteurs (posés une fois, délégués) ----------------------
 
         $("version").textContent = "v" + VERSION_PAQUET;
+        if (mode === "onglet") {
+            basculer(doc.body, "mode-onglet", true);
+        }
         $("recherche").addEventListener("input", saisie);
         $("recherche").addEventListener("keyup", saisie);
         $("effacer").addEventListener("click", function () {
@@ -566,7 +619,8 @@ var rendu = (function () {
             }
         });
 
-        return { progression: progression, erreur: erreur, refuser: refuser, rendre: rendre, message: message };
+        return { progression: progression, erreur: erreur, refuser: refuser, rendre: rendre, rendreOnglet: rendreOnglet,
+            message: message };
     }
 
     return { creer: creer };

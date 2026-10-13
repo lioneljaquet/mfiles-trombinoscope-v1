@@ -72,14 +72,58 @@ function objetsFictifs() {
     return objets;
 }
 
+/**
+ * Portrait fictif : un BMP 24 bits de 60 × 80 px (dégradé et disque), en URI
+ * data: comme celle que rend DownloadFileAsDataURI.
+ *
+ * @returns {string} URI data:image/bmp
+ */
+function portraitFictif() {
+    const l = 60;
+    const h = 80;
+    const ligne = Math.ceil((l * 3) / 4) * 4;
+    const taille = 54 + ligne * h;
+    const b = Buffer.alloc(taille);
+    b.write("BM", 0);
+    b.writeUInt32LE(taille, 2);
+    b.writeUInt32LE(54, 10);
+    b.writeUInt32LE(40, 14);
+    b.writeInt32LE(l, 18);
+    b.writeInt32LE(h, 22);
+    b.writeUInt16LE(1, 26);
+    b.writeUInt16LE(24, 28);
+    for (let y = 0; y < h; y += 1) {
+        for (let x = 0; x < l; x += 1) {
+            const visage = (x - 30) ** 2 + (y - 50) ** 2 < 300;
+            const o = 54 + y * ligne + x * 3;
+            b[o] = visage ? 150 : 159;            // bleu
+            b[o + 1] = visage ? 190 : 79 + y;     // vert
+            b[o + 2] = visage ? 230 : 0;          // rouge
+        }
+    }
+    return "data:image/bmp;base64," + b.toString("base64");
+}
+
 const simulateur = fs.readFileSync(path.join(RACINE, "tests", "coffre-com-simule.js"), "utf8");
-const injection = "<script>\n(function () {\nvar module = {};\n" + simulateur +
+const coffreJs = "var module = {};\n" + simulateur +
     "\nvar c = module.exports.creerCoffreCom({ objets: " + JSON.stringify(objetsFictifs()) + ", session: { groupes: [3524] } });\n" +
     "window.MFiles = c.MFiles;\nc.cadre.ShowDefaultContent = function () { console.log('ShowDefaultContent appelé'); };\n" +
-    "window.__essai = c;\nwindow.addEventListener('load', function () {\n" +
+    "window.__liens = [];\nc.cadre.ShowDashboard = function (id, d) { window.__liens.push({ id: id, action: d.action }); };\n" +
+    "window.__essai = c;\n";
+const injection = "<script>\n(function () {\n" + coffreJs + "window.addEventListener('load', function () {\n" +
     "  OnNewDashboard({ Vault: c.vault, CustomData: { cadre: c.cadre, version: 'essai' } });\n});\n}());\n</script>\n";
+// Onglet : la fiche est calculée ici comme le ferait le module (mêmes règles), puis passée en JSON
+const injectionOnglet = "<script>\n(function () {\n" + coffreJs + "window.addEventListener('load', function () {\n" +
+    "  var ovs = [];\n" +
+    "  PARAMETRAGE.etapes.forEach(function (e) { ovs = ovs.concat(coffre.chercherCollaborateurs(c.vault, e.id)); });\n" +
+    "  var a = regles.construireAnnuaire(coffre.lireFiches(c.vault, ovs), coffre.lireCercles(c.vault, coffre.chercherCercles(c.vault)));\n" +
+    "  var donnees = JSON.stringify({ fiche: regles.ficheDe(a, 2), photo: { dataUri: " + JSON.stringify(portraitFictif()) +
+    ", note: null } });\n" +
+    "  OnNewDashboard({ Vault: c.vault, CustomData: { mode: 'onglet', cadre: c.cadre, etatCadre: {}, donnees: donnees } });\n" +
+    "});\n}());\n</script>\n";
 
-const page = fs.readFileSync(PAGE, "utf8").replace("</body>", () => injection + "</body>");
+const source = fs.readFileSync(PAGE, "utf8");
 fs.mkdirSync(path.dirname(SORTIE), { recursive: true });
-fs.writeFileSync(SORTIE, page);
-console.log("page d'essai : " + SORTIE);
+fs.writeFileSync(SORTIE, source.replace("</body>", () => injection + "</body>"));
+fs.writeFileSync(SORTIE.replace("essai.html", "essai-onglet.html"), source.replace("</body>", () => injectionOnglet + "</body>"));
+console.log("pages d'essai : " + SORTIE + " et essai-onglet.html");

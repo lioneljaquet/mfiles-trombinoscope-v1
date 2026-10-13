@@ -15,7 +15,7 @@
    professionnel (2823) n'est volontairement pas repris.
    ===================================================================== */
 
-var VERSION_PAQUET = "1.0.2 (UIX v1)";
+var VERSION_PAQUET = "1.1.0 (UIX v1)";
 var PREFIXE_JOURNAL = "[trombinoscope]";
 
 var MF = {
@@ -64,6 +64,26 @@ var PARAMETRAGE = {
         cerclesAuto: 2928,         // ~Cercles/rôles auto (plusieurs)
         responsable: 1217,         // >Responsable hiérarchique
         email: 2821                // Email prof.
+    },
+
+    // Portraits : documents (type 0) de la classe « !! Photo collaborateur »
+    // (88), liés au collaborateur par >Collaborateur (1077). Seuls ces deux
+    // critères sont lus, plus les fichiers du document (GetFiles).
+    typeDocument: 0,
+    classePhoto: 88,
+    proprietesPhoto: {
+        classe: 100,               // Classe (propriété intégrée)
+        collaborateur: 1077        // >Collaborateur
+    },
+    portrait: {
+        // Plafond par fichier : 4 Mo (une photo de portrait, pas un scan) ;
+        // au-delà, rien n'est téléchargé et l'avatar reste.
+        tailleMax: 4 * 1024 * 1024,
+        // Formats que le contrôle web IE11 affiche ; PDF, JPEG 2000, WebP,
+        // HEIC… restent à l'avatar.
+        formats: { jpg: "JPEG", jpeg: "JPEG", png: "PNG", gif: "GIF", bmp: "BMP" },
+        // Entrées gardées en mémoire par cadre avant de vider le cache
+        cacheMax: 40
     },
 
     // Liste blanche de l'objet Cercle/rôle : le titre vient du résultat

@@ -43,8 +43,11 @@ var presentateur = (function () {
     /**
      * Crée le présentateur d'une page.
      *
-     * @param {object} services { vault, cadre, planifier(fn) } ; planifier
-     *     rend la main au navigateur avant d'appeler fn (setTimeout)
+     * @param {object} services { vault, cadre, etatCadre, actionInitiale,
+     *     planifier(fn) } ; planifier rend la main au navigateur avant
+     *     d'appeler fn (setTimeout) ; etatCadre est l'état du cadre tenu par
+     *     le module ; actionInitiale ({ filtre: { cle, valeur } } ou
+     *     { ouvrir: id }) vient d'un lien de l'onglet du volet de droite
      * @param {Function} fabriqueVue reçoit les actions, rend la vue
      *     { progression(texte, fait, total), erreur(m), refuser(m), rendre(modele), message(m) }
      * @returns {object} { demarrer }
@@ -116,6 +119,31 @@ var presentateur = (function () {
         function rendre() {
             if (annuaire) {
                 vue.rendre(modele());
+            }
+        }
+
+        /**
+         * Applique, une seule fois, l'action venue d'un lien de l'onglet :
+         * un filtre déjà posé, ou la fiche d'une personne ouverte. Une clé
+         * ou une personne inconnue est ignorée.
+         *
+         * @returns {void}
+         */
+        function appliquerActionInitiale() {
+            var a = services.actionInitiale;
+
+            services.actionInitiale = null;
+            if (!a) {
+                return;
+            }
+            try {
+                if (a.filtre && regles.FACETTES.hasOwnProperty(a.filtre.cle)) {
+                    etat[a.filtre.cle] = String(a.filtre.valeur);
+                } else if (a.ouvrir !== undefined && a.ouvrir !== null && annuaire.parId.hasOwnProperty(a.ouvrir)) {
+                    ouverte = Number(a.ouvrir);
+                }
+            } catch (e) {
+                console.log(PREFIXE_JOURNAL + " action du lien ignorée : " + messageDe(e));
             }
         }
 
@@ -252,12 +280,30 @@ var presentateur = (function () {
                         };
                     }), function () {
                         annuaire = regles.construireAnnuaire(fiches, cercles);
+                        appliquerActionInitiale();
                         console.log(PREFIXE_JOURNAL + " annuaire lu : " + annuaire.personnes.length + " personnes, " +
                             cercles.length + " cercles et rôles, " + (new Date().getTime() - debut) + " ms");
                         rendre();
                     });
                 });
             });
+        }
+
+        /**
+         * Note dans l'état du cadre (objet du module) la personne d'une
+         * sélection virtuelle ; sans état du cadre, rien.
+         *
+         * @param {number|null} id personne, ou null pour effacer
+         * @returns {void}
+         */
+        function signalerSelectionVirtuelle(id) {
+            try {
+                if (services.etatCadre) {
+                    services.etatCadre.selectionVirtuelle = id;
+                }
+            } catch (e) {
+                console.log(PREFIXE_JOURNAL + " état du cadre inaccessible : " + messageDe(e));
+            }
         }
 
         // Actions appelées par la vue ; chacune met l'état à jour puis rend la page.
@@ -345,12 +391,12 @@ var presentateur = (function () {
                     }
                 }
             },
-            /** Rend la zone de listage au client (ShowDefaultContent). @returns {void} */
+            /** « Vue M-Files » : rend la zone de listage au client (ShowDefaultContent). @returns {void} */
             revenir: function () {
                 try {
                     services.cadre.ShowDefaultContent();
                 } catch (e) {
-                    vue.message("Retour au listage impossible : " + messageDe(e));
+                    vue.message("Vue M-Files impossible : " + messageDe(e));
                 }
             },
             /**
@@ -360,12 +406,120 @@ var presentateur = (function () {
              * @returns {void}
              */
             afficherDansMFiles: function (id) {
-                var ok = Boolean(services.cadre) && objVers.hasOwnProperty(id) &&
-                    coffre.selectionVirtuelle(services.cadre, objVers[id]);
+                var ok;
 
+                // Le module, voyant ce collaborateur sélectionné, affichera son
+                // onglet sans le rendre actif : l'utilisateur a demandé la fiche M-Files
+                signalerSelectionVirtuelle(Number(id));
+                ok = Boolean(services.cadre) && objVers.hasOwnProperty(id) &&
+                    coffre.selectionVirtuelle(services.cadre, objVers[id]);
                 if (!ok) {
+                    signalerSelectionVirtuelle(null);
                     vue.message("La fiche ne peut pas être affichée dans M-Files depuis cette fenêtre.");
                 }
+            }
+        };
+
+        vue = fabriqueVue(actions);
+        return { demarrer: demarrer, actions: actions };
+    }
+
+    return { creer: creer };
+}());
+
+/* =====================================================================
+   PRÉSENTATEUR DE L'ONGLET « TROMBINOSCOPE » (volet de droite)
+
+   Le module a déjà lu la fiche et la photo du collaborateur sélectionné et
+   les passe en texte JSON : la page ne lit rien du coffre, elle vérifie
+   l'accès (défense en profondeur), rend la fiche, et transforme chaque
+   lien (fonction, succursale, titre, cercle, personne) en ouverture du
+   trombinoscope dans la zone de listage, par le cadre que le module a
+   transmis, avec le filtre ou la fiche déjà posés. Aucune navigation de la
+   page (docs/adr/0004).
+   ===================================================================== */
+
+var presentateurOnglet = (function () {
+    "use strict";
+
+    var REFUS = "Cette application n'est pas disponible pour votre compte.";
+
+    /**
+     * Crée le présentateur de l'onglet.
+     *
+     * @param {object} services { vault, cadre, etatCadre, donnees (texte JSON du module) }
+     * @param {Function} fabriqueVue reçoit les actions, rend la vue
+     *     { rendreOnglet(modele), refuser(m), message(m) }
+     * @returns {object} { demarrer, actions }
+     */
+    function creer(services, fabriqueVue) {
+        var vue;
+        var actions;
+
+        /**
+         * Ouvre le trombinoscope dans la zone de listage avec une action.
+         *
+         * @param {object} action { filtre: { cle, valeur } } ou { ouvrir: id }
+         * @returns {void}
+         */
+        function ouvrirTrombinoscope(action) {
+            try {
+                services.cadre.ShowDashboard(PARAMETRAGE.dashboard, {
+                    cadre: services.cadre, version: VERSION_PAQUET, etatCadre: services.etatCadre, action: action
+                });
+            } catch (e) {
+                console.log(PREFIXE_JOURNAL + " trombinoscope non ouvert depuis l'onglet : " +
+                    ((e && (e.message || e.description)) || e));
+                vue.message("Le trombinoscope ne peut pas s'ouvrir depuis cet onglet.");
+            }
+        }
+
+        /**
+         * Rend la fiche, après contrôle d'accès et lecture des données.
+         *
+         * @returns {void}
+         */
+        function demarrer() {
+            var verdict = acces.verifier(services.vault);
+            var modele;
+
+            if (!verdict.autorise) {
+                console.log(PREFIXE_JOURNAL + " onglet non affiché : " + verdict.raison);
+                vue.refuser(REFUS);
+                return;
+            }
+            try {
+                modele = JSON.parse(String(services.donnees));
+            } catch (e) {
+                modele = null;
+            }
+            if (!modele || !modele.fiche || !modele.fiche.personne) {
+                console.log(PREFIXE_JOURNAL + " onglet non affiché : données du module illisibles");
+                vue.refuser("Fiche indisponible.");
+                return;
+            }
+            vue.rendreOnglet(modele);
+        }
+
+        actions = {
+            /**
+             * Ouvre le trombinoscope filtré sur une valeur de la fiche.
+             * @param {string} cle facette (cercle, succursale, titre, fonction)
+             * @param {string} valeur valeur
+             * @returns {void}
+             */
+            filtrer: function (cle, valeur) {
+                if (regles.FACETTES.hasOwnProperty(cle) && valeur) {
+                    ouvrirTrombinoscope({ filtre: { cle: cle, valeur: String(valeur) } });
+                }
+            },
+            /**
+             * Ouvre le trombinoscope sur la fiche d'une personne.
+             * @param {number} id ID du collaborateur
+             * @returns {void}
+             */
+            ouvrir: function (id) {
+                ouvrirTrombinoscope({ ouvrir: Number(id) });
             }
         };
 
@@ -403,10 +557,26 @@ function OnNewDashboard(dashboard) {
         donnees = {};
     }
 
+    // Onglet du volet de droite : la fiche vient du module, la page ne lit rien
+    if (donnees.mode === "onglet") {
+        console.log(PREFIXE_JOURNAL + " version " + VERSION_PAQUET + " — onglet ouvert");
+        presentateurOnglet.creer({
+            vault: vault,
+            cadre: cadreDuDashboard(dashboard, donnees),
+            etatCadre: donnees.etatCadre || null,
+            donnees: donnees.donnees
+        }, function (actions) {
+            return rendu.creer(document, actions, "onglet");
+        }).demarrer();
+        return;
+    }
+
     console.log(PREFIXE_JOURNAL + " version " + VERSION_PAQUET + " — page ouverte");
     p = presentateur.creer({
         vault: vault,
         cadre: cadreDuDashboard(dashboard, donnees),
+        etatCadre: donnees.etatCadre || null,
+        actionInitiale: donnees.action || null,
         planifier: function (fn) {
             setTimeout(fn, 0);
         }

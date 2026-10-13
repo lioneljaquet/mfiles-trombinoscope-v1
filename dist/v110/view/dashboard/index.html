@@ -213,6 +213,29 @@ button:focus, input:focus, select:focus, .carte:focus { outline: 2px solid #004f
 .fiche-actions { margin-top: 16px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
 .fiche-actions .bouton { margin: 0 8px 8px 0; display: inline-block; text-decoration: none; }
 .note { color: #5f6b7d; font-size: 12px; margin-top: 8px; }
+.fiche-titre .bouton-titre {
+    border: 0; background: transparent; padding: 0; color: #004f9f; font-size: 15px; cursor: pointer;
+}
+.fiche-titre .bouton-titre:hover { text-decoration: underline; }
+
+/* ---- Photo (onglet du volet de droite) -------------------------------- */
+.avatar { position: relative; overflow: hidden; }
+.avatar .photo {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-repeat: no-repeat; background-position: center 25%; background-size: cover;
+}
+.avatar.grand { width: 120px; height: 120px; line-height: 120px; }
+
+/* ---- Mode onglet : la fiche seule, dans le volet de droite ------------- */
+body.mode-onglet { background: #ffffff; }
+body.mode-onglet .page { display: none; }
+body.mode-onglet .page.est-refusee { display: block; }
+body.mode-onglet .page.est-refusee .barre, body.mode-onglet .page.est-refusee .bandeau { display: none; }
+body.mode-onglet .fiche {
+    position: static; width: auto; border-left: 0; box-shadow: none; overflow: visible;
+}
+body.mode-onglet .fiche-entete { display: none; }
+body.mode-onglet .fiche-corps { padding: 12px 14px; }
 .email { color: #1a202c; -ms-user-select: text; user-select: text; cursor: text; }
 
 </style>
@@ -228,7 +251,8 @@ button:focus, input:focus, select:focus, .carte:focus { outline: 2px solid #004f
         <div class="barre-actions">
             <span id="version" class="version"></span>
             <button type="button" class="bouton bouton-discret" id="btnRelire" title="Relire les fiches dans M-Files">Relire</button>
-            <button type="button" class="bouton bouton-secondaire" id="btnRevenir">Revenir au listage</button>
+            <button type="button" class="bouton bouton-secondaire" id="btnRevenir"
+                    title="Vue M-Files : rend la zone de listage au client" aria-label="Vue M-Files">Vue M-Files</button>
         </div>
     </header>
 
@@ -312,7 +336,7 @@ button:focus, input:focus, select:focus, .carte:focus { outline: 2px solid #004f
    professionnel (2823) n'est volontairement pas repris.
    ===================================================================== */
 
-var VERSION_PAQUET = "1.0.2 (UIX v1)";
+var VERSION_PAQUET = "1.1.0 (UIX v1)";
 var PREFIXE_JOURNAL = "[trombinoscope]";
 
 var MF = {
@@ -361,6 +385,26 @@ var PARAMETRAGE = {
         cerclesAuto: 2928,         // ~Cercles/rôles auto (plusieurs)
         responsable: 1217,         // >Responsable hiérarchique
         email: 2821                // Email prof.
+    },
+
+    // Portraits : documents (type 0) de la classe « !! Photo collaborateur »
+    // (88), liés au collaborateur par >Collaborateur (1077). Seuls ces deux
+    // critères sont lus, plus les fichiers du document (GetFiles).
+    typeDocument: 0,
+    classePhoto: 88,
+    proprietesPhoto: {
+        classe: 100,               // Classe (propriété intégrée)
+        collaborateur: 1077        // >Collaborateur
+    },
+    portrait: {
+        // Plafond par fichier : 4 Mo (une photo de portrait, pas un scan) ;
+        // au-delà, rien n'est téléchargé et l'avatar reste.
+        tailleMax: 4 * 1024 * 1024,
+        // Formats que le contrôle web IE11 affiche ; PDF, JPEG 2000, WebP,
+        // HEIC… restent à l'avatar.
+        formats: { jpg: "JPEG", jpeg: "JPEG", png: "PNG", gif: "GIF", bmp: "BMP" },
+        // Entrées gardées en mémoire par cadre avant de vider le cache
+        cacheMax: 40
     },
 
     // Liste blanche de l'objet Cercle/rôle : le titre vient du résultat
@@ -1213,8 +1257,71 @@ var regles = (function () {
         return personnes.slice().sort(ordres.hasOwnProperty(cle) ? ordres[cle] : parNom);
     }
 
+    // ---- Vue d'une personne et fiche ---------------------------------------
+
+    /** Fonctions montrées sur une carte ; les autres se résument en « +n ». */
+    var FONCTIONS_MONTREES = 2;
+
+    /**
+     * Personne prête pour l'affichage (grille, liste, fiche, onglet) :
+     * trigramme, fonctions courtes, responsable nommé, cercle principal
+     * filtrable s'il est un cercle de l'organisation. Pas d'étape.
+     *
+     * @param {object} annuaire annuaire construit
+     * @param {object} p personne de l'annuaire
+     * @returns {object} personne pour la vue (données simples)
+     */
+    function personneVue(annuaire, p) {
+        var responsable = p.responsableId !== null ? annuaire.parId[p.responsableId] : null;
+
+        return {
+            id: p.id,
+            prenom: p.prenom,
+            nom: p.nom,
+            nomComplet: p.nomComplet,
+            trigramme: trigrammeDe(p),
+            teinte: p.teinte,
+            titre: p.titre,
+            succursale: p.succursale,
+            cercle: p.cercle,
+            cercleId: p.cercleId,
+            cercleFiltrable: p.cercles.some(function (c) { return c.id === p.cercleId; }),
+            fonctions: p.fonctions,
+            fonctionsCourtes: p.fonctions.slice(0, FONCTIONS_MONTREES),
+            fonctionsEnPlus: Math.max(0, p.fonctions.length - FONCTIONS_MONTREES),
+            email: p.email,
+            responsable: responsable ? { id: responsable.id, nomComplet: responsable.nomComplet } : null,
+            cerclesEtRoles: p.cerclesEtRoles,
+            tailleEquipe: p.tailleEquipe
+        };
+    }
+
+    /**
+     * Fiche d'une personne : elle, son responsable retenu et son équipe
+     * directe, prêts à afficher.
+     *
+     * @param {object} annuaire annuaire construit
+     * @param {number} id ID du collaborateur
+     * @returns {object|null} { personne, responsable, equipe }, ou null si
+     *     la personne n'est pas dans l'annuaire (exclue ou inconnue)
+     */
+    function ficheDe(annuaire, id) {
+        var p = annuaire.parId.hasOwnProperty(id) ? annuaire.parId[id] : null;
+
+        if (!p) {
+            return null;
+        }
+        return {
+            personne: personneVue(annuaire, p),
+            responsable: p.responsableId !== null ? personneVue(annuaire, annuaire.parId[p.responsableId]) : null,
+            equipe: p.equipe.map(function (membre) { return personneVue(annuaire, annuaire.parId[membre]); })
+        };
+    }
+
     return {
         AUCUN: AUCUN,
+        personneVue: personneVue,
+        ficheDe: ficheDe,
         CLES_FACETTES: CLES_FACETTES,
         FACETTES: FACETTES,
         plier: plier,
@@ -1505,6 +1612,72 @@ var coffre = (function () {
     }
 
     /**
+     * Taille d'un fichier en octets. LogicalSize est un entier 64 bits que
+     * JScript ne sait pas toujours lire : la variante 32 bits d'abord.
+     *
+     * @param {object} f ObjectFile
+     * @returns {number} taille, ou -1 si illisible
+     */
+    function tailleDe(f) {
+        try {
+            return Number(f.LogicalSize_32bit);
+        } catch (e) {
+            try {
+                return Number(f.LogicalSize);
+            } catch (e2) {
+                return -1;
+            }
+        }
+    }
+
+    /**
+     * Documents de portrait d'un collaborateur, le plus récent d'abord
+     * (un ID de document plus grand est un document créé plus tard), avec
+     * leurs fichiers. Rien d'autre n'est lu du document.
+     *
+     * @param {object} vault coffre COM
+     * @param {number} personneId ID du collaborateur
+     * @returns {Array} [{ id, objVer, fichiers: [{ id, version, extension, taille }] }]
+     */
+    function chercherPortraits(vault, personneId) {
+        var docs = chercher(vault, [
+            conditionStatut(MF.STATUS_OBJECT_TYPE_ID, MF.DT_LOOKUP, PARAMETRAGE.typeDocument),
+            conditionLookup(PARAMETRAGE.proprietesPhoto.classe, PARAMETRAGE.classePhoto),
+            conditionLookup(PARAMETRAGE.proprietesPhoto.collaborateur, personneId),
+            conditionStatut(MF.STATUS_DELETED, MF.DT_BOOLEAN, false)
+        ], "documents de portrait");
+
+        return docs.map(function (v) {
+            return {
+                id: v.ObjVer.ID,
+                objVer: v.ObjVer,
+                fichiers: enTableau(vault.ObjectFileOperations.GetFiles(v.ObjVer)).map(function (f) {
+                    return { id: f.ID, version: f.Version, extension: String(f.Extension || "").toLowerCase(),
+                        taille: tailleDe(f) };
+                })
+            };
+        }).sort(function (a, b) {
+            return b.id - a.id;
+        });
+    }
+
+    /**
+     * Contenu d'un fichier en URI data: base64, en mémoire (aucun fichier
+     * sur disque). DownloadFileAsDataURI(ObjVer, File, FileVersion), dont la
+     * référence de l'API COM dit l'intérêt pour l'UI Extensibility
+     * Framework (petites images d'un tableau de bord).
+     *
+     * @param {object} vault coffre COM
+     * @param {object} objVer ObjVer du document
+     * @param {number} fichierId ID du fichier
+     * @param {number} fichierVersion version du fichier
+     * @returns {string} URI data:
+     */
+    function lireDataUri(vault, objVer, fichierId, fichierVersion) {
+        return String(vault.ObjectFileOperations.DownloadFileAsDataURI(objVer, fichierId, fichierVersion));
+    }
+
+    /**
      * Affiche la fiche native d'un objet absent du listing. Collection
      * ObjOrFileVers (référence v1) : ObjectVersions échoue toujours.
      *
@@ -1541,6 +1714,8 @@ var coffre = (function () {
         chercherCercles: chercherCercles,
         lireFiches: lireFiches,
         lireCercles: lireCercles,
+        chercherPortraits: chercherPortraits,
+        lireDataUri: lireDataUri,
         selectionVirtuelle: selectionVirtuelle
     };
 }());
@@ -1566,15 +1741,18 @@ var rendu = (function () {
     var DELAI_RECHERCHE = 120;
     // Durée d'affichage d'un message (ms)
     var DUREE_MESSAGE = 5000;
+    // Seule image acceptée pour un portrait : une URI data: d'un type affichable
+    var MOTIF_PHOTO = /^data:image\/(jpeg|png|gif|bmp);base64,[A-Za-z0-9+\/=\r\n]+$/;
 
     /**
      * Crée la vue d'une page.
      *
      * @param {object} doc document de la page
      * @param {object} actions actions du présentateur
-     * @returns {object} { progression, erreur, rendre, message }
+     * @param {string} [mode] « onglet » pour l'onglet du volet de droite
+     * @returns {object} { progression, erreur, refuser, rendre, rendreOnglet, message }
      */
-    function creer(doc, actions) {
+    function creer(doc, actions, mode) {
         var $ = function (id) { return doc.getElementById(id); };
         var minuterieRecherche = null;
         var minuterieMessage = null;
@@ -1777,12 +1955,34 @@ var rendu = (function () {
         }
 
         /**
-         * Contenu de la fiche latérale.
+         * Grand avatar, avec la photo par-dessus quand il y en a une. La
+         * photo est un fond (background-size: cover) : IE11 ne connaît pas
+         * object-fit ; si elle ne se charge pas, le trigramme reste visible.
+         *
+         * @param {object} p personne
+         * @param {object|null} photo { dataUri, note } passée par le module
+         * @returns {object} élément
+         */
+        function avatarAvecPhoto(p, photo) {
+            var a = avatar(p, "grand");
+            var image;
+
+            if (photo && typeof photo.dataUri === "string" && MOTIF_PHOTO.test(photo.dataUri)) {
+                image = el("span", { classe: "photo", attrs: { role: "img", "aria-label": "Portrait de " + p.nomComplet } });
+                image.style.backgroundImage = "url(\"" + photo.dataUri + "\")";
+                a.appendChild(image);
+            }
+            return a;
+        }
+
+        /**
+         * Contenu de la fiche (volet latéral du tableau de bord, ou onglet).
          *
          * @param {object} f fiche du modèle
+         * @param {object} [photo] { dataUri, note }, onglet seulement
          * @returns {Array} éléments
          */
-        function contenuFiche(f) {
+        function contenuFiche(f, photo) {
             var p = f.personne;
             var faits = [];
             var plus = p.tailleEquipe > f.equipe.length ? " · " + p.tailleEquipe + " au total" : "";
@@ -1794,7 +1994,10 @@ var rendu = (function () {
                 faits.push(["Succursale", [boutonFiltre("succursale", p.succursale, p.succursale)]]);
             }
             if (p.cercle) {
-                faits.push(["Cercle/rôle principal", [el("span", { classe: "badge-cercle", texte: p.cercle })]]);
+                // Filtrable seulement s'il est un cercle de l'organisation (un rôle n'a pas de filtre)
+                faits.push(["Cercle/rôle principal", [p.cercleFiltrable ?
+                    boutonFiltre("cercle", String(p.cercleId), p.cercle) :
+                    el("span", { classe: "badge-cercle", texte: p.cercle })]]);
             }
             if (p.email) {
                 // Texte à sélectionner, sans lien mailto: : le tableau de bord refuse de naviguer
@@ -1817,10 +2020,13 @@ var rendu = (function () {
 
             return [
                 el("div", { classe: "fiche-haut" }, [
-                    avatar(p, "grand"),
+                    avatarAvecPhoto(p, photo),
+                    photo && photo.note ? el("p", { classe: "note", texte: photo.note }) : null,
                     el("h2", {}, [el("span", { classe: "prenom", texte: p.prenom }), " ",
                         el("span", { classe: "famille", texte: p.nom })]),
-                    p.titre ? el("p", { classe: "fiche-titre", texte: p.titre }) : null,
+                    p.titre ? el("p", { classe: "fiche-titre" }, [el("button", { classe: "bouton-titre", texte: p.titre,
+                        attrs: { type: "button", "data-filtre": "titre", "data-valeur": p.titre,
+                            title: "Afficher seulement les personnes de ce titre" } })]) : null,
                     el("span", { classe: "trigramme", texte: p.trigramme, attrs: { title: "Trigramme" } })
                 ]),
                 el("dl", { classe: "faits" }, faits.map(function (fait) {
@@ -1948,6 +2154,25 @@ var rendu = (function () {
         }
 
         /**
+         * Onglet du volet de droite : la fiche seule, avec la photo ; ni
+         * recherche, ni filtres, ni grille.
+         *
+         * @param {object} m { fiche, photo }
+         * @returns {void}
+         */
+        function rendreOnglet(m) {
+            basculer(doc.body, "mode-onglet", true);
+            basculer($("progression"), "est-visible", false);
+            vider($("ficheCorps"));
+            contenuFiche(m.fiche, m.photo).forEach(function (e) {
+                if (e) {
+                    $("ficheCorps").appendChild(e);
+                }
+            });
+            basculer($("fiche"), "est-ouverte", true);
+        }
+
+        /**
          * Progression de la lecture du coffre.
          *
          * @param {string} texte étape en cours
@@ -2045,6 +2270,9 @@ var rendu = (function () {
         // ---- Écouteurs (posés une fois, délégués) ----------------------
 
         $("version").textContent = "v" + VERSION_PAQUET;
+        if (mode === "onglet") {
+            basculer(doc.body, "mode-onglet", true);
+        }
         $("recherche").addEventListener("input", saisie);
         $("recherche").addEventListener("keyup", saisie);
         $("effacer").addEventListener("click", function () {
@@ -2115,7 +2343,8 @@ var rendu = (function () {
             }
         });
 
-        return { progression: progression, erreur: erreur, refuser: refuser, rendre: rendre, message: message };
+        return { progression: progression, erreur: erreur, refuser: refuser, rendre: rendre, rendreOnglet: rendreOnglet,
+            message: message };
     }
 
     return { creer: creer };
@@ -2144,8 +2373,6 @@ var presentateur = (function () {
     var VUES = ["grille", "liste"];
     // Pas de tri par étape : l'étape n'apparaît nulle part (docs/adr/0005)
     var TRIS = ["nom", "prenom", "titre", "succursale", "cercle"];
-    // Fonctions montrées sur une carte ; les autres se résument en « +n »
-    var FONCTIONS_MONTREES = 2;
 
     /**
      * Message lisible d'une erreur COM.
@@ -2170,8 +2397,11 @@ var presentateur = (function () {
     /**
      * Crée le présentateur d'une page.
      *
-     * @param {object} services { vault, cadre, planifier(fn) } ; planifier
-     *     rend la main au navigateur avant d'appeler fn (setTimeout)
+     * @param {object} services { vault, cadre, etatCadre, actionInitiale,
+     *     planifier(fn) } ; planifier rend la main au navigateur avant
+     *     d'appeler fn (setTimeout) ; etatCadre est l'état du cadre tenu par
+     *     le module ; actionInitiale ({ filtre: { cle, valeur } } ou
+     *     { ouvrir: id }) vient d'un lien de l'onglet du volet de droite
      * @param {Function} fabriqueVue reçoit les actions, rend la vue
      *     { progression(texte, fait, total), erreur(m), refuser(m), rendre(modele), message(m) }
      * @returns {object} { demarrer }
@@ -2186,36 +2416,6 @@ var presentateur = (function () {
         var lectureEnCours = 0;
         var vue = null;
         var actions;
-
-        /**
-         * Personne prête pour l'affichage : trigramme, fonctions courtes,
-         * responsable nommé (s'il est dans l'annuaire).
-         *
-         * @param {object} p personne de l'annuaire
-         * @returns {object} personne pour la vue
-         */
-        function pourVue(p) {
-            var responsable = p.responsableId !== null ? annuaire.parId[p.responsableId] : null;
-
-            return {
-                id: p.id,
-                prenom: p.prenom,
-                nom: p.nom,
-                nomComplet: p.nomComplet,
-                trigramme: regles.trigrammeDe(p),
-                teinte: p.teinte,
-                titre: p.titre,
-                succursale: p.succursale,
-                cercle: p.cercle,
-                fonctions: p.fonctions,
-                fonctionsCourtes: p.fonctions.slice(0, FONCTIONS_MONTREES),
-                fonctionsEnPlus: Math.max(0, p.fonctions.length - FONCTIONS_MONTREES),
-                email: p.email,
-                responsable: responsable ? { id: responsable.id, nomComplet: responsable.nomComplet } : null,
-                cerclesEtRoles: p.cerclesEtRoles,
-                tailleEquipe: p.tailleEquipe
-            };
-        }
 
         /**
          * Personnes affichées : filtrées puis triées.
@@ -2236,27 +2436,23 @@ var presentateur = (function () {
             var total = annuaire.personnes.length;
             var facettes = {};
             var fiche = null;
-            var p;
 
             regles.CLES_FACETTES.forEach(function (cle) {
                 facettes[cle] = regles.optionsFacette(annuaire.personnes, etat, cle);
                 facettes[cle].libelle = regles.FACETTES[cle].libelle;
             });
 
-            if (ouverte !== null && annuaire.parId.hasOwnProperty(ouverte)) {
-                p = annuaire.parId[ouverte];
-                fiche = {
-                    personne: pourVue(p),
-                    responsable: p.responsableId !== null ? pourVue(annuaire.parId[p.responsableId]) : null,
-                    equipe: p.equipe.map(function (id) { return pourVue(annuaire.parId[id]); }),
-                    dansMFiles: Boolean(services.cadre && objVers.hasOwnProperty(p.id))
-                };
+            if (ouverte !== null) {
+                fiche = regles.ficheDe(annuaire, ouverte);
+                if (fiche) {
+                    fiche.dansMFiles = Boolean(services.cadre && objVers.hasOwnProperty(ouverte));
+                }
             }
 
             return {
                 total: total,
                 compteur: regles.filtreActif(etat) ? personnes(liste.length) + " sur " + total : personnes(total),
-                personnes: liste.map(pourVue),
+                personnes: liste.map(function (p) { return regles.personneVue(annuaire, p); }),
                 facettes: facettes,
                 etat: { q: etat.q, cercle: etat.cercle, succursale: etat.succursale,
                     titre: etat.titre, fonction: etat.fonction },
@@ -2277,6 +2473,31 @@ var presentateur = (function () {
         function rendre() {
             if (annuaire) {
                 vue.rendre(modele());
+            }
+        }
+
+        /**
+         * Applique, une seule fois, l'action venue d'un lien de l'onglet :
+         * un filtre déjà posé, ou la fiche d'une personne ouverte. Une clé
+         * ou une personne inconnue est ignorée.
+         *
+         * @returns {void}
+         */
+        function appliquerActionInitiale() {
+            var a = services.actionInitiale;
+
+            services.actionInitiale = null;
+            if (!a) {
+                return;
+            }
+            try {
+                if (a.filtre && regles.FACETTES.hasOwnProperty(a.filtre.cle)) {
+                    etat[a.filtre.cle] = String(a.filtre.valeur);
+                } else if (a.ouvrir !== undefined && a.ouvrir !== null && annuaire.parId.hasOwnProperty(a.ouvrir)) {
+                    ouverte = Number(a.ouvrir);
+                }
+            } catch (e) {
+                console.log(PREFIXE_JOURNAL + " action du lien ignorée : " + messageDe(e));
             }
         }
 
@@ -2413,12 +2634,30 @@ var presentateur = (function () {
                         };
                     }), function () {
                         annuaire = regles.construireAnnuaire(fiches, cercles);
+                        appliquerActionInitiale();
                         console.log(PREFIXE_JOURNAL + " annuaire lu : " + annuaire.personnes.length + " personnes, " +
                             cercles.length + " cercles et rôles, " + (new Date().getTime() - debut) + " ms");
                         rendre();
                     });
                 });
             });
+        }
+
+        /**
+         * Note dans l'état du cadre (objet du module) la personne d'une
+         * sélection virtuelle ; sans état du cadre, rien.
+         *
+         * @param {number|null} id personne, ou null pour effacer
+         * @returns {void}
+         */
+        function signalerSelectionVirtuelle(id) {
+            try {
+                if (services.etatCadre) {
+                    services.etatCadre.selectionVirtuelle = id;
+                }
+            } catch (e) {
+                console.log(PREFIXE_JOURNAL + " état du cadre inaccessible : " + messageDe(e));
+            }
         }
 
         // Actions appelées par la vue ; chacune met l'état à jour puis rend la page.
@@ -2506,12 +2745,12 @@ var presentateur = (function () {
                     }
                 }
             },
-            /** Rend la zone de listage au client (ShowDefaultContent). @returns {void} */
+            /** « Vue M-Files » : rend la zone de listage au client (ShowDefaultContent). @returns {void} */
             revenir: function () {
                 try {
                     services.cadre.ShowDefaultContent();
                 } catch (e) {
-                    vue.message("Retour au listage impossible : " + messageDe(e));
+                    vue.message("Vue M-Files impossible : " + messageDe(e));
                 }
             },
             /**
@@ -2521,12 +2760,120 @@ var presentateur = (function () {
              * @returns {void}
              */
             afficherDansMFiles: function (id) {
-                var ok = Boolean(services.cadre) && objVers.hasOwnProperty(id) &&
-                    coffre.selectionVirtuelle(services.cadre, objVers[id]);
+                var ok;
 
+                // Le module, voyant ce collaborateur sélectionné, affichera son
+                // onglet sans le rendre actif : l'utilisateur a demandé la fiche M-Files
+                signalerSelectionVirtuelle(Number(id));
+                ok = Boolean(services.cadre) && objVers.hasOwnProperty(id) &&
+                    coffre.selectionVirtuelle(services.cadre, objVers[id]);
                 if (!ok) {
+                    signalerSelectionVirtuelle(null);
                     vue.message("La fiche ne peut pas être affichée dans M-Files depuis cette fenêtre.");
                 }
+            }
+        };
+
+        vue = fabriqueVue(actions);
+        return { demarrer: demarrer, actions: actions };
+    }
+
+    return { creer: creer };
+}());
+
+/* =====================================================================
+   PRÉSENTATEUR DE L'ONGLET « TROMBINOSCOPE » (volet de droite)
+
+   Le module a déjà lu la fiche et la photo du collaborateur sélectionné et
+   les passe en texte JSON : la page ne lit rien du coffre, elle vérifie
+   l'accès (défense en profondeur), rend la fiche, et transforme chaque
+   lien (fonction, succursale, titre, cercle, personne) en ouverture du
+   trombinoscope dans la zone de listage, par le cadre que le module a
+   transmis, avec le filtre ou la fiche déjà posés. Aucune navigation de la
+   page (docs/adr/0004).
+   ===================================================================== */
+
+var presentateurOnglet = (function () {
+    "use strict";
+
+    var REFUS = "Cette application n'est pas disponible pour votre compte.";
+
+    /**
+     * Crée le présentateur de l'onglet.
+     *
+     * @param {object} services { vault, cadre, etatCadre, donnees (texte JSON du module) }
+     * @param {Function} fabriqueVue reçoit les actions, rend la vue
+     *     { rendreOnglet(modele), refuser(m), message(m) }
+     * @returns {object} { demarrer, actions }
+     */
+    function creer(services, fabriqueVue) {
+        var vue;
+        var actions;
+
+        /**
+         * Ouvre le trombinoscope dans la zone de listage avec une action.
+         *
+         * @param {object} action { filtre: { cle, valeur } } ou { ouvrir: id }
+         * @returns {void}
+         */
+        function ouvrirTrombinoscope(action) {
+            try {
+                services.cadre.ShowDashboard(PARAMETRAGE.dashboard, {
+                    cadre: services.cadre, version: VERSION_PAQUET, etatCadre: services.etatCadre, action: action
+                });
+            } catch (e) {
+                console.log(PREFIXE_JOURNAL + " trombinoscope non ouvert depuis l'onglet : " +
+                    ((e && (e.message || e.description)) || e));
+                vue.message("Le trombinoscope ne peut pas s'ouvrir depuis cet onglet.");
+            }
+        }
+
+        /**
+         * Rend la fiche, après contrôle d'accès et lecture des données.
+         *
+         * @returns {void}
+         */
+        function demarrer() {
+            var verdict = acces.verifier(services.vault);
+            var modele;
+
+            if (!verdict.autorise) {
+                console.log(PREFIXE_JOURNAL + " onglet non affiché : " + verdict.raison);
+                vue.refuser(REFUS);
+                return;
+            }
+            try {
+                modele = JSON.parse(String(services.donnees));
+            } catch (e) {
+                modele = null;
+            }
+            if (!modele || !modele.fiche || !modele.fiche.personne) {
+                console.log(PREFIXE_JOURNAL + " onglet non affiché : données du module illisibles");
+                vue.refuser("Fiche indisponible.");
+                return;
+            }
+            vue.rendreOnglet(modele);
+        }
+
+        actions = {
+            /**
+             * Ouvre le trombinoscope filtré sur une valeur de la fiche.
+             * @param {string} cle facette (cercle, succursale, titre, fonction)
+             * @param {string} valeur valeur
+             * @returns {void}
+             */
+            filtrer: function (cle, valeur) {
+                if (regles.FACETTES.hasOwnProperty(cle) && valeur) {
+                    ouvrirTrombinoscope({ filtre: { cle: cle, valeur: String(valeur) } });
+                }
+            },
+            /**
+             * Ouvre le trombinoscope sur la fiche d'une personne.
+             * @param {number} id ID du collaborateur
+             * @returns {void}
+             */
+            ouvrir: function (id) {
+                ouvrirTrombinoscope({ ouvrir: Number(id) });
             }
         };
 
@@ -2564,10 +2911,26 @@ function OnNewDashboard(dashboard) {
         donnees = {};
     }
 
+    // Onglet du volet de droite : la fiche vient du module, la page ne lit rien
+    if (donnees.mode === "onglet") {
+        console.log(PREFIXE_JOURNAL + " version " + VERSION_PAQUET + " — onglet ouvert");
+        presentateurOnglet.creer({
+            vault: vault,
+            cadre: cadreDuDashboard(dashboard, donnees),
+            etatCadre: donnees.etatCadre || null,
+            donnees: donnees.donnees
+        }, function (actions) {
+            return rendu.creer(document, actions, "onglet");
+        }).demarrer();
+        return;
+    }
+
     console.log(PREFIXE_JOURNAL + " version " + VERSION_PAQUET + " — page ouverte");
     p = presentateur.creer({
         vault: vault,
         cadre: cadreDuDashboard(dashboard, donnees),
+        etatCadre: donnees.etatCadre || null,
+        actionInitiale: donnees.action || null,
         planifier: function (fn) {
             setTimeout(fn, 0);
         }

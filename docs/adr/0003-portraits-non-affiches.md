@@ -1,6 +1,6 @@
 # 0003 — Pas de portraits dans la version 1.0
 
-Date : 2026-10-13. Statut : accepté, à rouvrir si une voie est éprouvée.
+Date : 2026-10-13. Statut : remplacé pour l'onglet du volet de droite par 0008 (version 1.1.0) ; reste valable pour la grille et la liste du tableau de bord.
 
 Le Cockpit PRO montre les portraits des documents « !! Photo collaborateur » (classe 88) ; il les télécharge par son
 serveur. Dans le contrôle web IE11 du client classique, aucune voie fiable n'est connue pour afficher le fichier d'un

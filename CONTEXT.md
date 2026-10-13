@@ -27,3 +27,9 @@ Vocabulaire du domaine, partagé par le code, les tests et la documentation.
   virtuelle** (fiche native d'un objet dans le volet de droite). La page ne navigue jamais (docs/adr/0004).
 - **Groupe autorisé** : le groupe d'utilisateurs M-Files auquel l'application est réservée (« SI - membres
   primaires », 3524). **Échec fermé** : une appartenance illisible vaut un refus (docs/adr/0006).
+- **Onglet** : l'onglet « Trombinoscope » du volet de droite, posé et réglé par le module quand la sélection est un
+  collaborateur seul de l'annuaire ; il porte la fiche, la **photo** et des **liens** qui ouvrent le trombinoscope
+  filtré (docs/adr/0007).
+- **Photo** : l'image du document « !! Photo collaborateur » le plus récent qui soit affichable (JPEG, PNG, GIF, BMP,
+  4 Mo au plus), lue en mémoire en URI data: (docs/adr/0008).
+- **Vue M-Files** : le bouton qui rend la zone de listage au client (ShowDefaultContent).

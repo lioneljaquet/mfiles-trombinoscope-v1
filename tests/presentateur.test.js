@@ -70,6 +70,8 @@ function preparer(options) {
     const p = ctx.presentateur.creer({
         vault: c.vault,
         cadre: opts.cadre === undefined ? c.cadre : opts.cadre,
+        etatCadre: opts.etatCadre,
+        actionInitiale: opts.actionInitiale,
         planifier: (fn) => file.push(fn)
     }, (actions) => {
         vue.actions = actions;
@@ -209,7 +211,7 @@ test("page : OnNewDashboard lit le coffre du tableau de bord et journalise la ve
     assert.ok(c.journal.appels.indexOf("Search") >= 0);
 });
 
-test("page : « Revenir au listage » rend la zone de listage au client", () => {
+test("page : « Vue M-Files » rend la zone de listage au client", () => {
     const { p, vue, vider, c } = preparer();
     let rendu = 0;
     c.cadre.ShowDefaultContent = () => { rendu += 1; };
@@ -287,4 +289,112 @@ test("tri : l'étape n'est plus une clé de tri", () => {
     vider();
     vue.actions.trier("etape");
     assert.strictEqual(dernier(vue) && dernier(vue).affichage.tri, "nom");
+});
+
+test("page : un lien de l'onglet ouvre le trombinoscope avec son filtre déjà posé", () => {
+    const { p, vue, vider } = preparer({ actionInitiale: { filtre: { cle: "succursale", valeur: "Gland" } } });
+
+    p.demarrer();
+    vider();
+    assert.strictEqual(vue.modeles.length, 1, "un seul rendu, filtre compris");
+    assert.strictEqual(dernier(vue).etat.succursale, "Gland");
+    assert.strictEqual(dernier(vue).compteur, "2 personnes sur 46");
+});
+
+test("page : un lien de personne de l'onglet ouvre le trombinoscope sur sa fiche", () => {
+    const { p, vue, vider } = preparer({ actionInitiale: { ouvrir: 2 } });
+
+    p.demarrer();
+    vider();
+    assert.strictEqual(dernier(vue).fiche.personne.id, 2);
+});
+
+test("page : « Afficher la fiche M-Files » signale la sélection virtuelle au module (l'onglet ne prend pas le focus)", () => {
+    const etatCadre = { selectionVirtuelle: null };
+    const { p, vue, vider } = preparer({ etatCadre });
+
+    p.demarrer();
+    vider();
+    vue.actions.afficherDansMFiles(3);
+    assert.strictEqual(etatCadre.selectionVirtuelle, 3);
+});
+
+/**
+ * Présentateur de l'onglet, sur des données comme celles du module.
+ *
+ * @param {object} [options] { session, donnees (texte), echecAffichage }
+ * @returns {object} { p, vue, affichages }
+ */
+function preparerOnglet(options) {
+    const o = options || {};
+    const c = creerCoffreCom({ objets: [], session: o.session || { groupes: [3524] } });
+    const ctx = charger(SOURCES, { MFiles: c.MFiles });
+    const affichages = [];
+    const cadre = { ShowDashboard(id, donnees) {
+        if (o.echecAffichage) { throw new Error("affichage refusé"); }
+        affichages.push({ id, donnees });
+    } };
+    const etatCadre = { selectionVirtuelle: null };
+    const vue = { onglets: [], refus: [], messages: [] };
+    const fiche = { personne: { id: 1, nomComplet: "Prénom1 Nom1", fonctions: ["Formatrice"] }, responsable: null, equipe: [] };
+    const donnees = o.donnees !== undefined ? o.donnees : JSON.stringify({ fiche, photo: { dataUri: null, note: null } });
+    const p = ctx.presentateurOnglet.creer({ vault: c.vault, cadre, etatCadre, donnees }, (actions) => {
+        vue.actions = actions;
+        return {
+            rendreOnglet: (m) => vue.onglets.push(m),
+            refuser: (m) => vue.refus.push(m),
+            message: (m) => vue.messages.push(m)
+        };
+    });
+    return { p, vue, affichages, cadre, etatCadre };
+}
+
+test("onglet (page) : rend la fiche passée par le module, sans lire le coffre", () => {
+    const { p, vue } = preparerOnglet();
+
+    p.demarrer();
+    assert.strictEqual(vue.onglets.length, 1);
+    assert.strictEqual(vue.onglets[0].fiche.personne.nomComplet, "Prénom1 Nom1");
+});
+
+test("onglet (page) : une fonction ouvre le trombinoscope filtré, une personne sa fiche, par le cadre", () => {
+    const { p, vue, affichages, cadre, etatCadre } = preparerOnglet();
+
+    p.demarrer();
+    vue.actions.filtrer("fonction", "Formatrice");
+    vue.actions.ouvrir(2);
+    assert.strictEqual(affichages[0].id, "trombinoscope");
+    assert.deepStrictEqual(JSON.parse(JSON.stringify(affichages[0].donnees.action)),
+        { filtre: { cle: "fonction", valeur: "Formatrice" } });
+    assert.strictEqual(affichages[0].donnees.cadre, cadre);
+    assert.strictEqual(affichages[0].donnees.etatCadre, etatCadre);
+    assert.deepStrictEqual(JSON.parse(JSON.stringify(affichages[1].donnees.action)), { ouvrir: 2 });
+});
+
+test("onglet (page) : un filtre inconnu n'ouvre rien", () => {
+    const { p, vue, affichages } = preparerOnglet();
+
+    p.demarrer();
+    vue.actions.filtrer("etape", "Offboarding démission");
+    assert.strictEqual(affichages.length, 0);
+});
+
+test("onglet (page) : un non-membre ne voit rien, des données illisibles non plus", () => {
+    const refuse = preparerOnglet({ session: { groupes: [1] } });
+    const illisible = preparerOnglet({ donnees: "{pas du json" });
+
+    refuse.p.demarrer();
+    illisible.p.demarrer();
+    assert.strictEqual(refuse.vue.onglets.length, 0);
+    assert.deepStrictEqual(refuse.vue.refus, ["Cette application n'est pas disponible pour votre compte."]);
+    assert.strictEqual(illisible.vue.onglets.length, 0);
+    assert.strictEqual(illisible.vue.refus.length, 1);
+});
+
+test("onglet (page) : un affichage refusé par le client devient un message discret", () => {
+    const { p, vue } = preparerOnglet({ echecAffichage: true });
+
+    p.demarrer();
+    assert.doesNotThrow(() => vue.actions.filtrer("succursale", "Gland"));
+    assert.strictEqual(vue.messages.length, 1);
 });

@@ -273,6 +273,72 @@ var coffre = (function () {
     }
 
     /**
+     * Taille d'un fichier en octets. LogicalSize est un entier 64 bits que
+     * JScript ne sait pas toujours lire : la variante 32 bits d'abord.
+     *
+     * @param {object} f ObjectFile
+     * @returns {number} taille, ou -1 si illisible
+     */
+    function tailleDe(f) {
+        try {
+            return Number(f.LogicalSize_32bit);
+        } catch (e) {
+            try {
+                return Number(f.LogicalSize);
+            } catch (e2) {
+                return -1;
+            }
+        }
+    }
+
+    /**
+     * Documents de portrait d'un collaborateur, le plus récent d'abord
+     * (un ID de document plus grand est un document créé plus tard), avec
+     * leurs fichiers. Rien d'autre n'est lu du document.
+     *
+     * @param {object} vault coffre COM
+     * @param {number} personneId ID du collaborateur
+     * @returns {Array} [{ id, objVer, fichiers: [{ id, version, extension, taille }] }]
+     */
+    function chercherPortraits(vault, personneId) {
+        var docs = chercher(vault, [
+            conditionStatut(MF.STATUS_OBJECT_TYPE_ID, MF.DT_LOOKUP, PARAMETRAGE.typeDocument),
+            conditionLookup(PARAMETRAGE.proprietesPhoto.classe, PARAMETRAGE.classePhoto),
+            conditionLookup(PARAMETRAGE.proprietesPhoto.collaborateur, personneId),
+            conditionStatut(MF.STATUS_DELETED, MF.DT_BOOLEAN, false)
+        ], "documents de portrait");
+
+        return docs.map(function (v) {
+            return {
+                id: v.ObjVer.ID,
+                objVer: v.ObjVer,
+                fichiers: enTableau(vault.ObjectFileOperations.GetFiles(v.ObjVer)).map(function (f) {
+                    return { id: f.ID, version: f.Version, extension: String(f.Extension || "").toLowerCase(),
+                        taille: tailleDe(f) };
+                })
+            };
+        }).sort(function (a, b) {
+            return b.id - a.id;
+        });
+    }
+
+    /**
+     * Contenu d'un fichier en URI data: base64, en mémoire (aucun fichier
+     * sur disque). DownloadFileAsDataURI(ObjVer, File, FileVersion), dont la
+     * référence de l'API COM dit l'intérêt pour l'UI Extensibility
+     * Framework (petites images d'un tableau de bord).
+     *
+     * @param {object} vault coffre COM
+     * @param {object} objVer ObjVer du document
+     * @param {number} fichierId ID du fichier
+     * @param {number} fichierVersion version du fichier
+     * @returns {string} URI data:
+     */
+    function lireDataUri(vault, objVer, fichierId, fichierVersion) {
+        return String(vault.ObjectFileOperations.DownloadFileAsDataURI(objVer, fichierId, fichierVersion));
+    }
+
+    /**
      * Affiche la fiche native d'un objet absent du listing. Collection
      * ObjOrFileVers (référence v1) : ObjectVersions échoue toujours.
      *
@@ -309,6 +375,8 @@ var coffre = (function () {
         chercherCercles: chercherCercles,
         lireFiches: lireFiches,
         lireCercles: lireCercles,
+        chercherPortraits: chercherPortraits,
+        lireDataUri: lireDataUri,
         selectionVirtuelle: selectionVirtuelle
     };
 }());
