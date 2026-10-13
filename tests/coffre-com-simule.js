@@ -61,6 +61,8 @@ function typedValueLue(valeur) {
  *     limiteServeur: plafond de résultats, guid,
  *     session: { utilisateur, groupes: ID des groupes directs, parents: { groupe: [groupes qui le contiennent] },
  *     echec: lecture de SessionInfo en échec } }
+ *     Un document porte en plus { version, fichiers: [{ id, version, extension, taille }],
+ *     echecTelechargement, mimeForce } pour GetFiles et DownloadFileAsDataURI.
  * @returns {object} { MFiles, vault, journal, cadre }
  */
 function creerCoffreCom(options) {
@@ -107,6 +109,9 @@ function creerCoffreCom(options) {
         if (c.Expression.genre === "statut" && c.Expression.cible === 5) { return Boolean(o.supprime) === attendu; }
         if (c.Expression.genre === "propriete") {
             const p = (o.props || {})[c.Expression.cible];
+            if (p && p.type === 10) {
+                return (p.valeur || []).some((l) => l.id === attendu);
+            }
             return Boolean(p && p.type === 9 && p.valeur && p.valeur.id === attendu);
         }
         throw new Error("expression non simulée");
@@ -187,10 +192,30 @@ function creerCoffreCom(options) {
                 const trouves = objets.filter((o) => liste.every((c) => satisfait(o, c)));
                 const plafond = Math.min(limite, opts.limiteServeur || limite);
                 const res = collection(trouves.slice(0, plafond).map((o) => ({
-                    ObjVer: { Type: o.type, ID: o.id, Version: 7 }, Title: o.titre
+                    ObjVer: { Type: o.type, ID: o.id, Version: o.version || 7 }, Title: o.titre
                 })), "ObjectSearchResults");
                 res.MoreResults = trouves.length > plafond;
                 return res;
+            }
+        },
+        ObjectFileOperations: {
+            GetFiles(ov) {
+                journal.appels.push("GetFiles");
+                const o = objetDe(ov);
+                return collection((o.fichiers || []).map((f) => ({
+                    ID: f.id, Version: f.version, Extension: f.extension, LogicalSize_32bit: f.taille,
+                    FileVer: { ID: f.id, Version: f.version }
+                })), "ObjectFiles");
+            },
+            DownloadFileAsDataURI(ov, fichier, version) {
+                if (typeof fichier !== "number" || typeof version !== "number") { throw new Error("Long attendus"); }
+                journal.appels.push("DownloadFileAsDataURI:" + ov.ID + "-" + fichier + "-" + version);
+                const o = objetDe(ov);
+                const f = (o.fichiers || []).filter((x) => x.id === fichier && x.version === version)[0];
+                if (!f || o.echecTelechargement) { throw new Error("téléchargement refusé"); }
+                const mimes = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", gif: "image/gif",
+                    bmp: "image/bmp", pdf: "application/pdf" };
+                return "data:" + (o.mimeForce || mimes[String(f.extension).toLowerCase()] || "application/octet-stream") + ";base64,QUJD";
             }
         },
         ObjectPropertyOperations: {
