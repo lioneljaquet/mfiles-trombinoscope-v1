@@ -9,7 +9,7 @@ n'écrit rien dans le coffre.
 - Recherche instantanée sans accent : nom, trigramme, titre, /Titre, fonctions, succursale, cercle, partie locale de
   l'e-mail.
 - Cinq filtres à effectifs contextuels : cercle (pastilles), étape, succursale, titre, fonction. Compteur « 12
-  personnes sur 97 ».
+  personnes sur 96 ».
 - Fiche latérale : titre, trigramme, fonctions, succursale, cercle principal, e-mail, cercles et rôles, responsable et
   équipe directe (cliquables), « Afficher la fiche M-Files » (fiche native dans le volet de droite) et « Ouvrir dans
   M-Files » (lien `m-files://`).
@@ -24,7 +24,7 @@ n'écrit rien dans le coffre.
 3. Ouvrir le coffre : la commande **Trombinoscope** apparaît dans le volet des tâches (groupe principal, avec l'icône
    aux quatre visages).
 4. Cliquer : une progression « Recherche des collaborateurs… », « Lecture des fiches : 20 sur 97… », « Lecture des
-   cercles et rôles… », puis la grille. Compter de quelques secondes (97 fiches en 5 lots, 348 cercles en 4 lots).
+   cercles et rôles… », puis la grille. Compter de quelques secondes (97 fiches en 5 lots, dont le modèle « _Collaborateur TYPE (ZZZ) » écarté ensuite, soit 96 personnes ; 348 cercles en 4 lots).
 5. À essayer : rechercher « lja » (trigramme), un nom avec ou sans accent, une fonction ; une pastille de cercle ;
    l'étape « Offboarding démission » ; la liste et le tri par titre ; une carte, puis le responsable et un membre de
    l'équipe dans la fiche ; flèches gauche/droite, Échap ; **Afficher la fiche M-Files** (les propriétés doivent
@@ -35,7 +35,7 @@ Lignes de console attendues (outils F12 attachés au client, par exemple `C:\Win
 ```text
 [trombinoscope] version 1.0.0 (UIX v1) — nouveau cadre (type 1)        module, à chaque fenêtre
 [trombinoscope] version 1.0.0 (UIX v1) — page ouverte                  page, à chaque ouverture
-[trombinoscope] annuaire lu : 97 personnes, 348 cercles et rôles, … ms
+[trombinoscope] annuaire lu : 96 personnes, 348 cercles et rôles, … ms
 ```
 
 En cas de problème : `[trombinoscope] lecture interrompue : …` (la page affiche le même message et un bouton
