@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Manifeste UIX v1 (client classique). Schéma v4.
+    Modèle : 1.0.0 et v100 sont remplis par build.js.
+    Ordre imposé par le schéma : <files> APRÈS <required-mfiles-version>
+    et AVANT <platforms>. Toute ressource chargée par une page (image,
+    icône) doit y figurer, sinon elle n'est jamais servie.
+    GUID propre à ce paquet (aucune version v2 à ce jour).
+-->
+<application xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="http://www.m-files.com/schemas/appdef-client-v4.xsd">
+
+    <guid>dc30b326-fec0-4189-8c3b-898b28db3225</guid>
+    <name>Trombinoscope tebicom (UIX v1)</name>
+    <version>1.0.0</version>
+    <description>Trombinoscope des collaborateurs (étapes En fonction et Offboarding), lu directement dans le coffre. Lecture seule. Client classique.</description>
+    <publisher>tebicom SA</publisher>
+    <copyright>(c) tebicom SA 2026</copyright>
+    <required-mfiles-version>20.12.0.0</required-mfiles-version>
+
+    <files>
+        <file>v100/icones/app.ico</file>
+    </files>
+
+    <platforms>
+        <platform>Desktop</platform>
+    </platforms>
+
+    <enabled-by-default>true</enabled-by-default>
+
+    <modules>
+        <module environment="shellui" fast-browsing-compatible="true">
+            <file>v100/model/parametrage.js</file>
+            <file>v100/presenter/shellui.js</file>
+        </module>
+    </modules>
+
+    <dashboards>
+        <dashboard id="trombinoscope">
+            <content>v100/view/dashboard/index.html</content>
+            <allow-selection>true</allow-selection>
+        </dashboard>
+    </dashboards>
+
+</application>

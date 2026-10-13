@@ -1,0 +1,2441 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta charset="utf-8" />
+<title>Trombinoscope</title>
+<!-- Les marqueurs build:* sont remplacés par le contenu intégré : un
+     fichier externe se charge mal dans le contrôle web du client. -->
+<style>
+/* =====================================================================
+   TROMBINOSCOPE — styles de la page (contrôle web IE11 du client classique)
+
+   Charte tebicom reprise de tebi-ui (couleurs et typographie), en valeurs
+   littérales : IE11 ne connaît ni les variables CSS ni une grille fiable.
+   Mise en page en flexbox (sans gap) et en tableau.
+     marque #004f9f, survol #003b78, teinte #c0e3f9, fond info #eaf1f9
+     texte #1a202c, atténué #4a5568, discret #5f6b7d
+     bordure #e2e8f0, champ #718096, fond secondaire #f9fafb
+     alerte : fond #fde8e2, bord #ed3200, texte #a02200
+   ===================================================================== */
+
+html, body { margin: 0; padding: 0; height: 100%; }
+body {
+    font-family: "Roboto", "Aptos", "Segoe UI", Arial, sans-serif;
+    font-size: 14px; line-height: 1.4; color: #1a202c; background: #f9fafb;
+    overflow-y: auto;
+}
+h1, h2 { margin: 0; font-weight: 600; }
+button, input, select { font-family: inherit; font-size: 14px; color: #1a202c; }
+a { color: #004f9f; }
+.page { padding: 0 0 24px 0; }
+
+/* ---- Barre de titre -------------------------------------------------- */
+.barre {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 20px; background: #ffffff; border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.barre-titre, .barre-actions { display: flex; align-items: center; }
+.marque {
+    display: inline-block; width: 6px; height: 24px; margin-right: 10px;
+    background: #004f9f; border-radius: 3px;
+}
+.barre h1 { font-size: 20px; color: #004f9f; margin-right: 14px; }
+.compteur { color: #4a5568; }
+.version { color: #5f6b7d; font-size: 12px; margin-right: 12px; }
+
+/* ---- Boutons --------------------------------------------------------- */
+.bouton {
+    padding: 6px 12px; margin-left: 8px; border: 1px solid #004f9f; border-radius: 6px;
+    background: #ffffff; color: #004f9f; cursor: pointer;
+}
+.bouton:hover { background: #eaf1f9; }
+.bouton-primaire { background: #004f9f; color: #ffffff; }
+.bouton-primaire:hover { background: #003b78; }
+.bouton-secondaire { background: #ffffff; }
+.bouton-discret { border-color: #e2e8f0; color: #4a5568; }
+.bouton-lien { border: 0; background: transparent; text-decoration: underline; padding: 6px 4px; }
+.bouton-lien:hover { background: transparent; color: #003b78; }
+.bouton-icone {
+    width: 32px; height: 32px; border: 1px solid #e2e8f0; border-radius: 6px; background: #ffffff;
+    color: #4a5568; font-size: 20px; line-height: 20px; cursor: pointer; margin-left: 4px;
+}
+.bouton-icone:hover { background: #eaf1f9; color: #004f9f; }
+button:focus, input:focus, select:focus, .carte:focus { outline: 2px solid #004f9f; outline-offset: 1px; }
+
+/* ---- Recherche et filtres -------------------------------------------- */
+.controles { padding: 12px 20px 4px 20px; background: #ffffff; border-bottom: 1px solid #e2e8f0; }
+.ligne { display: flex; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+.recherche { position: relative; width: 420px; margin-right: 16px; }
+.recherche input {
+    width: 100%; box-sizing: border-box; padding: 7px 30px 7px 10px;
+    border: 1px solid #718096; border-radius: 6px; background: #f9fafb;
+}
+.effacer {
+    position: absolute; right: 4px; top: 4px; width: 24px; height: 24px; border: 0; background: transparent;
+    color: #5f6b7d; font-size: 18px; line-height: 18px; cursor: pointer; display: none;
+}
+.effacer.est-visible { display: block; }
+.bascule { display: flex; margin-right: 16px; }
+.bouton-bascule {
+    padding: 6px 14px; border: 1px solid #718096; background: #ffffff; color: #4a5568; cursor: pointer;
+}
+.bouton-bascule:first-child { border-radius: 6px 0 0 6px; }
+.bouton-bascule:last-child { border-radius: 0 6px 6px 0; border-left: 0; }
+.bouton-bascule[aria-pressed="true"] { background: #004f9f; border-color: #004f9f; color: #ffffff; }
+.champ-tri, .facette { color: #4a5568; font-size: 13px; margin-right: 14px; }
+.champ-tri select, .facette select {
+    margin-left: 4px; padding: 4px; border: 1px solid #718096; border-radius: 6px; background: #ffffff;
+    max-width: 230px;
+}
+.facette select.est-actif { border-color: #004f9f; background: #eaf1f9; color: #004f9f; }
+
+.pastilles { display: flex; flex-wrap: wrap; margin-bottom: 6px; }
+.pastille {
+    padding: 3px 10px; margin: 0 6px 6px 0; border: 1px solid #e2e8f0; border-radius: 999px;
+    background: #ffffff; color: #1a202c; cursor: pointer; font-size: 13px;
+}
+.pastille:hover { border-color: #004f9f; }
+.pastille .effectif { color: #5f6b7d; margin-left: 6px; font-size: 12px; }
+.pastille.est-vide { color: #5f6b7d; }
+.pastille[aria-pressed="true"] { background: #004f9f; border-color: #004f9f; color: #ffffff; }
+.pastille[aria-pressed="true"] .effectif { color: #c0e3f9; }
+
+/* ---- Progression, erreur, message ------------------------------------ */
+.progression, .erreur { display: none; margin: 24px 20px; padding: 16px; border-radius: 8px; }
+.progression { background: #ffffff; border: 1px solid #e2e8f0; }
+.progression.est-visible, .erreur.est-visible { display: block; }
+.progression p, .erreur p { margin: 0 0 10px 0; }
+.jauge { height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+.jauge-barre { height: 6px; width: 0; background: #004f9f; }
+.erreur { background: #fde8e2; border: 1px solid #ed3200; color: #a02200; }
+.message {
+    display: none; position: fixed; left: 20px; bottom: 16px; padding: 10px 14px; border-radius: 6px;
+    background: #1a202c; color: #ffffff; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+.message.est-visible { display: block; }
+
+/* ---- Grille de cartes ------------------------------------------------ */
+.resultats { padding: 16px 20px; }
+.grille { display: flex; flex-wrap: wrap; }
+.carte {
+    width: 228px; margin: 0 14px 14px 0; padding: 14px; box-sizing: border-box;
+    background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.carte:hover { border-color: #004f9f; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1); }
+.carte.est-ouverte { border-color: #004f9f; background: #eaf1f9; }
+.carte-haut { display: flex; align-items: center; margin-bottom: 8px; }
+.avatar {
+    display: inline-block; width: 48px; height: 48px; line-height: 48px; border-radius: 50%;
+    text-align: center; font-weight: 600; font-size: 15px; letter-spacing: 0.5px; flex-shrink: 0;
+}
+.avatar.petit { width: 28px; height: 28px; line-height: 28px; font-size: 10px; }
+.avatar.grand { width: 88px; height: 88px; line-height: 88px; font-size: 26px; }
+.nom { display: block; margin-left: 10px; font-size: 15px; }
+.avatar.petit + .nom { font-size: 14px; }
+.nom .prenom { font-weight: 400; }
+.nom .famille { font-weight: 600; }
+.titre { display: block; color: #4a5568; font-size: 13px; margin-bottom: 6px; }
+.badge-cercle {
+    display: inline-block; padding: 1px 8px; margin: 0 0 6px 0; border-radius: 999px;
+    background: #eaf1f9; color: #004f9f; font-size: 12px;
+}
+.meta { display: block; color: #5f6b7d; font-size: 12px; margin-bottom: 6px; }
+.fonctions { display: block; }
+.fonction {
+    display: inline-block; padding: 1px 6px; margin: 0 4px 4px 0; border: 1px solid #e2e8f0; border-radius: 4px;
+    font-size: 11px; color: #4a5568; background: #f9fafb;
+}
+
+/* ---- Liste ----------------------------------------------------------- */
+.tableau { width: 100%; border-collapse: collapse; background: #ffffff; border: 1px solid #e2e8f0; }
+.tableau th {
+    text-align: left; padding: 8px 10px; border-bottom: 2px solid #e2e8f0; color: #4a5568;
+    font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap;
+}
+.tableau th button { border: 0; background: transparent; padding: 0; font: inherit; color: inherit; cursor: pointer; text-transform: inherit; }
+.tableau th button.est-actif { color: #004f9f; text-decoration: underline; }
+.tableau td { padding: 6px 10px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; font-size: 13px; }
+.tableau tr.ligne-personne:hover td { background: #f9fafb; }
+.tableau tr.est-ouverte td { background: #eaf1f9; }
+.cellule-nom { display: flex; align-items: center; cursor: pointer; }
+.lien-personne { border: 0; background: transparent; padding: 0; color: #004f9f; text-decoration: underline; cursor: pointer; font: inherit; }
+
+/* ---- Aucun résultat -------------------------------------------------- */
+.vide { padding: 40px 20px; text-align: center; color: #4a5568; }
+.vide h2 { font-size: 18px; margin-bottom: 8px; color: #1a202c; }
+
+/* ---- Fiche latérale -------------------------------------------------- */
+.fiche {
+    display: none; position: fixed; top: 0; right: 0; bottom: 0; width: 400px; overflow-y: auto;
+    background: #ffffff; border-left: 1px solid #e2e8f0; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.14);
+}
+.fiche.est-ouverte { display: block; }
+.fiche-entete { display: flex; padding: 10px 12px; border-bottom: 1px solid #e2e8f0; }
+.espace { flex: 1 1 auto; }
+.fiche-corps { padding: 18px 20px; }
+.fiche-haut { text-align: center; margin-bottom: 14px; }
+.fiche-haut h2 { font-size: 22px; margin-top: 10px; }
+.fiche-titre { color: #004f9f; font-size: 15px; margin: 4px 0 8px 0; }
+.trigramme {
+    display: inline-block; padding: 1px 8px; border-radius: 4px; background: #e2e8f0; color: #1a202c;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.5px;
+}
+.faits { margin: 0; }
+.fait { padding: 8px 0; border-top: 1px solid #e2e8f0; }
+.fait dt { color: #5f6b7d; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px; }
+.fait dd { margin: 0; }
+.bouton-filtre {
+    padding: 2px 8px; margin: 0 4px 4px 0; border: 1px solid #e2e8f0; border-radius: 999px; background: #ffffff;
+    color: #004f9f; cursor: pointer; font-size: 13px;
+}
+.bouton-filtre:hover { border-color: #004f9f; background: #eaf1f9; }
+.role { display: inline-block; padding: 2px 8px; margin: 0 4px 4px 0; border-radius: 999px; background: #f9fafb; border: 1px dashed #e2e8f0; color: #4a5568; font-size: 13px; }
+.role.hors-organisation { font-style: italic; color: #5f6b7d; }
+.puce-personne {
+    display: inline-flex; align-items: center; padding: 3px 10px 3px 3px; margin: 0 6px 6px 0;
+    border: 1px solid #e2e8f0; border-radius: 999px; background: #ffffff; cursor: pointer; font-size: 13px;
+}
+.puce-personne:hover { border-color: #004f9f; background: #eaf1f9; }
+.puce-personne .avatar { margin-right: 6px; }
+.fiche-actions { margin-top: 16px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
+.fiche-actions .bouton { margin: 0 8px 8px 0; display: inline-block; text-decoration: none; }
+.note { color: #5f6b7d; font-size: 12px; margin-top: 8px; }
+
+</style>
+</head>
+<body>
+<div class="page">
+    <header class="barre">
+        <div class="barre-titre">
+            <span class="marque" aria-hidden="true"></span>
+            <h1>Trombinoscope</h1>
+            <span id="compteur" class="compteur"></span>
+        </div>
+        <div class="barre-actions">
+            <span id="version" class="version"></span>
+            <button type="button" class="bouton bouton-discret" id="btnRelire" title="Relire les fiches dans M-Files">Relire</button>
+            <button type="button" class="bouton bouton-secondaire" id="btnRevenir">Revenir au listage</button>
+        </div>
+    </header>
+
+    <section id="controles" class="controles" aria-label="Recherche et filtres">
+        <div class="ligne">
+            <div class="recherche">
+                <input id="recherche" type="text" maxlength="80" autocomplete="off" spellcheck="false"
+                       placeholder="Rechercher un nom, un titre, une fonction, un trigramme"
+                       aria-label="Rechercher un collaborateur" />
+                <button type="button" id="effacer" class="effacer" title="Effacer la recherche" aria-label="Effacer la recherche">&#215;</button>
+            </div>
+            <div class="bascule" role="group" aria-label="Affichage">
+                <button type="button" class="bouton-bascule" data-vue="grille" aria-pressed="true">Grille</button>
+                <button type="button" class="bouton-bascule" data-vue="liste" aria-pressed="false">Liste</button>
+            </div>
+            <label class="champ-tri">Trier par
+                <select id="tri">
+                    <option value="nom">Nom</option>
+                    <option value="prenom">Prénom</option>
+                    <option value="titre">Titre</option>
+                    <option value="succursale">Succursale</option>
+                    <option value="cercle">Cercle/rôle</option>
+                    <option value="etape">Étape</option>
+                </select>
+            </label>
+        </div>
+        <div id="cercles" class="pastilles" role="group" aria-label="Filtrer par cercle"></div>
+        <div class="ligne facettes">
+            <label class="facette">Étape <select data-facette="etape"></select></label>
+            <label class="facette">Succursale <select data-facette="succursale"></select></label>
+            <label class="facette">Titre <select data-facette="titre"></select></label>
+            <label class="facette">Fonction <select data-facette="fonction"></select></label>
+            <button type="button" class="bouton bouton-lien" id="btnToutEffacer">Effacer les filtres</button>
+        </div>
+    </section>
+
+    <section id="progression" class="progression">
+        <p id="progressionTexte">Lecture des données…</p>
+        <div class="jauge"><div id="progressionBarre" class="jauge-barre"></div></div>
+    </section>
+
+    <section id="erreur" class="erreur" role="alert">
+        <p id="erreurTexte"></p>
+        <button type="button" class="bouton bouton-primaire" id="btnReessayer">Relire</button>
+    </section>
+
+    <main id="resultats" class="resultats" aria-live="polite"></main>
+</div>
+
+<aside id="fiche" class="fiche" aria-label="Fiche du collaborateur">
+    <div class="fiche-entete">
+        <button type="button" class="bouton-icone" data-action="precedente" title="Personne précédente (flèche gauche)" aria-label="Personne précédente">&#8249;</button>
+        <button type="button" class="bouton-icone" data-action="suivante" title="Personne suivante (flèche droite)" aria-label="Personne suivante">&#8250;</button>
+        <span class="espace"></span>
+        <button type="button" class="bouton-icone" data-action="fermer" title="Fermer (Échap)" aria-label="Fermer la fiche">&#215;</button>
+    </div>
+    <div id="ficheCorps" class="fiche-corps"></div>
+</aside>
+
+<div id="message" class="message" role="status"></div>
+
+<script>
+/* exported PARAMETRAGE, MF, VERSION_PAQUET, PREFIXE_JOURNAL */
+/* =====================================================================
+   PARAMÉTRAGE — seul fichier dépendant du coffre tebifiles (ES5)
+
+   Chargé par le module et intégré dans la page à la construction.
+   Les identifiants sont ceux des adaptateurs du Cockpit PRO, en service
+   sur le coffre réel (cockpit_pro/model/adapters/mfiles_staff.py et
+   mfiles_org.py). Les constantes MF* ne sont pas garanties dans un
+   dashboard : leurs valeurs numériques sont fixées ici.
+
+   CONFIDENTIALITÉ (docs/adr/0001) : la fiche Collaborateur porte des
+   données RH (mobile, adresse, naissance, salaire, dossiers). Seules les
+   propriétés listées dans `proprietes` sont lues ; ajouter un champ
+   commence par une décision, puis par une ligne ici. Le mobile
+   professionnel (2823) n'est volontairement pas repris.
+   ===================================================================== */
+
+var VERSION_PAQUET = "1.0.0 (UIX v1)";
+var PREFIXE_JOURNAL = "[trombinoscope]";
+
+var MF = {
+    DT_TEXT: 1, DT_INTEGER: 2, DT_REAL: 3, DT_DATE: 5, DT_TIMESTAMP: 7,
+    DT_BOOLEAN: 8, DT_LOOKUP: 9, DT_MULTI_LOOKUP: 10, DT_MULTI_LINE_TEXT: 13,
+    EGAL: 1, DIFFERENT: 2,
+    STATUS_DELETED: 5, STATUS_OBJECT_TYPE_ID: 6,
+    PARENT_CHILD_NONE: 0, SEARCH_FLAG_NONE: 0
+};
+
+var PARAMETRAGE = {
+    dashboard: "trombinoscope",
+    commande: "Trombinoscope",
+
+    // Types d'objets (alias tebifiles.ot.collaborateur pour 104)
+    typeCollaborateur: 104,
+    typeCercle: 362,
+
+    // Étapes du workflow Collaborateur montrées par l'annuaire. Les
+    // collaborateurs des autres étapes ne sont ni cherchés ni lus, et ne
+    // sont mentionnés nulle part (pas même comme responsable).
+    etapes: [
+        { id: 319, nom: "En fonction", partant: false },
+        { id: 1475, nom: "Offboarding démission", partant: true },
+        { id: 1478, nom: "Offboarding licenciement", partant: true }
+    ],
+
+    // Liste blanche de la fiche Collaborateur : rien d'autre n'est lu.
+    proprietes: {
+        etape: 39,                 // Etape (état du workflow), filtre de la recherche
+        prenom: 1387,              // Prénom
+        nom: 1386,                 // Nom de famille
+        initiales: 1079,           // Initiales (le trigramme)
+        titre: 2376,               // Titre
+        titreManuel: 4259,         // Titre (manuel)
+        fonctionPrincipale: 3638,  // /Titre (fonction principale)
+        fonctions: 3641,           // >Fonctions (plusieurs)
+        succursale: 2414,          // >Succursale (pas sa variante confidentielle 2824)
+        cercle: 2929,              // >Cercle/rôle principal
+        cerclesAuto: 2928,         // ~Cercles/rôles auto (plusieurs)
+        responsable: 1217,         // >Responsable hiérarchique
+        email: 2821                // Email prof.
+    },
+
+    // Liste blanche de l'objet Cercle/rôle : le titre vient du résultat
+    // de recherche, seule la relation de contenu est lue.
+    proprietesCercle: {
+        membresCercles: 2926       // >Membres (cercles) : ce que l'objet contient
+    },
+
+    // Organisation : l'arbre sous le cercle « tebicom SA » ; « CA »
+    // n'est rattaché qu'à un groupe d'autorisations et se place sous
+    // l'ancre (ADR 0003 et 0010 du Cockpit PRO).
+    ancre: "tebicom SA",
+    cerclesRacines: ["CA"],
+
+    limiteRecherche: 500,
+    tailleLot: 20
+};
+
+</script>
+<script>
+/* exported regles */
+/* =====================================================================
+   RÈGLES DU TROMBINOSCOPE — couche model, pure (ES5)
+
+   Des fiches Collaborateur et des objets Cercle/rôle déjà réduits à la
+   liste blanche (vault-com.js), ce module construit l'annuaire que la
+   page affiche, puis filtre, cherche et trie. Aucun DOM, aucun accès au
+   coffre : tout ce qui se teste sans M-Files est ici. Règles reprises du
+   Cockpit PRO (model/directory.py, model/organization.py,
+   model/titles.py, trombinoscope/model/directory.js).
+
+   ES5 strict : le contrôle web du client classique est IE11. Pas de
+   String.prototype.normalize : le repli des accents passe par une table.
+   ===================================================================== */
+
+var regles = (function () {
+    "use strict";
+
+    // Fiche modèle de M-Files : un collaborateur « actif » qui n'est pas une personne
+    var INITIALES_MODELE = "ZZZ";
+    var PREFIXE_MODELE = "_";
+    // Particules d'un nom de famille : elles ne donnent pas la lettre du monogramme
+    var PARTICULES = ["de", "du", "des", "van", "von", "der", "den", "da", "das", "di", "dos", "del",
+        "della", "le", "la", "el", "al", "ten", "ter", "zu"];
+    // Écart de teinte entre deux ID : l'angle d'or répartit les couleurs sans cycle visible
+    var PAS_TEINTE = 137.508;
+    // Adresse simple : rien qui plie un lien mailto: (? & % # /) ni qui en cumule plusieurs (; , espace)
+    var MOTIF_EMAIL = /^[A-Za-z0-9._+'-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
+    // Trois lettres exactement (latin étendu, sans × ni ÷)
+    var MOTIF_TRIGRAMME = /^[A-Za-zÀ-ÖØ-öø-ɏ]{3}$/;
+    // Une lettre, pour la casse des noms (mêmes plages)
+    var MOTIF_LETTRE = /[A-Za-zÀ-ÖØ-öø-ɏ]/;
+
+    // Repli des accents : chaque lettre accentuée vers sa base, en minuscules
+    var TABLE_REPLI = construireTableRepli({
+        a: "àáâãäåāăą", c: "çćĉċč", d: "ďđ", e: "èéêëēĕėęě", g: "ĝğġģ", h: "ĥħ",
+        i: "ìíîïĩīĭįı", j: "ĵ", k: "ķ", l: "ĺļľŀł", n: "ñńņňŉ", o: "òóôõöøōŏő",
+        r: "ŕŗř", s: "śŝşš", t: "ţťŧ", u: "ùúûüũūŭůűų", w: "ŵ", y: "ýÿŷ", z: "źżž",
+        ae: "æ", oe: "œ", ss: "ß"
+    });
+
+    /**
+     * Construit la table de repli lettre accentuée → base.
+     *
+     * @param {object} groupes base → lettres accentuées qui s'y replient
+     * @returns {object} lettre accentuée → base
+     */
+    function construireTableRepli(groupes) {
+        var table = {};
+        var base;
+        var i;
+
+        for (base in groupes) {
+            if (groupes.hasOwnProperty(base)) {
+                for (i = 0; i < groupes[base].length; i += 1) {
+                    table[groupes[base].charAt(i)] = base;
+                }
+            }
+        }
+        return table;
+    }
+
+    /**
+     * Texte sans accents ni capitales, pour trier et chercher.
+     *
+     * @param {string|null} texte texte quelconque
+     * @returns {string} le texte replié ("" pour null)
+     */
+    function plier(texte) {
+        return String(texte === null || texte === undefined ? "" : texte).toLowerCase()
+            .replace(/[^\u0000-\u007f]/g, function (lettre) {
+                return TABLE_REPLI.hasOwnProperty(lettre) ? TABLE_REPLI[lettre] : lettre;
+            });
+    }
+
+    /**
+     * Texte sans blancs de bord, ou null s'il est vide.
+     *
+     * @param {*} texte valeur lue
+     * @returns {string|null} texte nettoyé
+     */
+    function nettoyer(texte) {
+        var t = String(texte === null || texte === undefined ? "" : texte).replace(/^\s+|\s+$/g, "");
+        return t ? t : null;
+    }
+
+    /**
+     * Vrai si un tableau contient une valeur.
+     *
+     * @param {Array} tableau tableau
+     * @param {*} valeur valeur cherchée
+     * @returns {boolean} présence
+     */
+    function contient(tableau, valeur) {
+        return tableau.indexOf(valeur) >= 0;
+    }
+
+    /**
+     * Nom saisi en capitales ramené à la casse normale ; une casse mixte
+     * reste telle quelle (« MARTIN-DUPRÉ » → « Martin-Dupré », « van
+     * Delta » inchangé).
+     *
+     * @param {string|null} texte prénom ou nom
+     * @returns {string} texte à afficher
+     */
+    function casseAffichage(texte) {
+        var t = nettoyer(texte) || "";
+        var debutMot = true;
+        var sortie = "";
+        var i;
+        var c;
+
+        if (t.length < 2 || t !== t.toUpperCase() || t === t.toLowerCase()) {
+            return t;
+        }
+
+        // Majuscule en début de mot, minuscule ailleurs (comme str.title)
+        for (i = 0; i < t.length; i += 1) {
+            c = t.charAt(i);
+            sortie += debutMot ? c.toUpperCase() : c.toLowerCase();
+            debutMot = !MOTIF_LETTRE.test(c);
+        }
+        return sortie;
+    }
+
+    /**
+     * Lettres de l'avatar de repli : initiale du prénom et du nom, sans
+     * les particules (« van Delta » : D).
+     *
+     * @param {string} prenom prénom affiché
+     * @param {string} nom nom affiché
+     * @returns {string} une ou deux lettres majuscules
+     */
+    function monogramme(prenom, nom) {
+        var mots = nom.split(/\s+/).filter(function (m) { return m; });
+        var significatifs = mots.filter(function (m) { return !contient(PARTICULES, m.toLowerCase()); });
+
+        // Un nom réduit à une particule reste utilisable
+        if (!significatifs.length) {
+            significatifs = mots;
+        }
+        return (prenom.charAt(0) + (significatifs.length ? significatifs[0].charAt(0) : "")).toUpperCase();
+    }
+
+    /**
+     * Lettres de l'avatar : le trigramme de M-Files (« Initiales ») s'il
+     * a trois lettres exactement, sinon le monogramme calculé.
+     *
+     * @param {object} personne personne de l'annuaire
+     * @returns {string} lettres à afficher
+     */
+    function trigrammeDe(personne) {
+        return MOTIF_TRIGRAMME.test(personne.initiales || "") ? personne.initiales : personne.monogramme;
+    }
+
+    /**
+     * Titre : « Titre (manuel) », à défaut « Titre », à défaut « /Titre ».
+     *
+     * @param {string|null} manuel titre manuel
+     * @param {string|null} titre titre
+     * @param {string|null} fonctionPrincipale /Titre
+     * @returns {string|null} premier texte non vide
+     */
+    function titreAffiche(manuel, titre, fonctionPrincipale) {
+        return nettoyer(manuel) || nettoyer(titre) || nettoyer(fonctionPrincipale);
+    }
+
+    /**
+     * Adresse e-mail de forme sûre, ou null.
+     *
+     * @param {string|null} texte champ « Email prof. » (texte libre)
+     * @returns {string|null} adresse
+     */
+    function emailValide(texte) {
+        var adresse = nettoyer(texte);
+        return adresse && MOTIF_EMAIL.test(adresse) ? adresse : null;
+    }
+
+    /**
+     * Étape listée d'une fiche, d'après son ID.
+     *
+     * @param {object|null} etape { id, nom } lue sur la fiche
+     * @returns {object|null} étape du paramétrage, ou null si non listée
+     */
+    function etapeListee(etape) {
+        var trouvee = null;
+
+        if (!etape) {
+            return null;
+        }
+        PARAMETRAGE.etapes.forEach(function (e) {
+            if (e.id === etape.id) {
+                trouvee = e;
+            }
+        });
+        return trouvee;
+    }
+
+    /**
+     * Vrai si la fiche est celle d'une personne à une étape listée : ni
+     * la fiche modèle, ni une fiche sans nom.
+     *
+     * @param {object} fiche fiche brute
+     * @returns {boolean} figure dans l'annuaire
+     */
+    function estListee(fiche) {
+        var prenom = nettoyer(fiche.prenom) || "";
+        var nom = nettoyer(fiche.nom) || "";
+
+        if (!etapeListee(fiche.etape) || !(prenom || nom)) {
+            return false;
+        }
+        return prenom.charAt(0) !== PREFIXE_MODELE && fiche.initiales !== INITIALES_MODELE;
+    }
+
+    /**
+     * Valeurs nettoyées, sans vide ni doublon, dans l'ordre reçu.
+     *
+     * @param {Array} valeurs textes
+     * @returns {Array} textes retenus
+     */
+    function sansDoublon(valeurs) {
+        var sortie = [];
+
+        (valeurs || []).forEach(function (v) {
+            var t = nettoyer(v);
+            if (t && !contient(sortie, t)) {
+                sortie.push(t);
+            }
+        });
+        return sortie;
+    }
+
+    /**
+     * Entrée d'un collaborateur dans l'annuaire.
+     *
+     * @param {object} fiche fiche brute (liste blanche)
+     * @returns {object} personne affichée par la page
+     */
+    function personneDe(fiche) {
+        var prenom = casseAffichage(fiche.prenom);
+        var nom = casseAffichage(fiche.nom);
+        var etape = etapeListee(fiche.etape);
+        var fonctionPrincipale = nettoyer(fiche.fonctionPrincipale);
+        var cercle = fiche.cercle && nettoyer(fiche.cercle.nom) ? fiche.cercle : null;
+
+        return {
+            id: fiche.id,
+            prenom: prenom,
+            nom: nom,
+            nomComplet: nettoyer(prenom + " " + nom) || "",
+            initiales: nettoyer(fiche.initiales),
+            monogramme: monogramme(prenom, nom),
+            teinte: Math.round(fiche.id * PAS_TEINTE) % 360,
+            titre: titreAffiche(fiche.titreManuel, fiche.titre, fonctionPrincipale),
+            etape: etape.nom,
+            partant: etape.partant,
+            fonctionPrincipale: fonctionPrincipale,
+            fonctions: sansDoublon(fiche.fonctions),
+            succursale: nettoyer(fiche.succursale),
+            cercle: cercle ? nettoyer(cercle.nom) : null,
+            cercleId: cercle ? cercle.id : null,
+            email: emailValide(fiche.email),
+            responsableDemande: fiche.responsableId,
+            cerclesAuto: fiche.cerclesAuto || []
+        };
+    }
+
+    /**
+     * Compare deux textes sans égard aux accents ; une valeur absente
+     * passe après toute valeur.
+     *
+     * @param {string|null} a premier texte
+     * @param {string|null} b second texte
+     * @returns {number} négatif, nul ou positif
+     */
+    function comparerTextes(a, b) {
+        var pa;
+        var pb;
+
+        if (!a || !b) {
+            return (a ? 0 : 1) - (b ? 0 : 1);
+        }
+        pa = plier(a);
+        pb = plier(b);
+        if (pa === pb) {
+            return 0;
+        }
+        return pa < pb ? -1 : 1;
+    }
+
+    /**
+     * Ordre par nom de famille puis prénom.
+     *
+     * @param {object} a personne
+     * @param {object} b personne
+     * @returns {number} négatif, nul ou positif
+     */
+    function parNom(a, b) {
+        return comparerTextes(a.nom, b.nom) || comparerTextes(a.prenom, b.prenom) || a.id - b.id;
+    }
+
+    /**
+     * ID de `depart` et de tout ce qu'on atteint en descendant depuis lui.
+     *
+     * @param {number} depart ID de départ
+     * @param {object} enfants contenu de chaque objet, par ID
+     * @returns {object} ID atteints (clés), chacun visité une fois
+     */
+    function atteints(depart, enfants) {
+        var vus = {};
+        var aVoir = [depart];
+        var courant;
+
+        while (aVoir.length) {
+            courant = aVoir.pop();
+            if (!vus.hasOwnProperty(courant)) {
+                vus[courant] = true;
+                aVoir.push.apply(aVoir, enfants[courant] || []);
+            }
+        }
+        return vus;
+    }
+
+    /**
+     * Nombre de clés d'un objet.
+     *
+     * @param {object} objet objet
+     * @returns {number} nombre de clés propres
+     */
+    function taille(objet) {
+        var n = 0;
+        var cle;
+
+        for (cle in objet) {
+            if (objet.hasOwnProperty(cle)) {
+                n += 1;
+            }
+        }
+        return n;
+    }
+
+    /**
+     * Organisation : l'arbre sous le cercle « tebicom SA ». Un objet qu'on
+     * atteint en descendant depuis lui est dans l'organisation ; un cercle
+     * de l'organisation contient d'autres objets, ou se tient directement
+     * sous l'ancre ; les feuilles sont des rôles. Les cercles racines
+     * (« CA ») se placent sous l'ancre s'ils n'y sont pas déjà.
+     *
+     * @param {Array} cercles objets Cercle/rôle { id, nom, enfants }
+     * @returns {object} { noms, dansOrganisation, estCercle }, par ID
+     */
+    function construireOrganisation(cercles) {
+        var connus = {};
+        var enfants = {};
+        var noms = {};
+        var ancre = null;
+        var meilleur = -1;
+        var dedans = {};
+        var estCercle = {};
+        var premierNiveau;
+
+        cercles.forEach(function (c) {
+            connus[c.id] = true;
+        });
+        cercles.forEach(function (c) {
+            noms[c.id] = nettoyer(c.nom) || "";
+            enfants[c.id] = [];
+            (c.enfants || []).forEach(function (e) {
+                if (connus[e] && e !== c.id && !contient(enfants[c.id], e)) {
+                    enfants[c.id].push(e);
+                }
+            });
+        });
+
+        // Ancre : le cercle de ce nom qui contient le plus ; à égalité, le plus petit ID
+        cercles.forEach(function (c) {
+            var n;
+            if (noms[c.id] === PARAMETRAGE.ancre) {
+                n = taille(atteints(c.id, enfants));
+                if (n > meilleur || (n === meilleur && c.id < ancre)) {
+                    ancre = c.id;
+                    meilleur = n;
+                }
+            }
+        });
+
+        if (ancre !== null) {
+            dedans = atteints(ancre, enfants);
+            cercles.forEach(function (c) {
+                if (contient(PARAMETRAGE.cerclesRacines, noms[c.id]) && !dedans[c.id]) {
+                    enfants[ancre].push(c.id);
+                    dedans = atteints(ancre, enfants);
+                }
+            });
+        }
+
+        premierNiveau = ancre !== null ? enfants[ancre] : [];
+        cercles.forEach(function (c) {
+            estCercle[c.id] = Boolean(dedans[c.id]) && c.id !== ancre &&
+                (enfants[c.id].length > 0 || contient(premierNiveau, c.id));
+        });
+        return { noms: noms, dansOrganisation: dedans, estCercle: estCercle };
+    }
+
+    /**
+     * Pose sur chaque personne ses cercles de l'organisation (ce que
+     * propose le filtre) et tous ses cercles et rôles (ce que montre la
+     * fiche) : ~Cercles/rôles auto plus le cercle principal.
+     *
+     * @param {Array} personnes personnes de l'annuaire (modifiées)
+     * @param {object} org organisation (voir construireOrganisation)
+     * @returns {void}
+     */
+    function poserCercles(personnes, org) {
+        personnes.forEach(function (p) {
+            var vus = {};
+            var tous = [];
+            var objets = p.cerclesAuto.slice();
+
+            if (p.cercleId !== null) {
+                objets.push({ id: p.cercleId, nom: p.cercle });
+            }
+            objets.forEach(function (o) {
+                if (o && o.id !== null && o.id !== undefined && !vus[o.id]) {
+                    vus[o.id] = true;
+                    tous.push({
+                        id: o.id,
+                        nom: org.noms[o.id] || nettoyer(o.nom) || "",
+                        estCercle: Boolean(org.estCercle[o.id]),
+                        horsOrganisation: !org.dansOrganisation[o.id]
+                    });
+                }
+            });
+            tous.sort(function (a, b) {
+                return comparerTextes(a.nom, b.nom) || a.id - b.id;
+            });
+
+            p.cerclesEtRoles = tous;
+            p.cercles = tous.filter(function (o) { return o.estCercle; })
+                .map(function (o) { return { id: o.id, nom: o.nom }; });
+            delete p.cerclesAuto;
+        });
+    }
+
+    /**
+     * Vrai si, en remontant les responsables depuis `depart`, on
+     * rencontre `cible`.
+     *
+     * @param {object} responsableDe responsable retenu, par ID
+     * @param {number} depart ID de départ
+     * @param {number} cible ID cherché
+     * @returns {boolean} présence dans la chaîne
+     */
+    function mene(responsableDe, depart, cible) {
+        var vus = {};
+        var courant = depart;
+
+        while (courant !== undefined && courant !== null && !vus[courant]) {
+            if (courant === cible) {
+                return true;
+            }
+            vus[courant] = true;
+            courant = responsableDe[courant];
+        }
+        return false;
+    }
+
+    /**
+     * Relie chaque personne à son responsable : responsableId, equipe
+     * (directe, par nom) et tailleEquipe (tous niveaux). Un responsable
+     * absent de l'annuaire est ignoré ; une boucle est cassée au dernier
+     * lien rencontré dans l'ordre des ID.
+     *
+     * @param {Array} personnes personnes triées par nom (modifiées)
+     * @param {object} parId personnes par ID
+     * @returns {void}
+     */
+    function lierHierarchie(personnes, parId) {
+        var responsableDe = {};
+        var tailles = {};
+        var ids = personnes.map(function (p) { return p.id; }).sort(function (a, b) { return a - b; });
+
+        ids.forEach(function (id) {
+            var r = parId[id].responsableDemande;
+            if (r !== null && r !== undefined && parId.hasOwnProperty(r) && r !== id && !mene(responsableDe, r, id)) {
+                responsableDe[id] = r;
+            }
+        });
+
+        personnes.forEach(function (p) {
+            p.responsableId = responsableDe.hasOwnProperty(p.id) ? responsableDe[p.id] : null;
+            p.equipe = [];
+            delete p.responsableDemande;
+        });
+        // Les personnes sont triées par nom : les équipes directes aussi
+        personnes.forEach(function (p) {
+            if (p.responsableId !== null) {
+                parId[p.responsableId].equipe.push(p.id);
+            }
+        });
+
+        /**
+         * Taille de toute l'équipe d'une personne, mémorisée.
+         *
+         * @param {number} id personne
+         * @returns {number} effectif sous elle, tous niveaux
+         */
+        function tailleDe(id) {
+            if (!tailles.hasOwnProperty(id)) {
+                tailles[id] = 0;
+                parId[id].equipe.forEach(function (membre) {
+                    tailles[id] += 1 + tailleDe(membre);
+                });
+            }
+            return tailles[id];
+        }
+
+        personnes.forEach(function (p) {
+            p.tailleEquipe = tailleDe(p.id);
+        });
+    }
+
+    /**
+     * Assemble l'annuaire à partir des fiches et des cercles bruts.
+     *
+     * @param {Array} fiches fiches Collaborateur (liste blanche)
+     * @param {Array} cercles objets Cercle/rôle { id, nom, enfants }
+     * @returns {object} { personnes, parId } ; seules les personnes aux
+     *     étapes listées y figurent, triées par nom ; une personne d'une
+     *     autre étape n'est mentionnée nulle part
+     */
+    function construireAnnuaire(fiches, cercles) {
+        var personnes = fiches.filter(estListee).map(personneDe).sort(parNom);
+        var parId = {};
+
+        personnes.forEach(function (p) {
+            parId[p.id] = p;
+            p.recherche = texteRecherche(p);
+        });
+        poserCercles(personnes, construireOrganisation(cercles || []));
+        lierHierarchie(personnes, parId);
+        return { personnes: personnes, parId: parId };
+    }
+
+    /**
+     * Texte de recherche d'une personne : nom, initiales, titre, /Titre,
+     * fonctions, succursale, cercle principal et partie locale de
+     * l'e-mail, repliés. Le nom du responsable n'y est pas : chercher un
+     * nom ne doit pas ramener son équipe.
+     *
+     * @param {object} p personne
+     * @returns {string} texte replié
+     */
+    function texteRecherche(p) {
+        var parties = [p.nomComplet, p.initiales, p.titre, p.fonctionPrincipale, p.succursale, p.cercle,
+            p.email ? p.email.split("@")[0] : null].concat(p.fonctions);
+
+        return parties.filter(function (x) { return x; }).map(plier).join(" ");
+    }
+
+    // ---- Recherche, filtres, tri ---------------------------------------
+
+    /** Valeur d'un filtre qui retient les personnes sans valeur. */
+    var AUCUN = "__aucun__";
+
+    /**
+     * Les cinq informations par lesquelles on filtre. `valeurs` rend ce
+     * qu'une personne porte : [{ valeur, libelle }] (le cercle est retenu
+     * par son ID, deux cercles de même nom restant distincts).
+     */
+    var FACETTES = {
+        cercle: { libelle: "Cercle", aucun: "Sans cercle", valeurs: function (p) {
+            return p.cercles.map(function (c) { return { valeur: String(c.id), libelle: c.nom }; });
+        } },
+        etape: { libelle: "Étape", aucun: "Sans étape", valeurs: function (p) {
+            return p.etape ? [{ valeur: p.etape, libelle: p.etape }] : [];
+        } },
+        succursale: { libelle: "Succursale", aucun: "Sans succursale", valeurs: function (p) {
+            return p.succursale ? [{ valeur: p.succursale, libelle: p.succursale }] : [];
+        } },
+        titre: { libelle: "Titre", aucun: "Sans titre", valeurs: function (p) {
+            return p.titre ? [{ valeur: p.titre, libelle: p.titre }] : [];
+        } },
+        fonction: { libelle: "Fonction", aucun: "Sans fonction", valeurs: function (p) {
+            return p.fonctions.map(function (f) { return { valeur: f, libelle: f }; });
+        } }
+    };
+    var CLES_FACETTES = ["cercle", "etape", "succursale", "titre", "fonction"];
+
+    /**
+     * État vide : aucune recherche, aucun filtre.
+     *
+     * @returns {object} { q, cercle, etape, succursale, titre, fonction }
+     */
+    function etatInitial() {
+        return { q: "", cercle: null, etape: null, succursale: null, titre: null, fonction: null };
+    }
+
+    /**
+     * Mots d'une saisie, repliés ; une adresse e-mail ne garde que sa
+     * partie locale (le domaine, commun à tous, n'est pas indexé).
+     *
+     * @param {string} q saisie
+     * @returns {Array} mots non vides
+     */
+    function motsDe(q) {
+        return plier(q).split(/\s+/).map(function (mot) {
+            return mot.indexOf("@") >= 0 ? mot.slice(0, mot.indexOf("@")) : mot;
+        }).filter(function (mot) { return mot; });
+    }
+
+    /**
+     * Vrai si une personne porte la valeur retenue pour une facette.
+     *
+     * @param {object} p personne
+     * @param {string} cle clé de FACETTES
+     * @param {string} retenue valeur, ou AUCUN
+     * @returns {boolean} correspondance
+     */
+    function correspond(p, cle, retenue) {
+        var valeurs = FACETTES[cle].valeurs(p);
+
+        if (retenue === AUCUN) {
+            return valeurs.length === 0;
+        }
+        return valeurs.some(function (v) { return v.valeur === retenue; });
+    }
+
+    /**
+     * Personnes qui répondent à la recherche et aux filtres.
+     *
+     * @param {Array} personnes personnes de l'annuaire
+     * @param {object} etat recherche et filtres (null : pas de filtre)
+     * @param {string} [sauf] facette dont le filtre est ignoré, pour des
+     *     effectifs qui montrent ce que les autres valeurs donneraient
+     * @returns {Array} personnes retenues, dans l'ordre reçu
+     */
+    function filtrer(personnes, etat, sauf) {
+        var mots = motsDe(etat.q);
+
+        return personnes.filter(function (p) {
+            var i;
+            var cle;
+
+            for (i = 0; i < CLES_FACETTES.length; i += 1) {
+                cle = CLES_FACETTES[i];
+                if (cle !== sauf && etat[cle] && !correspond(p, cle, etat[cle])) {
+                    return false;
+                }
+            }
+            return mots.every(function (mot) { return p.recherche.indexOf(mot) >= 0; });
+        });
+    }
+
+    /**
+     * Valeurs d'une facette avec leurs effectifs.
+     *
+     * @param {Array} personnes personnes de l'annuaire
+     * @param {object} etat recherche et filtres courants
+     * @param {string} cle clé de FACETTES
+     * @returns {object} { options: [{ valeur, libelle, effectif }], aucun:
+     *     { libelle, effectif } ou null, total } ; options : les valeurs
+     *     portées par au moins une personne de l'annuaire, des plus portées
+     *     aux moins portées puis par nom (ordre qui ne bouge pas avec les
+     *     filtres) ; effectif : personnes retenues par la recherche et les
+     *     AUTRES filtres ; aucun n'existe que si quelqu'un n'a pas de valeur
+     */
+    function optionsFacette(personnes, etat, cle) {
+        var facette = FACETTES[cle];
+        var connues = {};
+        var ordre = [];
+        var manquants = 0;
+        var effectifs = {};
+        var effectifAucun = 0;
+        var contexte = filtrer(personnes, etat, cle);
+
+        personnes.forEach(function (p) {
+            var valeurs = facette.valeurs(p);
+            manquants += valeurs.length ? 0 : 1;
+            valeurs.forEach(function (v) {
+                if (!connues.hasOwnProperty(v.valeur)) {
+                    connues[v.valeur] = { libelle: v.libelle, total: 0 };
+                    ordre.push(v.valeur);
+                }
+                connues[v.valeur].total += 1;
+            });
+        });
+        contexte.forEach(function (p) {
+            var valeurs = facette.valeurs(p);
+            effectifAucun += valeurs.length ? 0 : 1;
+            valeurs.forEach(function (v) {
+                effectifs[v.valeur] = (effectifs[v.valeur] || 0) + 1;
+            });
+        });
+
+        ordre.sort(function (a, b) {
+            return connues[b].total - connues[a].total || comparerTextes(connues[a].libelle, connues[b].libelle);
+        });
+        return {
+            options: ordre.map(function (v) {
+                return { valeur: v, libelle: connues[v].libelle, effectif: effectifs[v] || 0 };
+            }),
+            aucun: manquants ? { libelle: facette.aucun, effectif: effectifAucun } : null,
+            total: contexte.length
+        };
+    }
+
+    /**
+     * Vrai si une recherche ou un filtre restreint la liste.
+     *
+     * @param {object} etat état courant
+     * @returns {boolean} filtrage actif
+     */
+    function filtreActif(etat) {
+        return motsDe(etat.q).length > 0 || CLES_FACETTES.some(function (cle) { return Boolean(etat[cle]); });
+    }
+
+    /**
+     * Copie triée des personnes.
+     *
+     * @param {Array} personnes personnes
+     * @param {string} cle nom, prenom, titre, succursale, cercle ou etape
+     * @returns {Array} nouveau tableau ; l'original n'est pas modifié
+     */
+    function trier(personnes, cle) {
+        var ordres = {
+            nom: parNom,
+            prenom: function (a, b) { return comparerTextes(a.prenom, b.prenom) || parNom(a, b); },
+            titre: function (a, b) { return comparerTextes(a.titre, b.titre) || parNom(a, b); },
+            succursale: function (a, b) { return comparerTextes(a.succursale, b.succursale) || parNom(a, b); },
+            cercle: function (a, b) { return comparerTextes(a.cercle, b.cercle) || parNom(a, b); },
+            etape: function (a, b) { return comparerTextes(a.etape, b.etape) || parNom(a, b); }
+        };
+
+        return personnes.slice().sort(ordres.hasOwnProperty(cle) ? ordres[cle] : parNom);
+    }
+
+    return {
+        AUCUN: AUCUN,
+        CLES_FACETTES: CLES_FACETTES,
+        FACETTES: FACETTES,
+        plier: plier,
+        trigrammeDe: trigrammeDe,
+        construireAnnuaire: construireAnnuaire,
+        etatInitial: etatInitial,
+        filtrer: filtrer,
+        optionsFacette: optionsFacette,
+        filtreActif: filtreActif,
+        trier: trier
+    };
+}());
+
+</script>
+<script>
+/* exported coffre */
+/* =====================================================================
+   VAULT-COM — accès au coffre en UIX v1 (API COM synchrone, ES5)
+
+   Couche model. Isole toutes les particularités COM (collections base 1,
+   constructeurs MFiles.*, recherches par conditions) et rend des objets
+   JavaScript simples aux règles (regles.js).
+
+   Lecture seule : ce module n'écrit rien dans le coffre.
+
+   CONFIDENTIALITÉ : une fiche n'est lue que propriété par propriété, par
+   SearchForProperty sur les identifiants de la liste blanche
+   (PARAMETRAGE.proprietes). Les PropertyValues ne sont jamais parcourues :
+   une propriété qui n'est pas nommée ici n'est jamais lue, donc ne peut
+   pas fuiter vers la page.
+   ===================================================================== */
+
+var coffre = (function () {
+    "use strict";
+
+    // GUID de coffre accepté pour un lien m-files:// (rien d'autre ne passe)
+    var MOTIF_GUID = /^\{?([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})\}?$/;
+
+    /**
+     * Convertit une collection COM (base 1, .Count/.Item) en tableau.
+     *
+     * @param {object} collection collection COM
+     * @returns {Array} éléments, dans l'ordre
+     */
+    function enTableau(collection) {
+        var sortie = [];
+        var i;
+
+        if (!collection) {
+            return sortie;
+        }
+        for (i = 1; i <= collection.Count; i += 1) {
+            sortie.push(collection.Item(i));
+        }
+        return sortie;
+    }
+
+    /**
+     * Condition sur une valeur de statut (type d'objet, supprimé).
+     *
+     * @param {number} statut MF.STATUS_*
+     * @param {number} datatype MF.DT_*
+     * @param {*} valeur valeur attendue
+     * @returns {object} MFiles.SearchCondition
+     */
+    function conditionStatut(statut, datatype, valeur) {
+        var c = new MFiles.SearchCondition();
+
+        c.ConditionType = MF.EGAL;
+        c.Expression.SetStatusValueExpression(statut, null);
+        c.TypedValue.SetValue(datatype, valeur);
+        return c;
+    }
+
+    /**
+     * Condition « propriété lookup égale à un élément ».
+     *
+     * @param {number} propriete identifiant de la propriété
+     * @param {number} valeur identifiant de l'élément
+     * @returns {object} MFiles.SearchCondition
+     */
+    function conditionLookup(propriete, valeur) {
+        var c = new MFiles.SearchCondition();
+
+        c.ConditionType = MF.EGAL;
+        c.Expression.SetPropertyValueExpression(propriete, MF.PARENT_CHILD_NONE, null);
+        c.TypedValue.SetValue(MF.DT_LOOKUP, valeur);
+        return c;
+    }
+
+    /**
+     * Lance une recherche ; un résultat plafonné est une erreur franche :
+     * un annuaire amputé sans le dire serait pire qu'un échec.
+     *
+     * @param {object} vault coffre COM
+     * @param {Array} liste conditions
+     * @param {string} quoi ce qui est cherché, pour le message
+     * @returns {Array} ObjectVersion trouvées
+     */
+    function chercher(vault, liste, quoi) {
+        var conditions = new MFiles.SearchConditions();
+        var res;
+
+        liste.forEach(function (c) {
+            conditions.Add(-1, c);
+        });
+        // Délai 0 : pas de délai de recherche imposé par l'application
+        res = vault.ObjectSearchOperations.SearchForObjectsByConditionsEx(
+            conditions, MF.SEARCH_FLAG_NONE, false, PARAMETRAGE.limiteRecherche, 0);
+
+        if (res.MoreResults) {
+            throw new Error("M-Files compte plus de " + PARAMETRAGE.limiteRecherche + " " + quoi +
+                " : annuaire incomplet, lecture interrompue.");
+        }
+        return enTableau(res);
+    }
+
+    /**
+     * Collaborateurs d'une étape de workflow (non supprimés).
+     *
+     * @param {object} vault coffre COM
+     * @param {number} idEtape identifiant de l'étape
+     * @returns {Array} ObjVer trouvés
+     */
+    function chercherCollaborateurs(vault, idEtape) {
+        return chercher(vault, [
+            conditionStatut(MF.STATUS_OBJECT_TYPE_ID, MF.DT_LOOKUP, PARAMETRAGE.typeCollaborateur),
+            conditionLookup(PARAMETRAGE.proprietes.etape, idEtape),
+            conditionStatut(MF.STATUS_DELETED, MF.DT_BOOLEAN, false)
+        ], "collaborateurs à cette étape").map(function (v) {
+            return v.ObjVer;
+        });
+    }
+
+    /**
+     * Tous les objets Cercle/rôle (non supprimés), avec leur titre.
+     *
+     * @param {object} vault coffre COM
+     * @returns {Array} [{ objVer, id, nom }]
+     */
+    function chercherCercles(vault) {
+        return chercher(vault, [
+            conditionStatut(MF.STATUS_OBJECT_TYPE_ID, MF.DT_LOOKUP, PARAMETRAGE.typeCercle),
+            conditionStatut(MF.STATUS_DELETED, MF.DT_BOOLEAN, false)
+        ], "cercles et rôles").map(function (v) {
+            return { objVer: v.ObjVer, id: v.ObjVer.ID, nom: v.Title };
+        });
+    }
+
+    /**
+     * TypedValue d'une propriété nommée, ou null si absente ou vide.
+     *
+     * @param {object} pvs PropertyValues de l'objet
+     * @param {number} id identifiant de la propriété (liste blanche)
+     * @returns {object|null} TypedValue
+     */
+    function valeurDe(pvs, id) {
+        var pv;
+        var tv;
+
+        if (pvs.IndexOf(id) === -1) {
+            return null;
+        }
+        pv = pvs.SearchForProperty(id);
+        tv = pv.TypedValue || pv.Value;
+        return tv && !tv.IsNULL() ? tv : null;
+    }
+
+    /**
+     * Texte d'une propriété.
+     *
+     * @param {object} pvs PropertyValues
+     * @param {number} id propriété
+     * @returns {string|null} texte affiché, null si vide
+     */
+    function texte(pvs, id) {
+        var tv = valeurDe(pvs, id);
+        return tv && tv.DisplayValue ? String(tv.DisplayValue) : null;
+    }
+
+    /**
+     * Lookup simple d'une propriété.
+     *
+     * @param {object} pvs PropertyValues
+     * @param {number} id propriété
+     * @returns {object|null} { id, nom }
+     */
+    function lookup(pvs, id) {
+        var tv = valeurDe(pvs, id);
+        var l;
+
+        if (!tv) {
+            return null;
+        }
+        l = tv.GetValueAsLookup();
+        return { id: l.Item, nom: l.DisplayValue };
+    }
+
+    /**
+     * Lookups d'une propriété à sélection multiple, sans les éléments
+     * supprimés.
+     *
+     * @param {object} pvs PropertyValues
+     * @param {number} id propriété
+     * @returns {Array} [{ id, nom }]
+     */
+    function lookups(pvs, id) {
+        var tv = valeurDe(pvs, id);
+
+        if (!tv) {
+            return [];
+        }
+        return enTableau(tv.GetValueAsLookups()).filter(function (l) {
+            return !l.Deleted;
+        }).map(function (l) {
+            return { id: l.Item, nom: l.DisplayValue };
+        });
+    }
+
+    /**
+     * Collection ObjVers d'un lot.
+     *
+     * @param {Array} objVers ObjVer
+     * @returns {object} MFiles.ObjVers
+     */
+    function collectionObjVers(objVers) {
+        var c = new MFiles.ObjVers();
+
+        objVers.forEach(function (ov) {
+            c.Add(-1, ov);
+        });
+        return c;
+    }
+
+    /**
+     * Lit un lot de fiches Collaborateur en un aller-retour et n'en garde
+     * que la liste blanche.
+     *
+     * @param {object} vault coffre COM
+     * @param {Array} objVers ObjVer du lot
+     * @returns {Array} fiches { id, prenom, nom, initiales, titre,
+     *     titreManuel, etape, fonctionPrincipale, fonctions, succursale,
+     *     cercle, cerclesAuto, responsableId, email }
+     */
+    function lireFiches(vault, objVers) {
+        var p = PARAMETRAGE.proprietes;
+        var lots = enTableau(vault.ObjectPropertyOperations.GetPropertiesOfMultipleObjects(collectionObjVers(objVers)));
+
+        return lots.map(function (pvs, i) {
+            var fonction = lookup(pvs, p.fonctionPrincipale);
+            var succursale = lookup(pvs, p.succursale);
+            var responsable = lookup(pvs, p.responsable);
+
+            return {
+                id: objVers[i].ID,
+                prenom: texte(pvs, p.prenom),
+                nom: texte(pvs, p.nom),
+                initiales: texte(pvs, p.initiales),
+                titre: texte(pvs, p.titre),
+                titreManuel: texte(pvs, p.titreManuel),
+                etape: lookup(pvs, p.etape),
+                fonctionPrincipale: fonction ? fonction.nom : null,
+                fonctions: lookups(pvs, p.fonctions).map(function (l) { return l.nom; }),
+                succursale: succursale ? succursale.nom : null,
+                cercle: lookup(pvs, p.cercle),
+                cerclesAuto: lookups(pvs, p.cerclesAuto),
+                responsableId: responsable ? responsable.id : null,
+                email: texte(pvs, p.email)
+            };
+        });
+    }
+
+    /**
+     * Lit un lot de cercles et rôles : ce que chacun contient.
+     *
+     * @param {object} vault coffre COM
+     * @param {Array} cercles [{ objVer, id, nom }] (voir chercherCercles)
+     * @returns {Array} [{ id, nom, enfants }]
+     */
+    function lireCercles(vault, cercles) {
+        var lots = enTableau(vault.ObjectPropertyOperations.GetPropertiesOfMultipleObjects(
+            collectionObjVers(cercles.map(function (c) { return c.objVer; }))));
+
+        return lots.map(function (pvs, i) {
+            return {
+                id: cercles[i].id,
+                nom: cercles[i].nom,
+                enfants: lookups(pvs, PARAMETRAGE.proprietesCercle.membresCercles).map(function (l) { return l.id; })
+            };
+        });
+    }
+
+    /**
+     * Affiche la fiche native d'un objet absent du listing. Collection
+     * ObjOrFileVers (référence v1) : ObjectVersions échoue toujours.
+     *
+     * @param {object} cadre ShellFrame
+     * @param {object} objVer ObjVer de l'objet
+     * @returns {boolean} vrai si acceptée
+     */
+    function selectionVirtuelle(cadre, objVer) {
+        var selection;
+        var element;
+        var listing = null;
+
+        try {
+            selection = new MFiles.ObjOrFileVers();
+            element = new MFiles.ObjOrFileVer();
+            try {
+                listing = cadre.ActiveListing;
+            } catch (e) {
+                listing = null;
+            }
+            element.ObjVer = objVer;
+            selection.Add(-1, element);
+            (listing || cadre.Listing).SetVirtualSelection(selection);
+            return true;
+        } catch (e) {
+            console.log(PREFIXE_JOURNAL + " sélection virtuelle refusée : " + (e.message || e.description || e));
+            return false;
+        }
+    }
+
+    /**
+     * Lien m-files:// vers un objet, ou null si le GUID du coffre n'a pas
+     * la forme attendue.
+     *
+     * @param {object} vault coffre COM
+     * @param {number} typeId type d'objet
+     * @param {number} id identifiant
+     * @returns {string|null} lien
+     */
+    function lienObjet(vault, typeId, id) {
+        var guid;
+        var m;
+
+        try {
+            guid = String(vault.GetGUID());
+        } catch (e) {
+            return null;
+        }
+        m = MOTIF_GUID.exec(guid);
+        if (!m || typeof typeId !== "number" || typeof id !== "number") {
+            return null;
+        }
+        return "m-files://show/" + m[1] + "/" + typeId + "-" + id;
+    }
+
+    return {
+        enTableau: enTableau,
+        chercherCollaborateurs: chercherCollaborateurs,
+        chercherCercles: chercherCercles,
+        lireFiches: lireFiches,
+        lireCercles: lireCercles,
+        selectionVirtuelle: selectionVirtuelle,
+        lienObjet: lienObjet
+    };
+}());
+
+</script>
+<script>
+/* exported rendu */
+/* =====================================================================
+   RENDU DE LA PAGE — couche view (ES5, contrôle web IE11)
+
+   Vue pure : elle reçoit du présentateur un modèle prêt (personnes déjà
+   filtrées et triées, effectifs, fiche) et construit le DOM avec
+   createElement et textContent seulement : un nom ou un titre venu de
+   M-Files ne peut pas injecter de HTML. Les éléments portent des
+   attributs data-* que des écouteurs délégués traduisent en actions.
+   Aucune règle métier ici, aucun accès au coffre.
+   ===================================================================== */
+
+var rendu = (function () {
+    "use strict";
+
+    // Délai de saisie avant de relancer la recherche (ms)
+    var DELAI_RECHERCHE = 120;
+    // Durée d'affichage d'un message (ms)
+    var DUREE_MESSAGE = 5000;
+
+    /**
+     * Crée la vue d'une page.
+     *
+     * @param {object} doc document de la page
+     * @param {object} actions actions du présentateur
+     * @returns {object} { progression, erreur, rendre, message }
+     */
+    function creer(doc, actions) {
+        var $ = function (id) { return doc.getElementById(id); };
+        var minuterieRecherche = null;
+        var minuterieMessage = null;
+        var derniereSaisie = "";
+        var ficheAffichee = null;
+        var ficheOuverte = false;
+
+        /**
+         * Crée un élément.
+         *
+         * @param {string} balise nom de la balise
+         * @param {object} [options] { classe, texte, attrs }
+         * @param {Array} [enfants] nœuds ou textes (null ignorés)
+         * @returns {object} élément
+         */
+        function el(balise, options, enfants) {
+            var e = doc.createElement(balise);
+            var o = options || {};
+            var nom;
+
+            if (o.classe) {
+                e.className = o.classe;
+            }
+            if (o.texte !== undefined && o.texte !== null) {
+                e.appendChild(doc.createTextNode(String(o.texte)));
+            }
+            if (o.attrs) {
+                for (nom in o.attrs) {
+                    if (o.attrs.hasOwnProperty(nom) && o.attrs[nom] !== null && o.attrs[nom] !== undefined) {
+                        e.setAttribute(nom, String(o.attrs[nom]));
+                    }
+                }
+            }
+            (enfants || []).forEach(function (enfant) {
+                if (enfant === null || enfant === undefined) {
+                    return;
+                }
+                e.appendChild(typeof enfant === "string" ? doc.createTextNode(enfant) : enfant);
+            });
+            return e;
+        }
+
+        /**
+         * Vide un élément.
+         *
+         * @param {object} e élément
+         * @returns {void}
+         */
+        function vider(e) {
+            while (e.firstChild) {
+                e.removeChild(e.firstChild);
+            }
+        }
+
+        /**
+         * Ajoute ou retire une classe (IE11 : classList partiel, on passe
+         * par className).
+         *
+         * @param {object} e élément
+         * @param {string} classe classe
+         * @param {boolean} presente vrai pour l'ajouter
+         * @returns {void}
+         */
+        function basculer(e, classe, presente) {
+            var classes = (" " + e.className + " ").replace(" " + classe + " ", " ");
+            e.className = (classes + (presente ? classe : "")).replace(/^\s+|\s+$/g, "").replace(/\s+/g, " ");
+        }
+
+        /**
+         * Avatar à trigramme, teinté par la personne.
+         *
+         * @param {object} p personne (trigramme, teinte)
+         * @param {string} [taille] « petit » ou « grand »
+         * @returns {object} élément
+         */
+        function avatar(p, taille) {
+            var a = el("span", { classe: "avatar" + (taille ? " " + taille : ""), texte: p.trigramme,
+                attrs: { "aria-hidden": "true" } });
+
+            a.style.backgroundColor = "hsl(" + Number(p.teinte) + ", 55%, 90%)";
+            a.style.color = "hsl(" + Number(p.teinte) + ", 45%, 28%)";
+            return a;
+        }
+
+        /**
+         * Nom en deux temps : prénom léger, nom de famille en gras.
+         *
+         * @param {object} p personne
+         * @returns {object} élément
+         */
+        function nom(p) {
+            return el("span", { classe: "nom" }, [
+                el("span", { classe: "prenom", texte: p.prenom }), " ",
+                el("span", { classe: "famille", texte: p.nom })
+            ]);
+        }
+
+        /**
+         * Fonctions courtes d'une personne, puis « +n ».
+         *
+         * @param {object} p personne
+         * @returns {object|null} élément, ou null sans fonction
+         */
+        function fonctions(p) {
+            if (!p.fonctions.length) {
+                return null;
+            }
+            return el("span", { classe: "fonctions", attrs: { title: p.fonctions.join(", ") } },
+                p.fonctionsCourtes.map(function (f) {
+                    return el("span", { classe: "fonction", texte: f });
+                }).concat(p.fonctionsEnPlus ? [el("span", { classe: "fonction", texte: "+" + p.fonctionsEnPlus })] : []));
+        }
+
+        /**
+         * Grille de cartes.
+         *
+         * @param {Array} personnes personnes affichées
+         * @param {number|null} ouverte ID de la fiche ouverte
+         * @returns {object} élément
+         */
+        function grille(personnes, ouverte) {
+            return el("div", { classe: "grille" }, personnes.map(function (p) {
+                return el("div", {
+                    classe: "carte" + (p.id === ouverte ? " est-ouverte" : ""),
+                    attrs: { "data-personne": p.id, tabindex: "0", role: "button",
+                        "aria-label": [p.nomComplet, p.titre, p.cercle, "trigramme " + p.trigramme]
+                            .filter(function (x) { return x; }).join(", ") }
+                }, [
+                    el("span", { classe: "carte-haut" }, [avatar(p), nom(p)]),
+                    p.titre ? el("span", { classe: "titre", texte: p.titre }) : null,
+                    p.cercle ? el("span", { classe: "badge-cercle", texte: p.cercle }) : null,
+                    el("span", { classe: "meta", texte: [p.succursale, p.trigramme].filter(function (x) { return x; }).join(" · ") }),
+                    fonctions(p)
+                ]);
+            }));
+        }
+
+        /**
+         * Liste en tableau, colonnes triables.
+         *
+         * @param {Array} personnes personnes affichées
+         * @param {object} modele modèle (tri, fiche)
+         * @returns {object} élément
+         */
+        function liste(personnes, modele) {
+            var ouverte = modele.fiche ? modele.fiche.personne.id : null;
+            var entete = function (libelle, tri) {
+                return el("th", { attrs: { scope: "col" } }, [tri ? el("button", {
+                    classe: modele.affichage.tri === tri ? "est-actif" : "", texte: libelle,
+                    attrs: { type: "button", "data-tri": tri } }) : libelle]);
+            };
+            var tiret = "–";
+
+            return el("table", { classe: "tableau" }, [
+                el("thead", {}, [el("tr", {}, [
+                    entete("Nom", "nom"), entete("Titre", "titre"), entete("Fonctions"),
+                    entete("Succursale", "succursale"), entete("Cercle/rôle", "cercle"), entete("Trigramme"),
+                    entete("Responsable"), entete("E-mail")
+                ])]),
+                el("tbody", {}, personnes.map(function (p) {
+                    return el("tr", { classe: "ligne-personne" + (p.id === ouverte ? " est-ouverte" : "") }, [
+                        el("td", {}, [el("span", { classe: "cellule-nom", attrs: { "data-personne": p.id } },
+                            [avatar(p, "petit"), nom(p)])]),
+                        el("td", { texte: p.titre || tiret }),
+                        el("td", {}, [fonctions(p) || tiret]),
+                        el("td", { texte: p.succursale || tiret }),
+                        el("td", { texte: p.cercle || tiret }),
+                        el("td", { texte: p.trigramme }),
+                        el("td", {}, [p.responsable ? el("button", { classe: "lien-personne", texte: p.responsable.nomComplet,
+                            attrs: { type: "button", "data-personne": p.responsable.id } }) : tiret]),
+                        el("td", {}, [p.email ? el("a", { texte: p.email, attrs: { href: "mailto:" + p.email } }) : tiret])
+                    ]);
+                }))
+            ]);
+        }
+
+        /**
+         * Puce cliquable d'une personne.
+         *
+         * @param {object} p personne
+         * @returns {object} élément
+         */
+        function pucePersonne(p) {
+            return el("button", { classe: "puce-personne", attrs: { type: "button", "data-personne": p.id } },
+                [avatar(p, "petit"), p.nomComplet]);
+        }
+
+        /**
+         * Bouton qui filtre la liste sur une valeur de la fiche.
+         *
+         * @param {string} cle facette
+         * @param {string} valeur valeur du filtre
+         * @param {string} libelle texte
+         * @returns {object} élément
+         */
+        function boutonFiltre(cle, valeur, libelle) {
+            return el("button", { classe: "bouton-filtre", texte: libelle,
+                attrs: { type: "button", "data-filtre": cle, "data-valeur": valeur,
+                    title: "Afficher seulement les personnes de cette valeur" } });
+        }
+
+        /**
+         * Contenu de la fiche latérale.
+         *
+         * @param {object} f fiche du modèle
+         * @returns {Array} éléments
+         */
+        function contenuFiche(f) {
+            var p = f.personne;
+            var faits = [];
+            var plus = p.tailleEquipe > f.equipe.length ? " · " + p.tailleEquipe + " au total" : "";
+
+            if (p.fonctions.length) {
+                faits.push(["Fonctions", p.fonctions.map(function (x) { return boutonFiltre("fonction", x, x); })]);
+            }
+            if (p.succursale) {
+                faits.push(["Succursale", [boutonFiltre("succursale", p.succursale, p.succursale)]]);
+            }
+            if (p.cercle) {
+                faits.push(["Cercle/rôle principal", [el("span", { classe: "badge-cercle", texte: p.cercle })]]);
+            }
+            if (p.email) {
+                faits.push(["E-mail", [el("a", { texte: p.email, attrs: { href: "mailto:" + p.email } })]]);
+            }
+            if (p.cerclesEtRoles.length) {
+                faits.push(["Cercles et rôles (" + p.cerclesEtRoles.length + ")", p.cerclesEtRoles.map(function (c) {
+                    return c.estCercle ? boutonFiltre("cercle", String(c.id), c.nom) :
+                        el("span", { classe: "role" + (c.horsOrganisation ? " hors-organisation" : ""), texte: c.nom,
+                            attrs: { title: c.horsOrganisation ? "Hors organisation" : "Rôle" } });
+                })]);
+            }
+            if (f.responsable) {
+                faits.push(["Responsable", [pucePersonne(f.responsable)]]);
+            }
+            if (f.equipe.length) {
+                faits.push(["Équipe directe (" + f.equipe.length + plus + ")", f.equipe.map(pucePersonne)]);
+            }
+
+            return [
+                el("div", { classe: "fiche-haut" }, [
+                    avatar(p, "grand"),
+                    el("h2", {}, [el("span", { classe: "prenom", texte: p.prenom }), " ",
+                        el("span", { classe: "famille", texte: p.nom })]),
+                    p.titre ? el("p", { classe: "fiche-titre", texte: p.titre }) : null,
+                    el("span", { classe: "trigramme", texte: p.trigramme, attrs: { title: "Trigramme" } })
+                ]),
+                el("dl", { classe: "faits" }, faits.map(function (fait) {
+                    return el("div", { classe: "fait" }, [el("dt", { texte: fait[0] }), el("dd", {}, fait[1])]);
+                })),
+                el("div", { classe: "fiche-actions" }, [
+                    f.dansMFiles ? el("button", { classe: "bouton bouton-primaire", texte: "Afficher la fiche M-Files",
+                        attrs: { type: "button", "data-action": "mfiles", "data-id": p.id,
+                            title: "Affiche les propriétés du collaborateur dans le volet de droite du client" } }) : null,
+                    f.lien ? el("a", { classe: "bouton bouton-secondaire", texte: "Ouvrir dans M-Files",
+                        attrs: { href: f.lien } }) : null
+                ])
+            ];
+        }
+
+        /**
+         * Pastilles de filtre par cercle.
+         *
+         * @param {object} f facette cercle du modèle
+         * @param {string|null} courant filtre courant
+         * @param {string} aucun valeur « sans cercle »
+         * @returns {Array} boutons
+         */
+        function pastilles(f, courant, aucun) {
+            var pastille = function (valeur, libelle, effectif) {
+                var appuye = (courant || "") === valeur;
+                return el("button", {
+                    classe: "pastille" + (effectif === 0 && !appuye ? " est-vide" : ""),
+                    attrs: { type: "button", "data-cercle": valeur, "aria-pressed": appuye ? "true" : "false" }
+                }, [libelle, el("span", { classe: "effectif", texte: effectif })]);
+            };
+
+            return [pastille("", "Tous", f.total)]
+                .concat(f.options.map(function (o) { return pastille(o.valeur, o.libelle, o.effectif); }))
+                .concat(f.aucun ? [pastille(aucun, f.aucun.libelle, f.aucun.effectif)] : []);
+        }
+
+        /**
+         * Remplit une liste déroulante de facette sans la recréer (le
+         * focus reste) ; IE11 gère mal innerHTML sur un select.
+         *
+         * @param {object} select élément select
+         * @param {object} f facette du modèle
+         * @param {string|null} courant valeur retenue
+         * @param {string} aucun valeur « sans valeur »
+         * @returns {void}
+         */
+        function remplirSelect(select, f, courant, aucun) {
+            var options = [["", "Toutes (" + f.total + ")"]]
+                .concat(f.options.map(function (o) { return [o.valeur, o.libelle + " (" + o.effectif + ")"]; }))
+                .concat(f.aucun ? [[aucun, f.aucun.libelle + " (" + f.aucun.effectif + ")"]] : []);
+
+            select.options.length = 0;
+            options.forEach(function (o) {
+                var option = doc.createElement("option");
+                option.value = o[0];
+                option.appendChild(doc.createTextNode(o[1]));
+                select.appendChild(option);
+            });
+            select.value = courant || "";
+            basculer(select, "est-actif", Boolean(courant));
+        }
+
+        /**
+         * Rend toute la page à partir du modèle.
+         *
+         * @param {object} m modèle du présentateur
+         * @returns {void}
+         */
+        function rendre(m) {
+            var resultats = $("resultats");
+            var selects = doc.querySelectorAll("select[data-facette]");
+            var boutonsVue = doc.querySelectorAll("[data-vue]");
+            var i;
+
+            basculer($("progression"), "est-visible", false);
+            basculer($("erreur"), "est-visible", false);
+            $("compteur").textContent = m.compteur;
+            basculer($("effacer"), "est-visible", Boolean(m.etat.q));
+            $("tri").value = m.affichage.tri;
+            for (i = 0; i < boutonsVue.length; i += 1) {
+                boutonsVue[i].setAttribute("aria-pressed",
+                    boutonsVue[i].getAttribute("data-vue") === m.affichage.vue ? "true" : "false");
+            }
+
+            vider($("cercles"));
+            pastilles(m.facettes.cercle, m.etat.cercle, m.AUCUN).forEach(function (b) {
+                $("cercles").appendChild(b);
+            });
+            for (i = 0; i < selects.length; i += 1) {
+                remplirSelect(selects[i], m.facettes[selects[i].getAttribute("data-facette")],
+                    m.etat[selects[i].getAttribute("data-facette")], m.AUCUN);
+            }
+
+            vider(resultats);
+            if (!m.personnes.length) {
+                resultats.appendChild(el("div", { classe: "vide" }, [
+                    el("h2", { texte: m.etat.q ? "Aucun résultat pour « " + m.etat.q + " »" : "Aucun résultat" }),
+                    el("p", { texte: "Essayez un autre nom, une fonction ou un trigramme." }),
+                    el("button", { classe: "bouton bouton-secondaire", texte: "Effacer la recherche et les filtres",
+                        attrs: { type: "button", "data-action": "reinitialiser" } })
+                ]));
+            } else if (m.affichage.vue === "liste") {
+                resultats.appendChild(liste(m.personnes, m));
+            } else {
+                resultats.appendChild(grille(m.personnes, m.fiche ? m.fiche.personne.id : null));
+            }
+
+            ficheOuverte = Boolean(m.fiche);
+            basculer($("fiche"), "est-ouverte", ficheOuverte);
+            vider($("ficheCorps"));
+            if (m.fiche) {
+                contenuFiche(m.fiche).forEach(function (e) {
+                    if (e) {
+                        $("ficheCorps").appendChild(e);
+                    }
+                });
+                // Nouvelle personne : la fiche repart en haut
+                if (ficheAffichee !== m.fiche.personne.id) {
+                    $("fiche").scrollTop = 0;
+                }
+                ficheAffichee = m.fiche.personne.id;
+            } else {
+                ficheAffichee = null;
+            }
+        }
+
+        /**
+         * Progression de la lecture du coffre.
+         *
+         * @param {string} texte étape en cours
+         * @param {number} fait éléments lus
+         * @param {number} total éléments à lire (0 : inconnu)
+         * @returns {void}
+         */
+        function progression(texte, fait, total) {
+            basculer($("erreur"), "est-visible", false);
+            basculer($("progression"), "est-visible", true);
+            $("progressionTexte").textContent = total ? texte + " : " + fait + " sur " + total + "…" : texte;
+            $("progressionBarre").style.width = (total ? Math.round(100 * fait / total) : 0) + "%";
+        }
+
+        /**
+         * Erreur de lecture, avec de quoi relire.
+         *
+         * @param {string} texte message
+         * @returns {void}
+         */
+        function erreur(texte) {
+            basculer($("progression"), "est-visible", false);
+            basculer($("erreur"), "est-visible", true);
+            $("erreurTexte").textContent = "Lecture impossible : " + texte;
+        }
+
+        /**
+         * Message passager en bas de page.
+         *
+         * @param {string} texte message
+         * @returns {void}
+         */
+        function message(texte) {
+            $("message").textContent = texte;
+            basculer($("message"), "est-visible", true);
+            clearTimeout(minuterieMessage);
+            minuterieMessage = setTimeout(function () {
+                basculer($("message"), "est-visible", false);
+            }, DUREE_MESSAGE);
+        }
+
+        /**
+         * Premier ancêtre (ou l'élément) qui porte un attribut.
+         *
+         * @param {object} e élément de départ
+         * @param {string} attribut nom de l'attribut
+         * @returns {object|null} élément trouvé
+         */
+        function porteur(e, attribut) {
+            while (e && e.getAttribute) {
+                if (e.getAttribute(attribut) !== null) {
+                    return e;
+                }
+                e = e.parentNode;
+            }
+            return null;
+        }
+
+        /**
+         * Lance la recherche si la saisie a changé, après un court délai.
+         *
+         * @returns {void}
+         */
+        function saisie() {
+            clearTimeout(minuterieRecherche);
+            minuterieRecherche = setTimeout(function () {
+                var q = $("recherche").value;
+                if (q !== derniereSaisie) {
+                    derniereSaisie = q;
+                    actions.rechercher(q);
+                }
+            }, DELAI_RECHERCHE);
+        }
+
+        // ---- Écouteurs (posés une fois, délégués) ----------------------
+
+        $("version").textContent = "v" + VERSION_PAQUET;
+        $("recherche").addEventListener("input", saisie);
+        $("recherche").addEventListener("keyup", saisie);
+        $("effacer").addEventListener("click", function () {
+            $("recherche").value = "";
+            derniereSaisie = "";
+            actions.rechercher("");
+            $("recherche").focus();
+        });
+        $("tri").addEventListener("change", function () {
+            actions.trier($("tri").value);
+        });
+        $("btnRelire").addEventListener("click", function () { actions.relire(); });
+        $("btnReessayer").addEventListener("click", function () { actions.relire(); });
+        $("btnRevenir").addEventListener("click", function () { actions.revenir(); });
+        $("btnToutEffacer").addEventListener("click", function () {
+            $("recherche").value = "";
+            derniereSaisie = "";
+            actions.reinitialiser();
+        });
+        $("controles").addEventListener("change", function (ev) {
+            var s = porteur(ev.target, "data-facette");
+            if (s) {
+                actions.filtrer(s.getAttribute("data-facette"), s.value);
+            }
+        });
+
+        doc.addEventListener("click", function (ev) {
+            var cible = ev.target;
+            var e;
+
+            if ((e = porteur(cible, "data-action"))) {
+                switch (e.getAttribute("data-action")) {
+                case "fermer": actions.fermer(); break;
+                case "precedente": actions.voisine(-1); break;
+                case "suivante": actions.voisine(1); break;
+                case "reinitialiser":
+                    $("recherche").value = "";
+                    derniereSaisie = "";
+                    actions.reinitialiser();
+                    break;
+                case "mfiles": actions.afficherDansMFiles(Number(e.getAttribute("data-id"))); break;
+                default: break;
+                }
+            } else if ((e = porteur(cible, "data-filtre"))) {
+                actions.filtrer(e.getAttribute("data-filtre"), e.getAttribute("data-valeur"));
+            } else if ((e = porteur(cible, "data-cercle"))) {
+                actions.filtrer("cercle", e.getAttribute("data-cercle"));
+            } else if ((e = porteur(cible, "data-vue"))) {
+                actions.changerVue(e.getAttribute("data-vue"));
+            } else if ((e = porteur(cible, "data-tri"))) {
+                actions.trier(e.getAttribute("data-tri"));
+            } else if ((e = porteur(cible, "data-personne"))) {
+                actions.ouvrir(Number(e.getAttribute("data-personne")));
+            }
+        });
+
+        doc.addEventListener("keydown", function (ev) {
+            var code = ev.keyCode;
+            var dansChamp = /^(INPUT|SELECT|TEXTAREA)$/.test(ev.target.tagName || "");
+            var e;
+
+            if (code === 27 && ficheOuverte) {
+                actions.fermer();
+            } else if (code === 13 && (e = porteur(ev.target, "data-personne")) && e.getAttribute("tabindex") !== null) {
+                actions.ouvrir(Number(e.getAttribute("data-personne")));
+            } else if (ficheOuverte && !dansChamp && (code === 37 || code === 39)) {
+                actions.voisine(code === 37 ? -1 : 1);
+            }
+        });
+
+        return { progression: progression, erreur: erreur, rendre: rendre, message: message };
+    }
+
+    return { creer: creer };
+}());
+
+</script>
+<script>
+/* exported presentateur, OnNewDashboard */
+/* =====================================================================
+   PRÉSENTATEUR DE LA PAGE — UIX v1 (ES5)
+
+   En v1 la page tient son coffre (dashboard.Vault) : ce présentateur tourne
+   DANS la page. Il lit le coffre par lots (vault-com.js), en rendant la
+   main au navigateur entre chaque lot (sinon l'écran se fige), construit
+   l'annuaire (regles.js), garde l'état de la page (recherche, filtres,
+   vue, tri, fiche ouverte) et donne à la vue un modèle prêt à afficher.
+
+   La vue ne connaît ni le coffre ni les règles : elle reçoit un modèle et
+   appelle les actions. La page ne règle jamais la visibilité de
+   dashboard.Parent (le volet entier).
+   ===================================================================== */
+
+var presentateur = (function () {
+    "use strict";
+
+    var VUES = ["grille", "liste"];
+    var TRIS = ["nom", "prenom", "titre", "succursale", "cercle", "etape"];
+    // Fonctions montrées sur une carte ; les autres se résument en « +n »
+    var FONCTIONS_MONTREES = 2;
+
+    /**
+     * Message lisible d'une erreur COM.
+     *
+     * @param {*} e erreur
+     * @returns {string} message
+     */
+    function messageDe(e) {
+        return (e && (e.message || e.description)) || String(e);
+    }
+
+    /**
+     * Libellé accordé en nombre.
+     *
+     * @param {number} n effectif
+     * @returns {string} « 1 personne », « 12 personnes »
+     */
+    function personnes(n) {
+        return n + (n > 1 ? " personnes" : " personne");
+    }
+
+    /**
+     * Crée le présentateur d'une page.
+     *
+     * @param {object} services { vault, cadre, planifier(fn) } ; planifier
+     *     rend la main au navigateur avant d'appeler fn (setTimeout)
+     * @param {Function} fabriqueVue reçoit les actions, rend la vue
+     *     { progression(texte, fait, total), erreur(m), rendre(modele), message(m) }
+     * @returns {object} { demarrer }
+     */
+    function creer(services, fabriqueVue) {
+        var etat = regles.etatInitial();
+        var affichage = { vue: "grille", tri: "nom" };
+        var ouverte = null;
+        var annuaire = null;
+        var objVers = {};
+        var vue = null;
+        var actions;
+
+        /**
+         * Personne prête pour l'affichage : trigramme, fonctions courtes,
+         * responsable nommé (s'il est dans l'annuaire).
+         *
+         * @param {object} p personne de l'annuaire
+         * @returns {object} personne pour la vue
+         */
+        function pourVue(p) {
+            var responsable = p.responsableId !== null ? annuaire.parId[p.responsableId] : null;
+
+            return {
+                id: p.id,
+                prenom: p.prenom,
+                nom: p.nom,
+                nomComplet: p.nomComplet,
+                trigramme: regles.trigrammeDe(p),
+                teinte: p.teinte,
+                titre: p.titre,
+                succursale: p.succursale,
+                cercle: p.cercle,
+                fonctions: p.fonctions,
+                fonctionsCourtes: p.fonctions.slice(0, FONCTIONS_MONTREES),
+                fonctionsEnPlus: Math.max(0, p.fonctions.length - FONCTIONS_MONTREES),
+                email: p.email,
+                responsable: responsable ? { id: responsable.id, nomComplet: responsable.nomComplet } : null,
+                cerclesEtRoles: p.cerclesEtRoles,
+                tailleEquipe: p.tailleEquipe
+            };
+        }
+
+        /**
+         * Personnes affichées : filtrées puis triées.
+         *
+         * @returns {Array} personnes de l'annuaire
+         */
+        function affichees() {
+            return regles.trier(regles.filtrer(annuaire.personnes, etat), affichage.tri);
+        }
+
+        /**
+         * Modèle complet de la page.
+         *
+         * @returns {object} modèle pour vue.rendre
+         */
+        function modele() {
+            var liste = affichees();
+            var total = annuaire.personnes.length;
+            var facettes = {};
+            var fiche = null;
+            var p;
+
+            regles.CLES_FACETTES.forEach(function (cle) {
+                facettes[cle] = regles.optionsFacette(annuaire.personnes, etat, cle);
+                facettes[cle].libelle = regles.FACETTES[cle].libelle;
+            });
+
+            if (ouverte !== null && annuaire.parId.hasOwnProperty(ouverte)) {
+                p = annuaire.parId[ouverte];
+                fiche = {
+                    personne: pourVue(p),
+                    responsable: p.responsableId !== null ? pourVue(annuaire.parId[p.responsableId]) : null,
+                    equipe: p.equipe.map(function (id) { return pourVue(annuaire.parId[id]); }),
+                    lien: coffre.lienObjet(services.vault, PARAMETRAGE.typeCollaborateur, p.id),
+                    dansMFiles: Boolean(services.cadre && objVers.hasOwnProperty(p.id))
+                };
+            }
+
+            return {
+                total: total,
+                compteur: regles.filtreActif(etat) ? personnes(liste.length) + " sur " + total : personnes(total),
+                personnes: liste.map(pourVue),
+                facettes: facettes,
+                etat: { q: etat.q, cercle: etat.cercle, etape: etat.etape, succursale: etat.succursale,
+                    titre: etat.titre, fonction: etat.fonction },
+                filtreActif: regles.filtreActif(etat),
+                affichage: { vue: affichage.vue, tri: affichage.tri },
+                fiche: fiche,
+                AUCUN: regles.AUCUN
+            };
+        }
+
+        /**
+         * Rend la page si l'annuaire est lu.
+         *
+         * @returns {void}
+         */
+        function rendre() {
+            if (annuaire) {
+                vue.rendre(modele());
+            }
+        }
+
+        /**
+         * Arrête la lecture sur une erreur et l'explique.
+         *
+         * @param {*} e erreur
+         * @returns {void}
+         */
+        function echouer(e) {
+            var message = messageDe(e);
+
+            console.log(PREFIXE_JOURNAL + " lecture interrompue : " + message);
+            vue.erreur(message);
+        }
+
+        /**
+         * Enchaîne des étapes en rendant la main au navigateur entre
+         * chacune ; la première erreur arrête tout.
+         *
+         * @param {Array} etapes fonctions sans argument
+         * @param {Function} fin appelée après la dernière étape
+         * @returns {void}
+         */
+        function enchainer(etapes, fin) {
+            var i = 0;
+
+            /**
+             * Exécute l'étape courante puis planifie la suivante.
+             *
+             * @returns {void}
+             */
+            function suivante() {
+                try {
+                    if (i < etapes.length) {
+                        etapes[i]();
+                        i += 1;
+                        services.planifier(suivante);
+                    } else {
+                        fin();
+                    }
+                } catch (e) {
+                    echouer(e);
+                }
+            }
+            services.planifier(suivante);
+        }
+
+        /**
+         * Découpe un tableau en lots.
+         *
+         * @param {Array} tableau éléments
+         * @param {number} taille taille d'un lot
+         * @returns {Array} lots
+         */
+        function lots(tableau, taille) {
+            var sortie = [];
+            var i;
+
+            for (i = 0; i < tableau.length; i += taille) {
+                sortie.push(tableau.slice(i, i + taille));
+            }
+            return sortie;
+        }
+
+        /**
+         * Lit le coffre : collaborateurs des étapes listées, leurs fiches
+         * par lots, puis les cercles et rôles par lots ; construit
+         * l'annuaire et rend la page.
+         *
+         * @returns {void}
+         */
+        function demarrer() {
+            var trouves = [];
+            var fiches = [];
+            var cerclesTrouves = [];
+            var cercles = [];
+            var debut = new Date().getTime();
+
+            annuaire = null;
+            objVers = {};
+            vue.progression("Recherche des collaborateurs…", 0, 0);
+
+            enchainer(PARAMETRAGE.etapes.map(function (etape) {
+                return function () {
+                    coffre.chercherCollaborateurs(services.vault, etape.id).forEach(function (ov) {
+                        if (!objVers.hasOwnProperty(ov.ID)) {
+                            objVers[ov.ID] = ov;
+                            trouves.push(ov);
+                        }
+                    });
+                };
+            }), function () {
+                var lotsFiches = lots(trouves, PARAMETRAGE.tailleLot);
+
+                vue.progression("Lecture des fiches", 0, trouves.length);
+                enchainer(lotsFiches.map(function (lot) {
+                    return function () {
+                        fiches = fiches.concat(coffre.lireFiches(services.vault, lot));
+                        vue.progression("Lecture des fiches", fiches.length, trouves.length);
+                    };
+                }).concat([function () {
+                    cerclesTrouves = coffre.chercherCercles(services.vault);
+                    vue.progression("Lecture des cercles et rôles", 0, cerclesTrouves.length);
+                }]), function () {
+                    enchainer(lots(cerclesTrouves, PARAMETRAGE.tailleLot * 5).map(function (lot) {
+                        return function () {
+                            cercles = cercles.concat(coffre.lireCercles(services.vault, lot));
+                            vue.progression("Lecture des cercles et rôles", cercles.length, cerclesTrouves.length);
+                        };
+                    }), function () {
+                        annuaire = regles.construireAnnuaire(fiches, cercles);
+                        console.log(PREFIXE_JOURNAL + " annuaire lu : " + annuaire.personnes.length + " personnes, " +
+                            cercles.length + " cercles et rôles, " + (new Date().getTime() - debut) + " ms");
+                        rendre();
+                    });
+                });
+            });
+        }
+
+        actions = {
+            relire: function () {
+                demarrer();
+            },
+            rechercher: function (q) {
+                etat.q = String(q || "");
+                rendre();
+            },
+            filtrer: function (cle, valeur) {
+                if (regles.FACETTES.hasOwnProperty(cle)) {
+                    etat[cle] = valeur ? String(valeur) : null;
+                    rendre();
+                }
+            },
+            reinitialiser: function () {
+                etat = regles.etatInitial();
+                rendre();
+            },
+            changerVue: function (v) {
+                if (VUES.indexOf(v) >= 0) {
+                    affichage.vue = v;
+                    rendre();
+                }
+            },
+            trier: function (cle) {
+                if (TRIS.indexOf(cle) >= 0) {
+                    affichage.tri = cle;
+                    rendre();
+                }
+            },
+            ouvrir: function (id) {
+                ouverte = annuaire && annuaire.parId.hasOwnProperty(id) ? Number(id) : null;
+                rendre();
+            },
+            fermer: function () {
+                ouverte = null;
+                rendre();
+            },
+            voisine: function (sens) {
+                var liste = affichees();
+                var i;
+
+                for (i = 0; i < liste.length; i += 1) {
+                    if (liste[i].id === ouverte && liste[i + sens]) {
+                        ouverte = liste[i + sens].id;
+                        rendre();
+                        return;
+                    }
+                }
+            },
+            revenir: function () {
+                try {
+                    services.cadre.ShowDefaultContent();
+                } catch (e) {
+                    vue.message("Retour au listage impossible : " + messageDe(e));
+                }
+            },
+            afficherDansMFiles: function (id) {
+                var ok = Boolean(services.cadre) && objVers.hasOwnProperty(id) &&
+                    coffre.selectionVirtuelle(services.cadre, objVers[id]);
+
+                if (!ok) {
+                    vue.message("La fiche ne peut pas être affichée dans M-Files depuis cette fenêtre.");
+                }
+            }
+        };
+
+        vue = fabriqueVue(actions);
+        return { demarrer: demarrer, actions: actions };
+    }
+
+    return { creer: creer };
+}());
+
+/**
+ * Point d'entrée appelé par le client à chaque affichage du tableau de
+ * bord. Coffre et cadre d'abord, données ensuite : dans l'autre ordre,
+ * la page démarrait sans coffre.
+ *
+ * @param {object} dashboard dashboard créé par le client
+ * @returns {void}
+ */
+function OnNewDashboard(dashboard) {
+    var vault = null;
+    var donnees = {};
+    var p;
+
+    try {
+        vault = dashboard.Vault;
+    } catch (e) {
+        vault = null;
+    }
+    try {
+        donnees = dashboard.CustomData || {};
+        if (typeof donnees === "string") {
+            donnees = JSON.parse(donnees);
+        }
+    } catch (e) {
+        donnees = {};
+    }
+
+    console.log(PREFIXE_JOURNAL + " version " + VERSION_PAQUET + " — page ouverte");
+    p = presentateur.creer({
+        vault: vault,
+        cadre: cadreDuDashboard(dashboard, donnees),
+        planifier: function (fn) {
+            setTimeout(fn, 0);
+        }
+    }, function (actions) {
+        return rendu.creer(document, actions);
+    });
+
+    if (vault) {
+        p.demarrer();
+    }
+}
+
+/**
+ * Retrouve le cadre du client. Un objet ActiveX n'expose pas ses membres
+ * à l'inspection : chaque candidat est éprouvé en LISANT une propriété.
+ *
+ * @param {object} dashboard dashboard
+ * @param {object} donnees données du module
+ * @returns {object|null} cadre
+ */
+function cadreDuDashboard(dashboard, donnees) {
+    var voies = [
+        function () { return donnees.cadre; },
+        function () { return dashboard.Parent; },
+        function () { return dashboard.Parent.ShellFrame; },
+        function () { return dashboard.ShellFrame; }
+    ];
+    var i;
+    var candidat;
+
+    for (i = 0; i < voies.length; i += 1) {
+        try {
+            candidat = voies[i]();
+            // Lecture d'une propriété : lève si ce n'est pas un cadre.
+            if (candidat && typeof candidat.CurrentPath !== "undefined") {
+                return candidat;
+            }
+        } catch (e) {
+            // Candidat suivant.
+        }
+    }
+    console.log(PREFIXE_JOURNAL + " cadre du client introuvable : retour au listage et fiche M-Files indisponibles");
+    return null;
+}
+
+</script>
+</body>
+</html>

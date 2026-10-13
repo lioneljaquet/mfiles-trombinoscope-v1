@@ -1,23 +1,90 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-<title>Mon application</title>
-<!-- build:css dashboard.css -->
+<meta charset="utf-8" />
+<title>Trombinoscope</title>
 <!-- Les marqueurs build:* sont remplacés par le contenu intégré : un
      fichier externe se charge mal dans le contrôle web du client. -->
+<!-- build:css trombinoscope.css -->
 </head>
 <body>
-<div class="barre">
-    <span class="titre">Mon application</span>
-    <span class="version" id="version"></span>
-    <button type="button" class="bouton" id="btnFermer">Revenir au listage</button>
+<div class="page">
+    <header class="barre">
+        <div class="barre-titre">
+            <span class="marque" aria-hidden="true"></span>
+            <h1>Trombinoscope</h1>
+            <span id="compteur" class="compteur"></span>
+        </div>
+        <div class="barre-actions">
+            <span id="version" class="version"></span>
+            <button type="button" class="bouton bouton-discret" id="btnRelire" title="Relire les fiches dans M-Files">Relire</button>
+            <button type="button" class="bouton bouton-secondaire" id="btnRevenir">Revenir au listage</button>
+        </div>
+    </header>
+
+    <section id="controles" class="controles" aria-label="Recherche et filtres">
+        <div class="ligne">
+            <div class="recherche">
+                <input id="recherche" type="text" maxlength="80" autocomplete="off" spellcheck="false"
+                       placeholder="Rechercher un nom, un titre, une fonction, un trigramme"
+                       aria-label="Rechercher un collaborateur" />
+                <button type="button" id="effacer" class="effacer" title="Effacer la recherche" aria-label="Effacer la recherche">&#215;</button>
+            </div>
+            <div class="bascule" role="group" aria-label="Affichage">
+                <button type="button" class="bouton-bascule" data-vue="grille" aria-pressed="true">Grille</button>
+                <button type="button" class="bouton-bascule" data-vue="liste" aria-pressed="false">Liste</button>
+            </div>
+            <label class="champ-tri">Trier par
+                <select id="tri">
+                    <option value="nom">Nom</option>
+                    <option value="prenom">Prénom</option>
+                    <option value="titre">Titre</option>
+                    <option value="succursale">Succursale</option>
+                    <option value="cercle">Cercle/rôle</option>
+                    <option value="etape">Étape</option>
+                </select>
+            </label>
+        </div>
+        <div id="cercles" class="pastilles" role="group" aria-label="Filtrer par cercle"></div>
+        <div class="ligne facettes">
+            <label class="facette">Étape <select data-facette="etape"></select></label>
+            <label class="facette">Succursale <select data-facette="succursale"></select></label>
+            <label class="facette">Titre <select data-facette="titre"></select></label>
+            <label class="facette">Fonction <select data-facette="fonction"></select></label>
+            <button type="button" class="bouton bouton-lien" id="btnToutEffacer">Effacer les filtres</button>
+        </div>
+    </section>
+
+    <section id="progression" class="progression">
+        <p id="progressionTexte">Lecture des données…</p>
+        <div class="jauge"><div id="progressionBarre" class="jauge-barre"></div></div>
+    </section>
+
+    <section id="erreur" class="erreur" role="alert">
+        <p id="erreurTexte"></p>
+        <button type="button" class="bouton bouton-primaire" id="btnReessayer">Relire</button>
+    </section>
+
+    <main id="resultats" class="resultats" aria-live="polite"></main>
 </div>
-<div id="contenu" class="contenu"><div class="attente">Lecture des données…</div></div>
-<div id="statut" class="statut"></div>
+
+<aside id="fiche" class="fiche" aria-label="Fiche du collaborateur">
+    <div class="fiche-entete">
+        <button type="button" class="bouton-icone" data-action="precedente" title="Personne précédente (flèche gauche)" aria-label="Personne précédente">&#8249;</button>
+        <button type="button" class="bouton-icone" data-action="suivante" title="Personne suivante (flèche droite)" aria-label="Personne suivante">&#8250;</button>
+        <span class="espace"></span>
+        <button type="button" class="bouton-icone" data-action="fermer" title="Fermer (Échap)" aria-label="Fermer la fiche">&#215;</button>
+    </div>
+    <div id="ficheCorps" class="fiche-corps"></div>
+</aside>
+
+<div id="message" class="message" role="status"></div>
+
 <!-- build:js ../../model/parametrage.js -->
+<!-- build:js ../../model/regles.js -->
 <!-- build:js ../../model/vault-com.js -->
-<!-- build:js dashboard.js -->
+<!-- build:js rendu.js -->
+<!-- build:js ../../presenter/trombinoscope.js -->
 </body>
 </html>

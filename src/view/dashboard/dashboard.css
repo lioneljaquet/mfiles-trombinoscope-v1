@@ -1,9 +1,0 @@
-/* IE11 : pas de variables CSS ni de grille ; valeurs littérales. */
-html, body { margin: 0; height: 100%; font-family: "Segoe UI", Arial, sans-serif; font-size: 13px; color: #222; }
-.barre { padding: 10px 16px; border-bottom: 1px solid #d5d9e0; }
-.titre { font-size: 16px; font-weight: 600; }
-.version { color: #8a8f98; font-size: 11px; margin-left: 8px; }
-.bouton { float: right; padding: 4px 10px; border: 1px solid #ccc; background: #fff; cursor: pointer; }
-.contenu { padding: 14px 16px; }
-.attente { color: #8a8f98; font-style: italic; }
-.statut { padding: 5px 16px; border-top: 1px solid #d5d9e0; font-size: 11px; color: #8a8f98; }

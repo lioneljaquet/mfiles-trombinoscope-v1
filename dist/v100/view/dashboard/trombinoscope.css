@@ -1,0 +1,196 @@
+/* =====================================================================
+   TROMBINOSCOPE — styles de la page (contrôle web IE11 du client classique)
+
+   Charte tebicom reprise de tebi-ui (couleurs et typographie), en valeurs
+   littérales : IE11 ne connaît ni les variables CSS ni une grille fiable.
+   Mise en page en flexbox (sans gap) et en tableau.
+     marque #004f9f, survol #003b78, teinte #c0e3f9, fond info #eaf1f9
+     texte #1a202c, atténué #4a5568, discret #5f6b7d
+     bordure #e2e8f0, champ #718096, fond secondaire #f9fafb
+     alerte : fond #fde8e2, bord #ed3200, texte #a02200
+   ===================================================================== */
+
+html, body { margin: 0; padding: 0; height: 100%; }
+body {
+    font-family: "Roboto", "Aptos", "Segoe UI", Arial, sans-serif;
+    font-size: 14px; line-height: 1.4; color: #1a202c; background: #f9fafb;
+    overflow-y: auto;
+}
+h1, h2 { margin: 0; font-weight: 600; }
+button, input, select { font-family: inherit; font-size: 14px; color: #1a202c; }
+a { color: #004f9f; }
+.page { padding: 0 0 24px 0; }
+
+/* ---- Barre de titre -------------------------------------------------- */
+.barre {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 20px; background: #ffffff; border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.barre-titre, .barre-actions { display: flex; align-items: center; }
+.marque {
+    display: inline-block; width: 6px; height: 24px; margin-right: 10px;
+    background: #004f9f; border-radius: 3px;
+}
+.barre h1 { font-size: 20px; color: #004f9f; margin-right: 14px; }
+.compteur { color: #4a5568; }
+.version { color: #5f6b7d; font-size: 12px; margin-right: 12px; }
+
+/* ---- Boutons --------------------------------------------------------- */
+.bouton {
+    padding: 6px 12px; margin-left: 8px; border: 1px solid #004f9f; border-radius: 6px;
+    background: #ffffff; color: #004f9f; cursor: pointer;
+}
+.bouton:hover { background: #eaf1f9; }
+.bouton-primaire { background: #004f9f; color: #ffffff; }
+.bouton-primaire:hover { background: #003b78; }
+.bouton-secondaire { background: #ffffff; }
+.bouton-discret { border-color: #e2e8f0; color: #4a5568; }
+.bouton-lien { border: 0; background: transparent; text-decoration: underline; padding: 6px 4px; }
+.bouton-lien:hover { background: transparent; color: #003b78; }
+.bouton-icone {
+    width: 32px; height: 32px; border: 1px solid #e2e8f0; border-radius: 6px; background: #ffffff;
+    color: #4a5568; font-size: 20px; line-height: 20px; cursor: pointer; margin-left: 4px;
+}
+.bouton-icone:hover { background: #eaf1f9; color: #004f9f; }
+button:focus, input:focus, select:focus, .carte:focus { outline: 2px solid #004f9f; outline-offset: 1px; }
+
+/* ---- Recherche et filtres -------------------------------------------- */
+.controles { padding: 12px 20px 4px 20px; background: #ffffff; border-bottom: 1px solid #e2e8f0; }
+.ligne { display: flex; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+.recherche { position: relative; width: 420px; margin-right: 16px; }
+.recherche input {
+    width: 100%; box-sizing: border-box; padding: 7px 30px 7px 10px;
+    border: 1px solid #718096; border-radius: 6px; background: #f9fafb;
+}
+.effacer {
+    position: absolute; right: 4px; top: 4px; width: 24px; height: 24px; border: 0; background: transparent;
+    color: #5f6b7d; font-size: 18px; line-height: 18px; cursor: pointer; display: none;
+}
+.effacer.est-visible { display: block; }
+.bascule { display: flex; margin-right: 16px; }
+.bouton-bascule {
+    padding: 6px 14px; border: 1px solid #718096; background: #ffffff; color: #4a5568; cursor: pointer;
+}
+.bouton-bascule:first-child { border-radius: 6px 0 0 6px; }
+.bouton-bascule:last-child { border-radius: 0 6px 6px 0; border-left: 0; }
+.bouton-bascule[aria-pressed="true"] { background: #004f9f; border-color: #004f9f; color: #ffffff; }
+.champ-tri, .facette { color: #4a5568; font-size: 13px; margin-right: 14px; }
+.champ-tri select, .facette select {
+    margin-left: 4px; padding: 4px; border: 1px solid #718096; border-radius: 6px; background: #ffffff;
+    max-width: 230px;
+}
+.facette select.est-actif { border-color: #004f9f; background: #eaf1f9; color: #004f9f; }
+
+.pastilles { display: flex; flex-wrap: wrap; margin-bottom: 6px; }
+.pastille {
+    padding: 3px 10px; margin: 0 6px 6px 0; border: 1px solid #e2e8f0; border-radius: 999px;
+    background: #ffffff; color: #1a202c; cursor: pointer; font-size: 13px;
+}
+.pastille:hover { border-color: #004f9f; }
+.pastille .effectif { color: #5f6b7d; margin-left: 6px; font-size: 12px; }
+.pastille.est-vide { color: #5f6b7d; }
+.pastille[aria-pressed="true"] { background: #004f9f; border-color: #004f9f; color: #ffffff; }
+.pastille[aria-pressed="true"] .effectif { color: #c0e3f9; }
+
+/* ---- Progression, erreur, message ------------------------------------ */
+.progression, .erreur { display: none; margin: 24px 20px; padding: 16px; border-radius: 8px; }
+.progression { background: #ffffff; border: 1px solid #e2e8f0; }
+.progression.est-visible, .erreur.est-visible { display: block; }
+.progression p, .erreur p { margin: 0 0 10px 0; }
+.jauge { height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+.jauge-barre { height: 6px; width: 0; background: #004f9f; }
+.erreur { background: #fde8e2; border: 1px solid #ed3200; color: #a02200; }
+.message {
+    display: none; position: fixed; left: 20px; bottom: 16px; padding: 10px 14px; border-radius: 6px;
+    background: #1a202c; color: #ffffff; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+.message.est-visible { display: block; }
+
+/* ---- Grille de cartes ------------------------------------------------ */
+.resultats { padding: 16px 20px; }
+.grille { display: flex; flex-wrap: wrap; }
+.carte {
+    width: 228px; margin: 0 14px 14px 0; padding: 14px; box-sizing: border-box;
+    background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.carte:hover { border-color: #004f9f; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1); }
+.carte.est-ouverte { border-color: #004f9f; background: #eaf1f9; }
+.carte-haut { display: flex; align-items: center; margin-bottom: 8px; }
+.avatar {
+    display: inline-block; width: 48px; height: 48px; line-height: 48px; border-radius: 50%;
+    text-align: center; font-weight: 600; font-size: 15px; letter-spacing: 0.5px; flex-shrink: 0;
+}
+.avatar.petit { width: 28px; height: 28px; line-height: 28px; font-size: 10px; }
+.avatar.grand { width: 88px; height: 88px; line-height: 88px; font-size: 26px; }
+.nom { display: block; margin-left: 10px; font-size: 15px; }
+.avatar.petit + .nom { font-size: 14px; }
+.nom .prenom { font-weight: 400; }
+.nom .famille { font-weight: 600; }
+.titre { display: block; color: #4a5568; font-size: 13px; margin-bottom: 6px; }
+.badge-cercle {
+    display: inline-block; padding: 1px 8px; margin: 0 0 6px 0; border-radius: 999px;
+    background: #eaf1f9; color: #004f9f; font-size: 12px;
+}
+.meta { display: block; color: #5f6b7d; font-size: 12px; margin-bottom: 6px; }
+.fonctions { display: block; }
+.fonction {
+    display: inline-block; padding: 1px 6px; margin: 0 4px 4px 0; border: 1px solid #e2e8f0; border-radius: 4px;
+    font-size: 11px; color: #4a5568; background: #f9fafb;
+}
+
+/* ---- Liste ----------------------------------------------------------- */
+.tableau { width: 100%; border-collapse: collapse; background: #ffffff; border: 1px solid #e2e8f0; }
+.tableau th {
+    text-align: left; padding: 8px 10px; border-bottom: 2px solid #e2e8f0; color: #4a5568;
+    font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap;
+}
+.tableau th button { border: 0; background: transparent; padding: 0; font: inherit; color: inherit; cursor: pointer; text-transform: inherit; }
+.tableau th button.est-actif { color: #004f9f; text-decoration: underline; }
+.tableau td { padding: 6px 10px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; font-size: 13px; }
+.tableau tr.ligne-personne:hover td { background: #f9fafb; }
+.tableau tr.est-ouverte td { background: #eaf1f9; }
+.cellule-nom { display: flex; align-items: center; cursor: pointer; }
+.lien-personne { border: 0; background: transparent; padding: 0; color: #004f9f; text-decoration: underline; cursor: pointer; font: inherit; }
+
+/* ---- Aucun résultat -------------------------------------------------- */
+.vide { padding: 40px 20px; text-align: center; color: #4a5568; }
+.vide h2 { font-size: 18px; margin-bottom: 8px; color: #1a202c; }
+
+/* ---- Fiche latérale -------------------------------------------------- */
+.fiche {
+    display: none; position: fixed; top: 0; right: 0; bottom: 0; width: 400px; overflow-y: auto;
+    background: #ffffff; border-left: 1px solid #e2e8f0; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.14);
+}
+.fiche.est-ouverte { display: block; }
+.fiche-entete { display: flex; padding: 10px 12px; border-bottom: 1px solid #e2e8f0; }
+.espace { flex: 1 1 auto; }
+.fiche-corps { padding: 18px 20px; }
+.fiche-haut { text-align: center; margin-bottom: 14px; }
+.fiche-haut h2 { font-size: 22px; margin-top: 10px; }
+.fiche-titre { color: #004f9f; font-size: 15px; margin: 4px 0 8px 0; }
+.trigramme {
+    display: inline-block; padding: 1px 8px; border-radius: 4px; background: #e2e8f0; color: #1a202c;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.5px;
+}
+.faits { margin: 0; }
+.fait { padding: 8px 0; border-top: 1px solid #e2e8f0; }
+.fait dt { color: #5f6b7d; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px; }
+.fait dd { margin: 0; }
+.bouton-filtre {
+    padding: 2px 8px; margin: 0 4px 4px 0; border: 1px solid #e2e8f0; border-radius: 999px; background: #ffffff;
+    color: #004f9f; cursor: pointer; font-size: 13px;
+}
+.bouton-filtre:hover { border-color: #004f9f; background: #eaf1f9; }
+.role { display: inline-block; padding: 2px 8px; margin: 0 4px 4px 0; border-radius: 999px; background: #f9fafb; border: 1px dashed #e2e8f0; color: #4a5568; font-size: 13px; }
+.role.hors-organisation { font-style: italic; color: #5f6b7d; }
+.puce-personne {
+    display: inline-flex; align-items: center; padding: 3px 10px 3px 3px; margin: 0 6px 6px 0;
+    border: 1px solid #e2e8f0; border-radius: 999px; background: #ffffff; cursor: pointer; font-size: 13px;
+}
+.puce-personne:hover { border-color: #004f9f; background: #eaf1f9; }
+.puce-personne .avatar { margin-right: 6px; }
+.fiche-actions { margin-top: 16px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
+.fiche-actions .bouton { margin: 0 8px 8px 0; display: inline-block; text-decoration: none; }
+.note { color: #5f6b7d; font-size: 12px; margin-top: 8px; }
