@@ -1,6 +1,6 @@
 # 0008 — Photo du collaborateur lue en mémoire, en URI data:
 
-Date : 2026-10-13. Statut : accepté (version 1.1.0). Remplace 0003 pour l'onglet du volet de droite ; la grille et la
+Date : 2026-10-13. Statut : accepté (version 1.1.0) ; amendé en 1.1.1 (plus de plafond, note courte). Remplace 0003 pour l'onglet du volet de droite ; la grille et la
 liste du tableau de bord restent sans photo (non demandé).
 
 ## Décision
@@ -18,8 +18,13 @@ liste du tableau de bord restent sans photo (non demandé).
 - **Formats** : ceux que le contrôle web IE11 affiche, JPEG, PNG, GIF, BMP. PDF (même s'il enveloppe une photo),
   JPEG 2000, WebP, HEIC, documents Office ou .msg : avatar au trigramme et note. Le Cockpit, lui, convertissait avec
   Pillow ; ici, aucune conversion.
-- **Plafond** : 4 Mo par fichier, vérifié AVANT tout téléchargement (`PARAMETRAGE.portrait.tailleMax`). Une photo de
-  portrait tient largement en dessous ; d'après l'état du Cockpit, une seule source dépasse (9 Mo).
+- **Taille** : pas de plafond (demande de Lionel après l'essai de la 1.1.0, où une photo de 8,8 Mo restait à
+  l'avatar). Le plafond de 4 Mo de la 1.1.0 et le repli sur un document plus ancien pour cause de taille sont
+  retirés. `DownloadFileAsDataURI` ne prend pas en charge plus de 64 Mo (référence) : au-delà, l'appel lève, l'erreur
+  est journalisée et l'avatar reste.
+- **Note** : seulement quand aucune image ne sert ET qu'un format non pris en charge en est la cause, courte :
+  « Portrait non affiché : format PDF non pris en charge. » (plusieurs formats : « formats PDF et MSG … »). Aucune
+  note pour une personne sans document, ni pour une panne de lecture (journalisée en console).
 - **Contrôle** : seule une URI `data:image/(jpeg|png|gif|bmp);base64,…` est acceptée, au module puis à la page.
 - **Cache** : en mémoire, par cadre, clé document–version–fichier–version ; 40 entrées au plus, puis vidé. Rien sur
   disque. Une nouvelle version du document est relue.
@@ -34,5 +39,5 @@ et note.
 
 ## Volume attendu sur le coffre réel
 
-D'après l'état enregistré par le Cockpit (42 portraits servis, sources : 29 jpg, 1 jpeg, 8 png, 4 pdf), environ 37 photos
-s'afficheront et 5 non (4 PDF, 1 fichier de 9 Mo), sauf si un document plus ancien affichable prend le relais.
+D'après l'état enregistré par le Cockpit (42 portraits servis, sources : 29 jpg, 1 jpeg, 8 png, 4 pdf), environ 38 photos
+s'afficheront et 4 non (les PDF), sauf si un document plus ancien affichable prend le relais.

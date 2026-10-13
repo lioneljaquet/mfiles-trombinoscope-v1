@@ -177,6 +177,28 @@ test("construction : page autonome, jetons remplis, manifeste à la racine", () 
     assert.ok(/<file>v999\/model\/acces\.js<\/file>/.test(appdef), "contrôle d'accès absent du module");
     assert.ok(/var acces = /.test(page), "contrôle d'accès absent de la page");
     assert.ok(/<optional>true<\/optional>/.test(appdef), "optional explicite");
+
+    // Le client lit les scripts du module en ANSI (constaté : « Ã© » pour « é ») : tout script livré,
+    // module ou page, ne doit contenir que de l'ASCII, les autres caractères en \\uXXXX
+    const scripts = [];
+    (function parcourir(dossier) {
+        fs.readdirSync(dossier, { withFileTypes: true }).forEach((e) => {
+            const f = path.join(dossier, e.name);
+            if (e.isDirectory()) { parcourir(f); } else if (f.endsWith(".js")) { scripts.push(f); }
+        });
+    })(path.join(tmp, "dist", "v999"));
+    assert.ok(scripts.length >= 9);
+    scripts.forEach((f) => {
+        const octets = fs.readFileSync(f);
+        assert.ok(octets.every((o) => o < 0x80), "octet non ASCII dans " + path.basename(f));
+    });
+    (page.match(/<script>[\s\S]*?<\/script>/g) || []).forEach((bloc) => {
+        assert.ok(!/[^\x00-\x7f]/.test(bloc), "script de la page non ASCII");
+    });
+    assert.ok(/<meta charset="utf-8" \/>/.test(page), "page en UTF-8 déclaré");
+    assert.ok(fs.readFileSync(path.join(tmp, "dist", "v999", "view", "dashboard", "index.html")).every((o) => o < 0x80),
+        "page non ASCII : les textes accentués doivent être des entités");
+    assert.ok(/Pr&#xe9;nom/.test(page), "texte accentué de la page en entité");
     assert.ok(/<content>v999\/view\/dashboard\/index\.html<\/content>/.test(appdef));
     const balises = appdef.replace(/<!--[\s\S]*?-->/g, "");
     assert.ok(balises.indexOf("<files>") > balises.indexOf("<required-mfiles-version>") &&

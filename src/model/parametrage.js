@@ -77,9 +77,7 @@ var PARAMETRAGE = {
         collaborateur: 1077        // >Collaborateur
     },
     portrait: {
-        // Plafond par fichier : 4 Mo (une photo de portrait, pas un scan) ;
-        // au-delà, rien n'est téléchargé et l'avatar reste.
-        tailleMax: 4 * 1024 * 1024,
+        // Pas de plafond de taille (demande de Lionel, 1.1.1).
         // Formats que le contrôle web IE11 affiche ; PDF, JPEG 2000, WebP,
         // HEIC… restent à l'avatar.
         formats: { jpg: "JPEG", jpeg: "JPEG", png: "PNG", gif: "GIF", bmp: "BMP" },

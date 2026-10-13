@@ -76,33 +76,51 @@ test("photo : le document le plus récent en JPEG donne une image data:, sans fi
     assert.deepStrictEqual(c.journal.appels.filter((a) => /^Download/.test(a)), ["DownloadFileAsDataURI:9-2-4"]);
 });
 
-test("photo : un PDF (ou JPEG 2000, WebP…) n'est pas affichable : avatar, avec la raison", () => {
+test("photo : un PDF (ou JPEG 2000, WebP…) n'est pas affichable : avatar, avec une note courte", () => {
     const { c, ctx } = preparer([photo(9, [{ id: 2, version: 1, extension: "pdf", taille: 300000 }])]);
     const r = portrait(ctx, c);
 
     assert.strictEqual(r.dataUri, null);
-    assert.match(r.note, /\.pdf/);
+    assert.strictEqual(r.note, "Portrait non affiché : format PDF non pris en charge.");
     assert.strictEqual(c.journal.appels.filter((a) => /^Download/.test(a)).length, 0, "rien n'est téléchargé");
 });
 
-test("photo : un fichier trop gros n'est pas lu ; un document plus ancien affichable prend le relais", () => {
+test("photo : aucun plafond de taille, une photo de 9 Mo s'affiche", () => {
+    const { c, ctx } = preparer([photo(9, [{ id: 2, version: 1, extension: "jpg", taille: 9 * MO }])]);
+    const r = portrait(ctx, c);
+
+    assert.strictEqual(r.dataUri, "data:image/jpeg;base64,QUJD");
+    assert.strictEqual(r.note, null);
+});
+
+test("photo : le document le plus récent en PDF, un plus ancien en PNG : le PNG s'affiche, sans note", () => {
     const { c, ctx } = preparer([
-        photo(9, [{ id: 2, version: 1, extension: "jpg", taille: 9 * MO }]),
+        photo(9, [{ id: 2, version: 1, extension: "pdf", taille: 300000 }]),
         photo(5, [{ id: 1, version: 1, extension: "png", taille: 80000 }])
     ]);
     const r = portrait(ctx, c);
 
     assert.strictEqual(r.dataUri, "data:image/png;base64,QUJD");
-    assert.match(r.note, /plus récent/);
+    assert.strictEqual(r.note, null);
     assert.deepStrictEqual(c.journal.appels.filter((a) => /^Download/.test(a)), ["DownloadFileAsDataURI:5-1-1"]);
 });
 
-test("photo : aucun document, avatar sans erreur", () => {
+test("photo : plusieurs formats non pris en charge sont nommés une fois chacun", () => {
+    const { c, ctx } = preparer([
+        photo(9, [{ id: 2, version: 1, extension: "pdf", taille: 1 }]),
+        photo(8, [{ id: 3, version: 1, extension: "msg", taille: 1 }]),
+        photo(7, [{ id: 4, version: 1, extension: "pdf", taille: 1 }])
+    ]);
+
+    assert.strictEqual(portrait(ctx, c).note, "Portrait non affiché : formats PDF et MSG non pris en charge.");
+});
+
+test("photo : aucun document, avatar sans note", () => {
     const { c, ctx } = preparer([]);
     const r = portrait(ctx, c);
 
     assert.strictEqual(r.dataUri, null);
-    assert.match(r.note, /Aucun portrait/);
+    assert.strictEqual(r.note, null);
 });
 
 test("photo : un téléchargement refusé ou un type inattendu est écarté, jamais propagé", () => {
@@ -110,6 +128,7 @@ test("photo : un téléchargement refusé ou un type inattendu est écarté, jam
     const html = preparer([photo(9, [{ id: 2, version: 1, extension: "jpg", taille: 1000 }], { mimeForce: "text/html" })]);
 
     assert.strictEqual(portrait(refus.ctx, refus.c).dataUri, null);
+    assert.strictEqual(portrait(refus.ctx, refus.c).note, null, "une panne n'est pas un format : pas de note");
     assert.strictEqual(portrait(html.ctx, html.c).dataUri, null);
 });
 

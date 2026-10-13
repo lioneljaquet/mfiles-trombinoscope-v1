@@ -1,15 +1,15 @@
 /* exported presentateur, OnNewDashboard */
 /* =====================================================================
-   PRÉSENTATEUR DE LA PAGE — UIX v1 (ES5)
+   PR\u00c9SENTATEUR DE LA PAGE \u2014 UIX v1 (ES5)
 
-   En v1 la page tient son coffre (dashboard.Vault) : ce présentateur tourne
+   En v1 la page tient son coffre (dashboard.Vault) : ce pr\u00e9sentateur tourne
    DANS la page. Il lit le coffre par lots (vault-com.js), en rendant la
-   main au navigateur entre chaque lot (sinon l'écran se fige), construit
-   l'annuaire (regles.js), garde l'état de la page (recherche, filtres,
-   vue, tri, fiche ouverte) et donne à la vue un modèle prêt à afficher.
+   main au navigateur entre chaque lot (sinon l'\u00e9cran se fige), construit
+   l'annuaire (regles.js), garde l'\u00e9tat de la page (recherche, filtres,
+   vue, tri, fiche ouverte) et donne \u00e0 la vue un mod\u00e8le pr\u00eat \u00e0 afficher.
 
-   La vue ne connaît ni le coffre ni les règles : elle reçoit un modèle et
-   appelle les actions. La page ne règle jamais la visibilité de
+   La vue ne conna\u00eet ni le coffre ni les r\u00e8gles : elle re\u00e7oit un mod\u00e8le et
+   appelle les actions. La page ne r\u00e8gle jamais la visibilit\u00e9 de
    dashboard.Parent (le volet entier).
    ===================================================================== */
 
@@ -17,7 +17,7 @@ var presentateur = (function () {
     "use strict";
 
     var VUES = ["grille", "liste"];
-    // Pas de tri par étape : l'étape n'apparaît nulle part (docs/adr/0005)
+    // Pas de tri par \u00e9tape : l'\u00e9tape n'appara\u00eet nulle part (docs/adr/0005)
     var TRIS = ["nom", "prenom", "titre", "succursale", "cercle"];
 
     /**
@@ -31,24 +31,24 @@ var presentateur = (function () {
     }
 
     /**
-     * Libellé accordé en nombre.
+     * Libell\u00e9 accord\u00e9 en nombre.
      *
      * @param {number} n effectif
-     * @returns {string} « 1 personne », « 12 personnes »
+     * @returns {string} \u00ab 1 personne \u00bb, \u00ab 12 personnes \u00bb
      */
     function personnes(n) {
         return n + (n > 1 ? " personnes" : " personne");
     }
 
     /**
-     * Crée le présentateur d'une page.
+     * Cr\u00e9e le pr\u00e9sentateur d'une page.
      *
      * @param {object} services { vault, cadre, etatCadre, actionInitiale,
      *     planifier(fn) } ; planifier rend la main au navigateur avant
-     *     d'appeler fn (setTimeout) ; etatCadre est l'état du cadre tenu par
+     *     d'appeler fn (setTimeout) ; etatCadre est l'\u00e9tat du cadre tenu par
      *     le module ; actionInitiale ({ filtre: { cle, valeur } } ou
      *     { ouvrir: id }) vient d'un lien de l'onglet du volet de droite
-     * @param {Function} fabriqueVue reçoit les actions, rend la vue
+     * @param {Function} fabriqueVue re\u00e7oit les actions, rend la vue
      *     { progression(texte, fait, total), erreur(m), refuser(m), rendre(modele), message(m) }
      * @returns {object} { demarrer }
      */
@@ -58,13 +58,13 @@ var presentateur = (function () {
         var ouverte = null;
         var annuaire = null;
         var objVers = {};
-        // Numéro de la lecture en cours : une lecture relancée arrête la précédente
+        // Num\u00e9ro de la lecture en cours : une lecture relanc\u00e9e arr\u00eate la pr\u00e9c\u00e9dente
         var lectureEnCours = 0;
         var vue = null;
         var actions;
 
         /**
-         * Personnes affichées : filtrées puis triées.
+         * Personnes affich\u00e9es : filtr\u00e9es puis tri\u00e9es.
          *
          * @returns {Array} personnes de l'annuaire
          */
@@ -73,9 +73,9 @@ var presentateur = (function () {
         }
 
         /**
-         * Modèle complet de la page.
+         * Mod\u00e8le complet de la page.
          *
-         * @returns {object} modèle pour vue.rendre
+         * @returns {object} mod\u00e8le pour vue.rendre
          */
         function modele() {
             var liste = affichees();
@@ -102,8 +102,8 @@ var presentateur = (function () {
                 facettes: facettes,
                 etat: { q: etat.q, cercle: etat.cercle, succursale: etat.succursale,
                     titre: etat.titre, fonction: etat.fonction },
-                // Même mention que l'export du Cockpit (model/export_page.py)
-                bandeau: "Données internes : collaborateurs rattachés à un cercle (" + personnes(total) + ").",
+                // M\u00eame mention que l'export du Cockpit (model/export_page.py)
+                bandeau: "Donn\u00e9es internes : collaborateurs rattach\u00e9s \u00e0 un cercle (" + personnes(total) + ").",
                 filtreActif: regles.filtreActif(etat),
                 affichage: { vue: affichage.vue, tri: affichage.tri },
                 fiche: fiche,
@@ -124,8 +124,8 @@ var presentateur = (function () {
 
         /**
          * Applique, une seule fois, l'action venue d'un lien de l'onglet :
-         * un filtre déjà posé, ou la fiche d'une personne ouverte. Une clé
-         * ou une personne inconnue est ignorée.
+         * un filtre d\u00e9j\u00e0 pos\u00e9, ou la fiche d'une personne ouverte. Une cl\u00e9
+         * ou une personne inconnue est ignor\u00e9e.
          *
          * @returns {void}
          */
@@ -143,12 +143,12 @@ var presentateur = (function () {
                     ouverte = Number(a.ouvrir);
                 }
             } catch (e) {
-                console.log(PREFIXE_JOURNAL + " action du lien ignorée : " + messageDe(e));
+                console.log(PREFIXE_JOURNAL + " action du lien ignor\u00e9e : " + messageDe(e));
             }
         }
 
         /**
-         * Arrête la lecture sur une erreur et l'explique.
+         * Arr\u00eate la lecture sur une erreur et l'explique.
          *
          * @param {*} e erreur
          * @returns {void}
@@ -161,20 +161,20 @@ var presentateur = (function () {
         }
 
         /**
-         * Enchaîne des étapes en rendant la main au navigateur entre
-         * chacune ; la première erreur arrête tout, et une lecture
-         * relancée entre-temps (« Relire ») arrête celle-ci.
+         * Encha\u00eene des \u00e9tapes en rendant la main au navigateur entre
+         * chacune ; la premi\u00e8re erreur arr\u00eate tout, et une lecture
+         * relanc\u00e9e entre-temps (\u00ab Relire \u00bb) arr\u00eate celle-ci.
          *
-         * @param {number} lecture numéro de la lecture qui enchaîne
+         * @param {number} lecture num\u00e9ro de la lecture qui encha\u00eene
          * @param {Array} etapes fonctions sans argument
-         * @param {Function} fin appelée après la dernière étape
+         * @param {Function} fin appel\u00e9e apr\u00e8s la derni\u00e8re \u00e9tape
          * @returns {void}
          */
         function enchainer(lecture, etapes, fin) {
             var i = 0;
 
             /**
-             * Exécute l'étape courante puis planifie la suivante.
+             * Ex\u00e9cute l'\u00e9tape courante puis planifie la suivante.
              *
              * @returns {void}
              */
@@ -198,9 +198,9 @@ var presentateur = (function () {
         }
 
         /**
-         * Découpe un tableau en lots.
+         * D\u00e9coupe un tableau en lots.
          *
-         * @param {Array} tableau éléments
+         * @param {Array} tableau \u00e9l\u00e9ments
          * @param {number} taille taille d'un lot
          * @returns {Array} lots
          */
@@ -215,8 +215,8 @@ var presentateur = (function () {
         }
 
         /**
-         * Lit le coffre : collaborateurs des étapes listées, leurs fiches
-         * par lots, puis les cercles et rôles par lots ; construit
+         * Lit le coffre : collaborateurs des \u00e9tapes list\u00e9es, leurs fiches
+         * par lots, puis les cercles et r\u00f4les par lots ; construit
          * l'annuaire et rend la page.
          *
          * @returns {void}
@@ -232,17 +232,17 @@ var presentateur = (function () {
 
             lectureEnCours += 1;
             lecture = lectureEnCours;
-            // Défense en profondeur : la commande n'est posée qu'aux membres,
+            // D\u00e9fense en profondeur : la commande n'est pos\u00e9e qu'aux membres,
             // mais une page ouverte autrement ne lit ni n'affiche rien.
             if (!verdict.autorise) {
-                console.log(PREFIXE_JOURNAL + " annuaire non affiché : " + verdict.raison);
+                console.log(PREFIXE_JOURNAL + " annuaire non affich\u00e9 : " + verdict.raison);
                 annuaire = null;
                 vue.refuser("Cette application n'est pas disponible pour votre compte.");
                 return;
             }
             annuaire = null;
             objVers = {};
-            vue.progression("Recherche des collaborateurs…", 0, 0);
+            vue.progression("Recherche des collaborateurs\u2026", 0, 0);
 
             enchainer(lecture, PARAMETRAGE.etapes.map(function (etape) {
                 return function () {
@@ -254,11 +254,11 @@ var presentateur = (function () {
                     });
                 };
             }).concat([function () {
-                // Un annuaire vide dit plutôt que les identifiants d'étape ont changé dans le coffre
+                // Un annuaire vide dit plut\u00f4t que les identifiants d'\u00e9tape ont chang\u00e9 dans le coffre
                 if (!trouves.length) {
-                    throw new Error("M-Files ne rend aucun collaborateur aux étapes " + PARAMETRAGE.etapes.map(function (e) {
-                        return "« " + e.nom + " »";
-                    }).join(", ") + " : leurs identifiants ont peut-être changé (src/model/parametrage.js).");
+                    throw new Error("M-Files ne rend aucun collaborateur aux \u00e9tapes " + PARAMETRAGE.etapes.map(function (e) {
+                        return "\u00ab " + e.nom + " \u00bb";
+                    }).join(", ") + " : leurs identifiants ont peut-\u00eatre chang\u00e9 (src/model/parametrage.js).");
                 }
             }]), function () {
                 var lotsFiches = lots(trouves, PARAMETRAGE.tailleLot);
@@ -271,18 +271,18 @@ var presentateur = (function () {
                     };
                 }).concat([function () {
                     cerclesTrouves = coffre.chercherCercles(services.vault);
-                    vue.progression("Lecture des cercles et rôles", 0, cerclesTrouves.length);
+                    vue.progression("Lecture des cercles et r\u00f4les", 0, cerclesTrouves.length);
                 }]), function () {
                     enchainer(lecture, lots(cerclesTrouves, PARAMETRAGE.tailleLot * 5).map(function (lot) {
                         return function () {
                             cercles = cercles.concat(coffre.lireCercles(services.vault, lot));
-                            vue.progression("Lecture des cercles et rôles", cercles.length, cerclesTrouves.length);
+                            vue.progression("Lecture des cercles et r\u00f4les", cercles.length, cerclesTrouves.length);
                         };
                     }), function () {
                         annuaire = regles.construireAnnuaire(fiches, cercles);
                         appliquerActionInitiale();
                         console.log(PREFIXE_JOURNAL + " annuaire lu : " + annuaire.personnes.length + " personnes, " +
-                            cercles.length + " cercles et rôles, " + (new Date().getTime() - debut) + " ms");
+                            cercles.length + " cercles et r\u00f4les, " + (new Date().getTime() - debut) + " ms");
                         rendre();
                     });
                 });
@@ -290,8 +290,8 @@ var presentateur = (function () {
         }
 
         /**
-         * Note dans l'état du cadre (objet du module) la personne d'une
-         * sélection virtuelle ; sans état du cadre, rien.
+         * Note dans l'\u00e9tat du cadre (objet du module) la personne d'une
+         * s\u00e9lection virtuelle ; sans \u00e9tat du cadre, rien.
          *
          * @param {number|null} id personne, ou null pour effacer
          * @returns {void}
@@ -302,18 +302,18 @@ var presentateur = (function () {
                     services.etatCadre.selectionVirtuelle = id;
                 }
             } catch (e) {
-                console.log(PREFIXE_JOURNAL + " état du cadre inaccessible : " + messageDe(e));
+                console.log(PREFIXE_JOURNAL + " \u00e9tat du cadre inaccessible : " + messageDe(e));
             }
         }
 
-        // Actions appelées par la vue ; chacune met l'état à jour puis rend la page.
+        // Actions appel\u00e9es par la vue ; chacune met l'\u00e9tat \u00e0 jour puis rend la page.
         actions = {
-            /** Relit tout le coffre (une lecture en cours s'arrête). @returns {void} */
+            /** Relit tout le coffre (une lecture en cours s'arr\u00eate). @returns {void} */
             relire: function () {
                 demarrer();
             },
             /**
-             * Recherche instantanée.
+             * Recherche instantan\u00e9e.
              * @param {string} q saisie
              * @returns {void}
              */
@@ -322,7 +322,7 @@ var presentateur = (function () {
                 rendre();
             },
             /**
-             * Pose ou retire le filtre d'une facette ; une clé inconnue est ignorée.
+             * Pose ou retire le filtre d'une facette ; une cl\u00e9 inconnue est ignor\u00e9e.
              * @param {string} cle facette (cercle, succursale, titre, fonction)
              * @param {string} valeur valeur retenue, regles.AUCUN, ou "" pour retirer
              * @returns {void}
@@ -340,7 +340,7 @@ var presentateur = (function () {
             },
             /**
              * Bascule entre grille et liste.
-             * @param {string} v « grille » ou « liste »
+             * @param {string} v \u00ab grille \u00bb ou \u00ab liste \u00bb
              * @returns {void}
              */
             changerVue: function (v) {
@@ -375,7 +375,7 @@ var presentateur = (function () {
                 rendre();
             },
             /**
-             * Passe à la personne précédente ou suivante, dans l'ordre affiché.
+             * Passe \u00e0 la personne pr\u00e9c\u00e9dente ou suivante, dans l'ordre affich\u00e9.
              * @param {number} sens -1 ou 1
              * @returns {void}
              */
@@ -391,7 +391,7 @@ var presentateur = (function () {
                     }
                 }
             },
-            /** « Vue M-Files » : rend la zone de listage au client (ShowDefaultContent). @returns {void} */
+            /** \u00ab Vue M-Files \u00bb : rend la zone de listage au client (ShowDefaultContent). @returns {void} */
             revenir: function () {
                 try {
                     services.cadre.ShowDefaultContent();
@@ -401,21 +401,21 @@ var presentateur = (function () {
             },
             /**
              * Montre la fiche native du collaborateur dans le volet de droite
-             * (sélection virtuelle sur l'ObjVer de la recherche).
+             * (s\u00e9lection virtuelle sur l'ObjVer de la recherche).
              * @param {number} id ID du collaborateur
              * @returns {void}
              */
             afficherDansMFiles: function (id) {
                 var ok;
 
-                // Le module, voyant ce collaborateur sélectionné, affichera son
-                // onglet sans le rendre actif : l'utilisateur a demandé la fiche M-Files
+                // Le module, voyant ce collaborateur s\u00e9lectionn\u00e9, affichera son
+                // onglet sans le rendre actif : l'utilisateur a demand\u00e9 la fiche M-Files
                 signalerSelectionVirtuelle(Number(id));
                 ok = Boolean(services.cadre) && objVers.hasOwnProperty(id) &&
                     coffre.selectionVirtuelle(services.cadre, objVers[id]);
                 if (!ok) {
                     signalerSelectionVirtuelle(null);
-                    vue.message("La fiche ne peut pas être affichée dans M-Files depuis cette fenêtre.");
+                    vue.message("La fiche ne peut pas \u00eatre affich\u00e9e dans M-Files depuis cette fen\u00eatre.");
                 }
             }
         };
@@ -428,14 +428,14 @@ var presentateur = (function () {
 }());
 
 /* =====================================================================
-   PRÉSENTATEUR DE L'ONGLET « TROMBINOSCOPE » (volet de droite)
+   PR\u00c9SENTATEUR DE L'ONGLET \u00ab TROMBINOSCOPE \u00bb (volet de droite)
 
-   Le module a déjà lu la fiche et la photo du collaborateur sélectionné et
-   les passe en texte JSON : la page ne lit rien du coffre, elle vérifie
-   l'accès (défense en profondeur), rend la fiche, et transforme chaque
+   Le module a d\u00e9j\u00e0 lu la fiche et la photo du collaborateur s\u00e9lectionn\u00e9 et
+   les passe en texte JSON : la page ne lit rien du coffre, elle v\u00e9rifie
+   l'acc\u00e8s (d\u00e9fense en profondeur), rend la fiche, et transforme chaque
    lien (fonction, succursale, titre, cercle, personne) en ouverture du
    trombinoscope dans la zone de listage, par le cadre que le module a
-   transmis, avec le filtre ou la fiche déjà posés. Aucune navigation de la
+   transmis, avec le filtre ou la fiche d\u00e9j\u00e0 pos\u00e9s. Aucune navigation de la
    page (docs/adr/0004).
    ===================================================================== */
 
@@ -445,10 +445,10 @@ var presentateurOnglet = (function () {
     var REFUS = "Cette application n'est pas disponible pour votre compte.";
 
     /**
-     * Crée le présentateur de l'onglet.
+     * Cr\u00e9e le pr\u00e9sentateur de l'onglet.
      *
      * @param {object} services { vault, cadre, etatCadre, donnees (texte JSON du module) }
-     * @param {Function} fabriqueVue reçoit les actions, rend la vue
+     * @param {Function} fabriqueVue re\u00e7oit les actions, rend la vue
      *     { rendreOnglet(modele), refuser(m), message(m) }
      * @returns {object} { demarrer, actions }
      */
@@ -475,7 +475,7 @@ var presentateurOnglet = (function () {
         }
 
         /**
-         * Rend la fiche, après contrôle d'accès et lecture des données.
+         * Rend la fiche, apr\u00e8s contr\u00f4le d'acc\u00e8s et lecture des donn\u00e9es.
          *
          * @returns {void}
          */
@@ -484,7 +484,7 @@ var presentateurOnglet = (function () {
             var modele;
 
             if (!verdict.autorise) {
-                console.log(PREFIXE_JOURNAL + " onglet non affiché : " + verdict.raison);
+                console.log(PREFIXE_JOURNAL + " onglet non affich\u00e9 : " + verdict.raison);
                 vue.refuser(REFUS);
                 return;
             }
@@ -494,7 +494,7 @@ var presentateurOnglet = (function () {
                 modele = null;
             }
             if (!modele || !modele.fiche || !modele.fiche.personne) {
-                console.log(PREFIXE_JOURNAL + " onglet non affiché : données du module illisibles");
+                console.log(PREFIXE_JOURNAL + " onglet non affich\u00e9 : donn\u00e9es du module illisibles");
                 vue.refuser("Fiche indisponible.");
                 return;
             }
@@ -503,7 +503,7 @@ var presentateurOnglet = (function () {
 
         actions = {
             /**
-             * Ouvre le trombinoscope filtré sur une valeur de la fiche.
+             * Ouvre le trombinoscope filtr\u00e9 sur une valeur de la fiche.
              * @param {string} cle facette (cercle, succursale, titre, fonction)
              * @param {string} valeur valeur
              * @returns {void}
@@ -531,11 +531,11 @@ var presentateurOnglet = (function () {
 }());
 
 /**
- * Point d'entrée appelé par le client à chaque affichage du tableau de
- * bord. Coffre et cadre d'abord, données ensuite : dans l'autre ordre,
- * la page démarrait sans coffre.
+ * Point d'entr\u00e9e appel\u00e9 par le client \u00e0 chaque affichage du tableau de
+ * bord. Coffre et cadre d'abord, donn\u00e9es ensuite : dans l'autre ordre,
+ * la page d\u00e9marrait sans coffre.
  *
- * @param {object} dashboard dashboard créé par le client
+ * @param {object} dashboard dashboard cr\u00e9\u00e9 par le client
  * @returns {void}
  */
 function OnNewDashboard(dashboard) {
@@ -559,7 +559,7 @@ function OnNewDashboard(dashboard) {
 
     // Onglet du volet de droite : la fiche vient du module, la page ne lit rien
     if (donnees.mode === "onglet") {
-        console.log(PREFIXE_JOURNAL + " version " + VERSION_PAQUET + " — onglet ouvert");
+        console.log(PREFIXE_JOURNAL + " version " + VERSION_PAQUET + " \u2014 onglet ouvert");
         presentateurOnglet.creer({
             vault: vault,
             cadre: cadreDuDashboard(dashboard, donnees),
@@ -571,7 +571,7 @@ function OnNewDashboard(dashboard) {
         return;
     }
 
-    console.log(PREFIXE_JOURNAL + " version " + VERSION_PAQUET + " — page ouverte");
+    console.log(PREFIXE_JOURNAL + " version " + VERSION_PAQUET + " \u2014 page ouverte");
     p = presentateur.creer({
         vault: vault,
         cadre: cadreDuDashboard(dashboard, donnees),
@@ -584,16 +584,16 @@ function OnNewDashboard(dashboard) {
         return rendu.creer(document, actions);
     });
 
-    // Sans coffre, le contrôle d'accès refuse (échec fermé) : la page le dit
+    // Sans coffre, le contr\u00f4le d'acc\u00e8s refuse (\u00e9chec ferm\u00e9) : la page le dit
     p.demarrer();
 }
 
 /**
  * Retrouve le cadre du client. Un objet ActiveX n'expose pas ses membres
- * à l'inspection : chaque candidat est éprouvé en LISANT une propriété.
+ * \u00e0 l'inspection : chaque candidat est \u00e9prouv\u00e9 en LISANT une propri\u00e9t\u00e9.
  *
  * @param {object} dashboard dashboard
- * @param {object} donnees données du module
+ * @param {object} donnees donn\u00e9es du module
  * @returns {object|null} cadre
  */
 function cadreDuDashboard(dashboard, donnees) {
@@ -609,7 +609,7 @@ function cadreDuDashboard(dashboard, donnees) {
     for (i = 0; i < voies.length; i += 1) {
         try {
             candidat = voies[i]();
-            // Lecture d'une propriété : lève si ce n'est pas un cadre.
+            // Lecture d'une propri\u00e9t\u00e9 : l\u00e8ve si ce n'est pas un cadre.
             if (candidat && typeof candidat.CurrentPath !== "undefined") {
                 return candidat;
             }

@@ -78,10 +78,10 @@ Ordre à respecter : **le groupe doit exister avec son alias AVANT d'installer l
    les métadonnées du collaborateur affiché : l'onglet Métadonnées doit rester actif. Dans le tableau de bord,
    **Afficher la fiche M-Files** : l'onglet Métadonnées doit rester actif (l'onglet Trombinoscope apparaît sans prendre
    la main).
-7. **Photos** : une personne dont le portrait est un PDF (4 sur le coffre, d'après le Cockpit) ou un fichier de plus de
-   4 Mo (1) garde l'avatar au trigramme, avec une note. Vérifier qu'**aucune boîte d'erreur** M-Files n'apparaît à
-   l'affichage d'une photo (image en URI data:, jamais essayée sur le client) ; si une boîte « contenu non approuvé »
-   apparaissait, la noter telle quelle.
+7. **Photos** : la photo de 8,8 Mo signalée sur la 1.1.0 doit maintenant s'afficher (plus de plafond). Une personne
+   dont le portrait est un PDF (4 sur le coffre, d'après le Cockpit) garde l'avatar au trigramme, avec la note
+   « Portrait non affiché : format PDF non pris en charge. », **accents corrects**. Plus aucun « Ã© » nulle part
+   (onglet, tableau de bord, console). Aucune boîte d'erreur M-Files à l'affichage d'une photo.
 8. **Non-membre** : avec un compte hors du groupe, ni commande ni onglet, et en console
    `commande non ajoutée : l'utilisateur n'est pas membre du groupe tebifiles.group.trombinoscope (ID …)`.
 9. **Réglage sans reconstruire** : ajouter un compte d'essai au groupe « trombinoscope » dans M-Files Admin, puis
@@ -133,10 +133,11 @@ lus mais écartés avant l'affichage ; ni les uns ni les autres n'apparaissent n
 ## Limites connues
 
 - **Photos dans l'onglet seulement** : la grille et la liste du tableau de bord gardent l'avatar au trigramme. Formats
-  affichés : JPEG, PNG, GIF, BMP, 4 Mo au plus ; PDF (même s'il enveloppe une photo), JPEG 2000, WebP, HEIC, .msg… :
-  avatar et note. D'après l'état du Cockpit (42 portraits servis : 29 jpg, 1 jpeg, 8 png, 4 pdf), environ **37 photos
-  s'afficheront et 5 non** (4 PDF, 1 JPEG de 9 Mo), sauf document plus ancien affichable. Lecture en mémoire par
-  `DownloadFileAsDataURI`, rien sur disque (voir `docs/adr/0008`).
+  affichés : JPEG, PNG, GIF, BMP, sans plafond de taille ; PDF (même s'il enveloppe une photo), JPEG 2000, WebP, HEIC,
+  .msg… : avatar et note courte. D'après l'état du Cockpit (42 portraits servis : 29 jpg, 1 jpeg, 8 png, 4 pdf),
+  environ **38 photos s'afficheront et 4 non** (les PDF), sauf document plus ancien affichable. Lecture en mémoire
+  par `DownloadFileAsDataURI`, rien sur disque (voir `docs/adr/0008`). Une très grosse photo prend le temps de son
+  téléchargement à chaque nouvelle personne (puis elle est en cache pour le cadre).
 - **Onglet : première sélection plus lente** : le module (sans minuterie) lit l'annuaire d'un bloc à la première
   sélection d'un collaborateur, puis le garde 10 minutes ; une modification faite entre-temps n'apparaît qu'après.
 - **Pas de vue Hiérarchie** ni de copie des e-mails (présentes dans le Cockpit, hors de la demande).
@@ -145,6 +146,14 @@ lus mais écartés avant l'affichage ; ni les uns ni les autres n'apparaissent n
 - Vérifié sur coffre COM simulé, dans un navigateur Chromium et, pour le module, dans le JScript de Windows Script
   Host (cscript), avec des collaborateurs fictifs ; **à confirmer dans le client classique** : position et activation
   de l'onglet, photo en URI data:, liens de l'onglet.
+
+## Piège : accents cassés dans le module (constaté le 13.10.2026, 1.1.0)
+
+Le client lit les scripts du **module** (shellui, sous Windows Script Host) en ANSI quand ils n'ont pas de BOM : un
+texte UTF-8 produit par le module arrivait cassé dans l'onglet (« Portrait non affichÃ© »). Depuis la 1.1.1,
+`build.js` écrit **tous les scripts livrés en ASCII seul** (échappements `\uXXXX`) et la page aussi (entités
+numériques pour le texte accentué). Un test de construction refuse tout octet non ASCII dans un script ou la page
+livrés, et l'essai sous `cscript` lit le paquet construit en ANSI, comme le client. Détail : `docs/adr/0009`.
 
 ## Piège : « contenu non approuvé » (constaté le 13.10.2026, M-Files 26.9)
 
@@ -195,7 +204,9 @@ tests/                            projet de tests séparé, non livré
 
 - **1.1.1** (13.10.2026) — groupe d'accès désigné par l'alias `tebifiles.group.trombinoscope`, résolu à l'exécution
   (`GetUserGroupIDByAlias`) : l'accès se règle dans M-Files Admin sans reconstruire ; plus aucun ID de groupe dans le
-  paquet ; alias introuvable = personne n'a accès.
+  paquet ; alias introuvable = personne n'a accès. Retour d'essai de la 1.1.0 : plus de plafond de taille des
+  photos ; note courte seulement pour un format non pris en charge ; accents cassés corrigés à la source (scripts
+  et page livrés en ASCII, `docs/adr/0009`).
 - **1.1.0** (13.10.2026) — onglet « Trombinoscope » du volet de droite pour un collaborateur sélectionné, avec photo
   (URI data: en mémoire, JPEG/PNG/GIF/BMP jusqu'à 4 Mo), liens vers le trombinoscope filtré ; « Revenir au listage »
   devient « Vue M-Files » ; titre et cercle principal de la fiche filtrables ; module compatible avec le JScript de

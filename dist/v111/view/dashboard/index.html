@@ -4,17 +4,17 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <meta charset="utf-8" />
 <title>Trombinoscope</title>
-<!-- Les marqueurs build:* sont remplacés par le contenu intégré : un
-     fichier externe se charge mal dans le contrôle web du client. -->
+<!-- Les marqueurs build:* sont remplac&#xe9;s par le contenu int&#xe9;gr&#xe9; : un
+     fichier externe se charge mal dans le contr&#xf4;le web du client. -->
 <style>
 /* =====================================================================
-   TROMBINOSCOPE — styles de la page (contrôle web IE11 du client classique)
+   TROMBINOSCOPE &#x2014; styles de la page (contr&#xf4;le web IE11 du client classique)
 
    Charte tebicom reprise de tebi-ui (couleurs et typographie), en valeurs
-   littérales : IE11 ne connaît ni les variables CSS ni une grille fiable.
+   litt&#xe9;rales : IE11 ne conna&#xee;t ni les variables CSS ni une grille fiable.
    Mise en page en flexbox (sans gap) et en tableau.
      marque #004f9f, survol #003b78, teinte #c0e3f9, fond info #eaf1f9
-     texte #1a202c, atténué #4a5568, discret #5f6b7d
+     texte #1a202c, att&#xe9;nu&#xe9; #4a5568, discret #5f6b7d
      bordure #e2e8f0, champ #718096, fond secondaire #f9fafb
      alerte : fond #fde8e2, bord #ed3200, texte #a02200
    ===================================================================== */
@@ -173,11 +173,11 @@ button:focus, input:focus, select:focus, .carte:focus { outline: 2px solid #004f
 .cellule-nom { display: flex; align-items: center; cursor: pointer; }
 .lien-personne { border: 0; background: transparent; padding: 0; color: #004f9f; text-decoration: underline; cursor: pointer; font: inherit; }
 
-/* ---- Aucun résultat -------------------------------------------------- */
+/* ---- Aucun r&#xe9;sultat -------------------------------------------------- */
 .vide { padding: 40px 20px; text-align: center; color: #4a5568; }
 .vide h2 { font-size: 18px; margin-bottom: 8px; color: #1a202c; }
 
-/* ---- Fiche latérale -------------------------------------------------- */
+/* ---- Fiche lat&#xe9;rale -------------------------------------------------- */
 .fiche {
     display: none; position: fixed; top: 0; right: 0; bottom: 0; width: 400px; overflow-y: auto;
     background: #ffffff; border-left: 1px solid #e2e8f0; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.14);
@@ -273,10 +273,10 @@ body.mode-onglet .fiche-corps { padding: 12px 14px; }
             <label class="champ-tri">Trier par
                 <select id="tri">
                     <option value="nom">Nom</option>
-                    <option value="prenom">Prénom</option>
+                    <option value="prenom">Pr&#xe9;nom</option>
                     <option value="titre">Titre</option>
                     <option value="succursale">Succursale</option>
-                    <option value="cercle">Cercle/rôle</option>
+                    <option value="cercle">Cercle/r&#xf4;le</option>
                 </select>
             </label>
         </div>
@@ -290,7 +290,7 @@ body.mode-onglet .fiche-corps { padding: 12px 14px; }
     </section>
 
     <section id="progression" class="progression">
-        <p id="progressionTexte">Lecture des données…</p>
+        <p id="progressionTexte">Lecture des donn&#xe9;es&#x2026;</p>
         <div class="jauge"><div id="progressionBarre" class="jauge-barre"></div></div>
     </section>
 
@@ -308,10 +308,10 @@ body.mode-onglet .fiche-corps { padding: 12px 14px; }
 
 <aside id="fiche" class="fiche" aria-label="Fiche du collaborateur">
     <div class="fiche-entete">
-        <button type="button" class="bouton-icone" data-action="precedente" title="Personne précédente (flèche gauche)" aria-label="Personne précédente">&#8249;</button>
-        <button type="button" class="bouton-icone" data-action="suivante" title="Personne suivante (flèche droite)" aria-label="Personne suivante">&#8250;</button>
+        <button type="button" class="bouton-icone" data-action="precedente" title="Personne pr&#xe9;c&#xe9;dente (fl&#xe8;che gauche)" aria-label="Personne pr&#xe9;c&#xe9;dente">&#8249;</button>
+        <button type="button" class="bouton-icone" data-action="suivante" title="Personne suivante (fl&#xe8;che droite)" aria-label="Personne suivante">&#8250;</button>
         <span class="espace"></span>
-        <button type="button" class="bouton-icone" data-action="fermer" title="Fermer (Échap)" aria-label="Fermer la fiche">&#215;</button>
+        <button type="button" class="bouton-icone" data-action="fermer" title="Fermer (&#xc9;chap)" aria-label="Fermer la fiche">&#215;</button>
     </div>
     <div id="ficheCorps" class="fiche-corps"></div>
 </aside>
@@ -321,18 +321,18 @@ body.mode-onglet .fiche-corps { padding: 12px 14px; }
 <script>
 /* exported PARAMETRAGE, MF, VERSION_PAQUET, PREFIXE_JOURNAL */
 /* =====================================================================
-   PARAMÉTRAGE — seul fichier dépendant du coffre tebifiles (ES5)
+   PARAM\u00c9TRAGE \u2014 seul fichier d\u00e9pendant du coffre tebifiles (ES5)
 
-   Chargé par le module et intégré dans la page à la construction.
+   Charg\u00e9 par le module et int\u00e9gr\u00e9 dans la page \u00e0 la construction.
    Les identifiants sont ceux des adaptateurs du Cockpit PRO, en service
-   sur le coffre réel (cockpit_pro/model/adapters/mfiles_staff.py et
+   sur le coffre r\u00e9el (cockpit_pro/model/adapters/mfiles_staff.py et
    mfiles_org.py). Les constantes MF* ne sont pas garanties dans un
-   dashboard : leurs valeurs numériques sont fixées ici.
+   dashboard : leurs valeurs num\u00e9riques sont fix\u00e9es ici.
 
-   CONFIDENTIALITÉ (docs/adr/0001) : la fiche Collaborateur porte des
-   données RH (mobile, adresse, naissance, salaire, dossiers). Seules les
-   propriétés listées dans `proprietes` sont lues ; ajouter un champ
-   commence par une décision, puis par une ligne ici. Le mobile
+   CONFIDENTIALIT\u00c9 (docs/adr/0001) : la fiche Collaborateur porte des
+   donn\u00e9es RH (mobile, adresse, naissance, salaire, dossiers). Seules les
+   propri\u00e9t\u00e9s list\u00e9es dans `proprietes` sont lues ; ajouter un champ
+   commence par une d\u00e9cision, puis par une ligne ici. Le mobile
    professionnel (2823) n'est volontairement pas repris.
    ===================================================================== */
 
@@ -352,29 +352,29 @@ var PARAMETRAGE = {
     dashboard: "trombinoscope",
     commande: "Trombinoscope",
 
-    // Groupe d'utilisateurs M-Files auquel l'application est réservée,
-    // désigné par son ALIAS (posé dans M-Files Admin) et résolu à
-    // l'exécution : qui a accès se règle dans le coffre, sans reconstruire.
-    // Groupes imbriqués compris. Alias bien formé exigé par build.js.
+    // Groupe d'utilisateurs M-Files auquel l'application est r\u00e9serv\u00e9e,
+    // d\u00e9sign\u00e9 par son ALIAS (pos\u00e9 dans M-Files Admin) et r\u00e9solu \u00e0
+    // l'ex\u00e9cution : qui a acc\u00e8s se r\u00e8gle dans le coffre, sans reconstruire.
+    // Groupes imbriqu\u00e9s compris. Alias bien form\u00e9 exig\u00e9 par build.js.
     groupeAutorise: "tebifiles.group.trombinoscope",
 
     // Types d'objets (alias tebifiles.ot.collaborateur pour 104)
     typeCollaborateur: 104,
     typeCercle: 362,
 
-    // Étapes du workflow Collaborateur montrées par l'annuaire. Les
-    // collaborateurs des autres étapes ne sont ni cherchés ni lus, et ne
-    // sont mentionnés nulle part (pas même comme responsable).
+    // \u00c9tapes du workflow Collaborateur montr\u00e9es par l'annuaire. Les
+    // collaborateurs des autres \u00e9tapes ne sont ni cherch\u00e9s ni lus, et ne
+    // sont mentionn\u00e9s nulle part (pas m\u00eame comme responsable).
     etapes: [
         { id: 319, nom: "En fonction", partant: false },
-        { id: 1475, nom: "Offboarding démission", partant: true },
+        { id: 1475, nom: "Offboarding d\u00e9mission", partant: true },
         { id: 1478, nom: "Offboarding licenciement", partant: true }
     ],
 
     // Liste blanche de la fiche Collaborateur : rien d'autre n'est lu.
     proprietes: {
-        etape: 39,                 // Etape (état du workflow), filtre de la recherche
-        prenom: 1387,              // Prénom
+        etape: 39,                 // Etape (\u00e9tat du workflow), filtre de la recherche
+        prenom: 1387,              // Pr\u00e9nom
         nom: 1386,                 // Nom de famille
         initiales: 1079,           // Initiales (le trigramme)
         titre: 2376,               // Titre
@@ -382,40 +382,38 @@ var PARAMETRAGE = {
         fonctionPrincipale: 3638,  // /Titre (fonction principale)
         fonctions: 3641,           // >Fonctions (plusieurs)
         succursale: 2414,          // >Succursale (pas sa variante confidentielle 2824)
-        cercle: 2929,              // >Cercle/rôle principal
-        cerclesAuto: 2928,         // ~Cercles/rôles auto (plusieurs)
-        responsable: 1217,         // >Responsable hiérarchique
+        cercle: 2929,              // >Cercle/r\u00f4le principal
+        cerclesAuto: 2928,         // ~Cercles/r\u00f4les auto (plusieurs)
+        responsable: 1217,         // >Responsable hi\u00e9rarchique
         email: 2821                // Email prof.
     },
 
-    // Portraits : documents (type 0) de la classe « !! Photo collaborateur »
-    // (88), liés au collaborateur par >Collaborateur (1077). Seuls ces deux
-    // critères sont lus, plus les fichiers du document (GetFiles).
+    // Portraits : documents (type 0) de la classe \u00ab !! Photo collaborateur \u00bb
+    // (88), li\u00e9s au collaborateur par >Collaborateur (1077). Seuls ces deux
+    // crit\u00e8res sont lus, plus les fichiers du document (GetFiles).
     typeDocument: 0,
     classePhoto: 88,
     proprietesPhoto: {
-        classe: 100,               // Classe (propriété intégrée)
+        classe: 100,               // Classe (propri\u00e9t\u00e9 int\u00e9gr\u00e9e)
         collaborateur: 1077        // >Collaborateur
     },
     portrait: {
-        // Plafond par fichier : 4 Mo (une photo de portrait, pas un scan) ;
-        // au-delà, rien n'est téléchargé et l'avatar reste.
-        tailleMax: 4 * 1024 * 1024,
-        // Formats que le contrôle web IE11 affiche ; PDF, JPEG 2000, WebP,
-        // HEIC… restent à l'avatar.
+        // Pas de plafond de taille (demande de Lionel, 1.1.1).
+        // Formats que le contr\u00f4le web IE11 affiche ; PDF, JPEG 2000, WebP,
+        // HEIC\u2026 restent \u00e0 l'avatar.
         formats: { jpg: "JPEG", jpeg: "JPEG", png: "PNG", gif: "GIF", bmp: "BMP" },
-        // Entrées gardées en mémoire par cadre avant de vider le cache
+        // Entr\u00e9es gard\u00e9es en m\u00e9moire par cadre avant de vider le cache
         cacheMax: 40
     },
 
-    // Liste blanche de l'objet Cercle/rôle : le titre vient du résultat
+    // Liste blanche de l'objet Cercle/r\u00f4le : le titre vient du r\u00e9sultat
     // de recherche, seule la relation de contenu est lue.
     proprietesCercle: {
         membresCercles: 2926       // >Membres (cercles) : ce que l'objet contient
     },
 
-    // Organisation : l'arbre sous le cercle « tebicom SA » ; « CA »
-    // n'est rattaché qu'à un groupe d'autorisations et se place sous
+    // Organisation : l'arbre sous le cercle \u00ab tebicom SA \u00bb ; \u00ab CA \u00bb
+    // n'est rattach\u00e9 qu'\u00e0 un groupe d'autorisations et se place sous
     // l'ancre (ADR 0003 et 0010 du Cockpit PRO).
     ancre: "tebicom SA",
     cerclesRacines: ["CA"],
@@ -429,33 +427,33 @@ var PARAMETRAGE = {
 <script>
 /* exported acces */
 /* =====================================================================
-   ACCÈS — réservation de l'application à un groupe d'utilisateurs (ES5)
+   ACC\u00c8S \u2014 r\u00e9servation de l'application \u00e0 un groupe d'utilisateurs (ES5)
 
-   Couche model. Chargé par le module (commande et onglet ne sont posés
-   qu'aux membres) et intégré dans la page (qui refuse d'afficher quoi que
-   ce soit aux autres) : défense en profondeur.
+   Couche model. Charg\u00e9 par le module (commande et onglet ne sont pos\u00e9s
+   qu'aux membres) et int\u00e9gr\u00e9 dans la page (qui refuse d'afficher quoi que
+   ce soit aux autres) : d\u00e9fense en profondeur.
 
-   Le groupe est désigné par son ALIAS (PARAMETRAGE.groupeAutorise), réglé
-   dans M-Files Admin : on change qui a accès sans reconstruire le paquet.
+   Le groupe est d\u00e9sign\u00e9 par son ALIAS (PARAMETRAGE.groupeAutorise), r\u00e9gl\u00e9
+   dans M-Files Admin : on change qui a acc\u00e8s sans reconstruire le paquet.
 
-   Sources, référence de l'API COM M-Files :
+   Sources, r\u00e9f\u00e9rence de l'API COM M-Files :
    - Vault.UserGroupOperations.GetUserGroupIDByAlias(Alias As String) As
-     Long : « Returns -1 if a match is not found or if more than one user
-     group uses the specified alias » ;
-   - Vault.SessionInfo.UserAndGroupMemberships (UserOrUserGroupIDs : « the
+     Long : \u00ab Returns -1 if a match is not found or if more than one user
+     group uses the specified alias \u00bb ;
+   - Vault.SessionInfo.UserAndGroupMemberships (UserOrUserGroupIDs : \u00ab the
      user ID of this session's account, as well as the groups to which the
-     user belongs either directly or indirectly ») →
+     user belongs either directly or indirectly \u00bb) \u2192
      GetUserOrUserGroupIDIndex(ID, MFUserOrUserGroupTypeUserGroup = 2),
-     -1 si absent. Le serveur résout les groupes imbriqués.
+     -1 si absent. Le serveur r\u00e9sout les groupes imbriqu\u00e9s.
 
-   ÉCHEC FERMÉ : alias inconnu, ambigu ou illisible, appartenance
-   illisible, paramétrage invalide : refus.
+   \u00c9CHEC FERM\u00c9 : alias inconnu, ambigu ou illisible, appartenance
+   illisible, param\u00e9trage invalide : refus.
    ===================================================================== */
 
 var acces = (function () {
     "use strict";
 
-    // Alias d'un groupe : segments séparés par des points (ex. tebifiles.group.trombinoscope)
+    // Alias d'un groupe : segments s\u00e9par\u00e9s par des points (ex. tebifiles.group.trombinoscope)
     var MOTIF_ALIAS = /^[A-Za-z][A-Za-z0-9_-]*(\.[A-Za-z0-9_-]+)+$/;
 
     /**
@@ -469,7 +467,7 @@ var acces = (function () {
     }
 
     /**
-     * ID du groupe désigné par l'alias. 0 ou moins : introuvable (le skill
+     * ID du groupe d\u00e9sign\u00e9 par l'alias. 0 ou moins : introuvable (le skill
      * v1 traite 0 comme -1).
      *
      * @param {object} vault coffre COM
@@ -477,23 +475,23 @@ var acces = (function () {
      * @returns {object} { id } ou { raison } si introuvable
      */
     function resoudre(vault, alias) {
-        var introuvable = "groupe d'accès introuvable : alias " + alias;
+        var introuvable = "groupe d'acc\u00e8s introuvable : alias " + alias;
         var id;
 
         try {
             id = vault.UserGroupOperations.GetUserGroupIDByAlias(alias);
         } catch (e) {
-            return { raison: introuvable + " (résolution impossible : " + messageDe(e) + ")" };
+            return { raison: introuvable + " (r\u00e9solution impossible : " + messageDe(e) + ")" };
         }
         return typeof id === "number" && id > 0 ? { id: id } : { raison: introuvable };
     }
 
     /**
-     * Vérifie que l'utilisateur de la session est membre du groupe
-     * désigné par PARAMETRAGE.groupeAutorise, directement ou non.
+     * V\u00e9rifie que l'utilisateur de la session est membre du groupe
+     * d\u00e9sign\u00e9 par PARAMETRAGE.groupeAutorise, directement ou non.
      *
      * @param {object|null} vault coffre COM de la session
-     * @returns {object} { autorise: booléen, raison: texte pour le journal }
+     * @returns {object} { autorise: bool\u00e9en, raison: texte pour le journal }
      */
     function verifier(vault) {
         var alias = PARAMETRAGE.groupeAutorise;
@@ -501,7 +499,7 @@ var acces = (function () {
         var index;
 
         if (typeof alias !== "string" || !MOTIF_ALIAS.test(alias)) {
-            return { autorise: false, raison: "groupe d'accès non paramétré" };
+            return { autorise: false, raison: "groupe d'acc\u00e8s non param\u00e9tr\u00e9" };
         }
         if (!vault) {
             return { autorise: false, raison: "coffre illisible" };
@@ -528,60 +526,60 @@ var acces = (function () {
 <script>
 /* exported regles */
 /* =====================================================================
-   RÈGLES DU TROMBINOSCOPE — couche model, pure (ES5)
+   R\u00c8GLES DU TROMBINOSCOPE \u2014 couche model, pure (ES5)
 
-   Des fiches Collaborateur et des objets Cercle/rôle déjà réduits à la
+   Des fiches Collaborateur et des objets Cercle/r\u00f4le d\u00e9j\u00e0 r\u00e9duits \u00e0 la
    liste blanche (vault-com.js), ce module construit l'annuaire que la
    page affiche, puis filtre, cherche et trie.
 
-   Population limitée comme l'export autonome du Cockpit (ADR 0013 du
-   Cockpit, docs/adr/0005) : seules les personnes rattachées à un cercle
-   de l'organisation ; l'étape de workflow ne sert qu'à l'inclusion et
-   n'apparaît nulle part (ni clé, ni filtre, ni tri) ; un responsable
-   exclu est remplacé par le premier responsable retenu au-dessus. Aucun DOM, aucun accès au
-   coffre : tout ce qui se teste sans M-Files est ici. Règles reprises du
+   Population limit\u00e9e comme l'export autonome du Cockpit (ADR 0013 du
+   Cockpit, docs/adr/0005) : seules les personnes rattach\u00e9es \u00e0 un cercle
+   de l'organisation ; l'\u00e9tape de workflow ne sert qu'\u00e0 l'inclusion et
+   n'appara\u00eet nulle part (ni cl\u00e9, ni filtre, ni tri) ; un responsable
+   exclu est remplac\u00e9 par le premier responsable retenu au-dessus. Aucun DOM, aucun acc\u00e8s au
+   coffre : tout ce qui se teste sans M-Files est ici. R\u00e8gles reprises du
    Cockpit PRO (model/directory.py, model/organization.py,
    model/titles.py, trombinoscope/model/directory.js).
 
-   ES5 strict : le contrôle web du client classique est IE11. Pas de
+   ES5 strict : le contr\u00f4le web du client classique est IE11. Pas de
    String.prototype.normalize : le repli des accents passe par une table.
    ===================================================================== */
 
 var regles = (function () {
     "use strict";
 
-    // Fiche modèle de M-Files : un collaborateur « actif » qui n'est pas une personne
+    // Fiche mod\u00e8le de M-Files : un collaborateur \u00ab actif \u00bb qui n'est pas une personne
     var INITIALES_MODELE = "ZZZ";
     var PREFIXE_MODELE = "_";
     // Particules d'un nom de famille : elles ne donnent pas la lettre du monogramme
     var PARTICULES = ["de", "du", "des", "van", "von", "der", "den", "da", "das", "di", "dos", "del",
         "della", "le", "la", "el", "al", "ten", "ter", "zu"];
-    // Écart de teinte entre deux ID : l'angle d'or répartit les couleurs sans cycle visible
+    // \u00c9cart de teinte entre deux ID : l'angle d'or r\u00e9partit les couleurs sans cycle visible
     var PAS_TEINTE = 137.508;
     // Adresse simple : rien qui plie un lien mailto: (? & % # /) ni qui en cumule plusieurs (; , espace).
-    // Les segments du domaine sont séparés par des points obligatoires : pas de retour arrière
-    // exponentiel ; la longueur est de plus bornée avant le test (LONGUEUR_EMAIL).
+    // Les segments du domaine sont s\u00e9par\u00e9s par des points obligatoires : pas de retour arri\u00e8re
+    // exponentiel ; la longueur est de plus born\u00e9e avant le test (LONGUEUR_EMAIL).
     var LONGUEUR_EMAIL = 254;
     // eslint-disable-next-line security/detect-unsafe-regex
     var MOTIF_EMAIL = /^[A-Za-z0-9._+'-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
-    // Trois lettres exactement (latin étendu, sans × ni ÷)
+    // Trois lettres exactement (latin \u00e9tendu, sans \u00d7 ni \u00f7)
     var MOTIF_TRIGRAMME = /^[A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u024F]{3}$/;
-    // Une lettre, pour la casse des noms (mêmes plages)
+    // Une lettre, pour la casse des noms (m\u00eames plages)
     var MOTIF_LETTRE = /[A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u024F]/;
 
-    // Repli des accents : chaque lettre accentuée vers sa base, en minuscules
+    // Repli des accents : chaque lettre accentu\u00e9e vers sa base, en minuscules
     var TABLE_REPLI = construireTableRepli({
-        a: "àáâãäåāăą", c: "çćĉċč", d: "ďđ", e: "èéêëēĕėęě", g: "ĝğġģ", h: "ĥħ",
-        i: "ìíîïĩīĭįı", j: "ĵ", k: "ķ", l: "ĺļľŀł", n: "ñńņňŉ", o: "òóôõöøōŏő",
-        r: "ŕŗř", s: "śŝşš", t: "ţťŧ", u: "ùúûüũūŭůűų", w: "ŵ", y: "ýÿŷ", z: "źżž",
-        ae: "æ", oe: "œ", ss: "ß"
+        a: "\u00e0\u00e1\u00e2\u00e3\u00e4\u00e5\u0101\u0103\u0105", c: "\u00e7\u0107\u0109\u010b\u010d", d: "\u010f\u0111", e: "\u00e8\u00e9\u00ea\u00eb\u0113\u0115\u0117\u0119\u011b", g: "\u011d\u011f\u0121\u0123", h: "\u0125\u0127",
+        i: "\u00ec\u00ed\u00ee\u00ef\u0129\u012b\u012d\u012f\u0131", j: "\u0135", k: "\u0137", l: "\u013a\u013c\u013e\u0140\u0142", n: "\u00f1\u0144\u0146\u0148\u0149", o: "\u00f2\u00f3\u00f4\u00f5\u00f6\u00f8\u014d\u014f\u0151",
+        r: "\u0155\u0157\u0159", s: "\u015b\u015d\u015f\u0161", t: "\u0163\u0165\u0167", u: "\u00f9\u00fa\u00fb\u00fc\u0169\u016b\u016d\u016f\u0171\u0173", w: "\u0175", y: "\u00fd\u00ff\u0177", z: "\u017a\u017c\u017e",
+        ae: "\u00e6", oe: "\u0153", ss: "\u00df"
     });
 
     /**
-     * Construit la table de repli lettre accentuée → base.
+     * Construit la table de repli lettre accentu\u00e9e \u2192 base.
      *
-     * @param {object} groupes base → lettres accentuées qui s'y replient
-     * @returns {object} lettre accentuée → base
+     * @param {object} groupes base \u2192 lettres accentu\u00e9es qui s'y replient
+     * @returns {object} lettre accentu\u00e9e \u2192 base
      */
     function construireTableRepli(groupes) {
         var table = {};
@@ -602,7 +600,7 @@ var regles = (function () {
      * Texte sans accents ni capitales, pour trier et chercher.
      *
      * @param {string|null} texte texte quelconque
-     * @returns {string} le texte replié ("" pour null)
+     * @returns {string} le texte repli\u00e9 ("" pour null)
      */
     function plier(texte) {
         return String(texte === null || texte === undefined ? "" : texte).toLowerCase()
@@ -615,7 +613,7 @@ var regles = (function () {
      * Texte sans blancs de bord, ou null s'il est vide.
      *
      * @param {*} texte valeur lue
-     * @returns {string|null} texte nettoyé
+     * @returns {string|null} texte nettoy\u00e9
      */
     function nettoyer(texte) {
         var t = String(texte === null || texte === undefined ? "" : texte).replace(/^\s+|\s+$/g, "");
@@ -626,20 +624,20 @@ var regles = (function () {
      * Vrai si un tableau contient une valeur.
      *
      * @param {Array} tableau tableau
-     * @param {*} valeur valeur cherchée
-     * @returns {boolean} présence
+     * @param {*} valeur valeur cherch\u00e9e
+     * @returns {boolean} pr\u00e9sence
      */
     function contient(tableau, valeur) {
         return tableau.indexOf(valeur) >= 0;
     }
 
     /**
-     * Nom saisi en capitales ramené à la casse normale ; une casse mixte
-     * reste telle quelle (« MARTIN-DUPRÉ » → « Martin-Dupré », « van
-     * Delta » inchangé).
+     * Nom saisi en capitales ramen\u00e9 \u00e0 la casse normale ; une casse mixte
+     * reste telle quelle (\u00ab MARTIN-DUPR\u00c9 \u00bb \u2192 \u00ab Martin-Dupr\u00e9 \u00bb, \u00ab van
+     * Delta \u00bb inchang\u00e9).
      *
-     * @param {string|null} texte prénom ou nom
-     * @returns {string} texte à afficher
+     * @param {string|null} texte pr\u00e9nom ou nom
+     * @returns {string} texte \u00e0 afficher
      */
     function casseAffichage(texte) {
         var t = nettoyer(texte) || "";
@@ -652,7 +650,7 @@ var regles = (function () {
             return t;
         }
 
-        // Majuscule en début de mot, minuscule ailleurs (comme str.title)
+        // Majuscule en d\u00e9but de mot, minuscule ailleurs (comme str.title)
         for (i = 0; i < t.length; i += 1) {
             c = t.charAt(i);
             sortie += debutMot ? c.toUpperCase() : c.toLowerCase();
@@ -662,18 +660,18 @@ var regles = (function () {
     }
 
     /**
-     * Lettres de l'avatar de repli : initiale du prénom et du nom, sans
-     * les particules (« van Delta » : D).
+     * Lettres de l'avatar de repli : initiale du pr\u00e9nom et du nom, sans
+     * les particules (\u00ab van Delta \u00bb : D).
      *
-     * @param {string} prenom prénom affiché
-     * @param {string} nom nom affiché
+     * @param {string} prenom pr\u00e9nom affich\u00e9
+     * @param {string} nom nom affich\u00e9
      * @returns {string} une ou deux lettres majuscules
      */
     function monogramme(prenom, nom) {
         var mots = nom.split(/\s+/).filter(function (m) { return m; });
         var significatifs = mots.filter(function (m) { return !contient(PARTICULES, m.toLowerCase()); });
 
-        // Un nom réduit à une particule reste utilisable
+        // Un nom r\u00e9duit \u00e0 une particule reste utilisable
         if (!significatifs.length) {
             significatifs = mots;
         }
@@ -681,18 +679,18 @@ var regles = (function () {
     }
 
     /**
-     * Lettres de l'avatar : le trigramme de M-Files (« Initiales ») s'il
-     * a trois lettres exactement, sinon le monogramme calculé.
+     * Lettres de l'avatar : le trigramme de M-Files (\u00ab Initiales \u00bb) s'il
+     * a trois lettres exactement, sinon le monogramme calcul\u00e9.
      *
      * @param {object} personne personne de l'annuaire
-     * @returns {string} lettres à afficher
+     * @returns {string} lettres \u00e0 afficher
      */
     function trigrammeDe(personne) {
         return MOTIF_TRIGRAMME.test(personne.initiales || "") ? personne.initiales : personne.monogramme;
     }
 
     /**
-     * Titre : « Titre (manuel) », à défaut « Titre », à défaut « /Titre ».
+     * Titre : \u00ab Titre (manuel) \u00bb, \u00e0 d\u00e9faut \u00ab Titre \u00bb, \u00e0 d\u00e9faut \u00ab /Titre \u00bb.
      *
      * @param {string|null} manuel titre manuel
      * @param {string|null} titre titre
@@ -704,9 +702,9 @@ var regles = (function () {
     }
 
     /**
-     * Adresse e-mail de forme sûre, ou null.
+     * Adresse e-mail de forme s\u00fbre, ou null.
      *
-     * @param {string|null} texte champ « Email prof. » (texte libre)
+     * @param {string|null} texte champ \u00ab Email prof. \u00bb (texte libre)
      * @returns {string|null} adresse
      */
     function emailValide(texte) {
@@ -715,10 +713,10 @@ var regles = (function () {
     }
 
     /**
-     * Étape listée d'une fiche, d'après son ID.
+     * \u00c9tape list\u00e9e d'une fiche, d'apr\u00e8s son ID.
      *
      * @param {object|null} etape { id, nom } lue sur la fiche
-     * @returns {object|null} étape du paramétrage, ou null si non listée
+     * @returns {object|null} \u00e9tape du param\u00e9trage, ou null si non list\u00e9e
      */
     function etapeListee(etape) {
         var trouvee = null;
@@ -735,8 +733,8 @@ var regles = (function () {
     }
 
     /**
-     * Vrai si la fiche est celle d'une personne à une étape listée : ni
-     * la fiche modèle, ni une fiche sans nom.
+     * Vrai si la fiche est celle d'une personne \u00e0 une \u00e9tape list\u00e9e : ni
+     * la fiche mod\u00e8le, ni une fiche sans nom.
      *
      * @param {object} fiche fiche brute
      * @returns {boolean} figure dans l'annuaire
@@ -752,7 +750,7 @@ var regles = (function () {
     }
 
     /**
-     * Valeurs nettoyées, sans vide ni doublon, dans l'ordre reçu.
+     * Valeurs nettoy\u00e9es, sans vide ni doublon, dans l'ordre re\u00e7u.
      *
      * @param {Array} valeurs textes
      * @returns {Array} textes retenus
@@ -770,10 +768,10 @@ var regles = (function () {
     }
 
     /**
-     * Entrée d'un collaborateur dans l'annuaire.
+     * Entr\u00e9e d'un collaborateur dans l'annuaire.
      *
      * @param {object} fiche fiche brute (liste blanche)
-     * @returns {object} personne affichée par la page
+     * @returns {object} personne affich\u00e9e par la page
      */
     function personneDe(fiche) {
         var prenom = casseAffichage(fiche.prenom);
@@ -802,12 +800,12 @@ var regles = (function () {
     }
 
     /**
-     * Compare deux textes sans égard aux accents ; une valeur absente
-     * passe après toute valeur.
+     * Compare deux textes sans \u00e9gard aux accents ; une valeur absente
+     * passe apr\u00e8s toute valeur.
      *
      * @param {string|null} a premier texte
      * @param {string|null} b second texte
-     * @returns {number} négatif, nul ou positif
+     * @returns {number} n\u00e9gatif, nul ou positif
      */
     function comparerTextes(a, b) {
         var pa;
@@ -825,11 +823,11 @@ var regles = (function () {
     }
 
     /**
-     * Ordre par nom de famille puis prénom.
+     * Ordre par nom de famille puis pr\u00e9nom.
      *
      * @param {object} a personne
      * @param {object} b personne
-     * @returns {number} négatif, nul ou positif
+     * @returns {number} n\u00e9gatif, nul ou positif
      */
     function parNom(a, b) {
         return comparerTextes(a.nom, b.nom) || comparerTextes(a.prenom, b.prenom) || a.id - b.id;
@@ -838,9 +836,9 @@ var regles = (function () {
     /**
      * ID de `depart` et de tout ce qu'on atteint en descendant depuis lui.
      *
-     * @param {number} depart ID de départ
+     * @param {number} depart ID de d\u00e9part
      * @param {object} enfants contenu de chaque objet, par ID
-     * @returns {object} ID atteints (clés), chacun visité une fois
+     * @returns {object} ID atteints (cl\u00e9s), chacun visit\u00e9 une fois
      */
     function atteints(depart, enfants) {
         var vus = {};
@@ -858,10 +856,10 @@ var regles = (function () {
     }
 
     /**
-     * Nombre de clés d'un objet.
+     * Nombre de cl\u00e9s d'un objet.
      *
      * @param {object} objet objet
-     * @returns {number} nombre de clés propres
+     * @returns {number} nombre de cl\u00e9s propres
      */
     function taille(objet) {
         var n = 0;
@@ -876,13 +874,13 @@ var regles = (function () {
     }
 
     /**
-     * Organisation : l'arbre sous le cercle « tebicom SA ». Un objet qu'on
+     * Organisation : l'arbre sous le cercle \u00ab tebicom SA \u00bb. Un objet qu'on
      * atteint en descendant depuis lui est dans l'organisation ; un cercle
      * de l'organisation contient d'autres objets, ou se tient directement
-     * sous l'ancre ; les feuilles sont des rôles. Les cercles racines
-     * (« CA ») se placent sous l'ancre s'ils n'y sont pas déjà.
+     * sous l'ancre ; les feuilles sont des r\u00f4les. Les cercles racines
+     * (\u00ab CA \u00bb) se placent sous l'ancre s'ils n'y sont pas d\u00e9j\u00e0.
      *
-     * @param {Array} cercles objets Cercle/rôle { id, nom, enfants }
+     * @param {Array} cercles objets Cercle/r\u00f4le { id, nom, enfants }
      * @returns {object} { noms, dansOrganisation, estCercle }, par ID
      */
     function construireOrganisation(cercles) {
@@ -908,7 +906,7 @@ var regles = (function () {
             });
         });
 
-        // Ancre : le cercle de ce nom qui contient le plus ; à égalité, le plus petit ID
+        // Ancre : le cercle de ce nom qui contient le plus ; \u00e0 \u00e9galit\u00e9, le plus petit ID
         cercles.forEach(function (c) {
             var n;
             if (noms[c.id] === PARAMETRAGE.ancre) {
@@ -940,10 +938,10 @@ var regles = (function () {
 
     /**
      * Pose sur chaque personne ses cercles de l'organisation (ce que
-     * propose le filtre) et tous ses cercles et rôles (ce que montre la
-     * fiche) : ~Cercles/rôles auto plus le cercle principal.
+     * propose le filtre) et tous ses cercles et r\u00f4les (ce que montre la
+     * fiche) : ~Cercles/r\u00f4les auto plus le cercle principal.
      *
-     * @param {Array} personnes personnes de l'annuaire (modifiées)
+     * @param {Array} personnes personnes de l'annuaire (modifi\u00e9es)
      * @param {object} org organisation (voir construireOrganisation)
      * @returns {void}
      */
@@ -983,9 +981,9 @@ var regles = (function () {
      * rencontre `cible`.
      *
      * @param {object} responsableDe responsable retenu, par ID
-     * @param {number} depart ID de départ
-     * @param {number} cible ID cherché
-     * @returns {boolean} présence dans la chaîne
+     * @param {number} depart ID de d\u00e9part
+     * @param {number} cible ID cherch\u00e9
+     * @returns {boolean} pr\u00e9sence dans la cha\u00eene
      */
     function mene(responsableDe, depart, cible) {
         var vus = {};
@@ -1002,12 +1000,12 @@ var regles = (function () {
     }
 
     /**
-     * Relie chaque personne à son responsable : responsableId, equipe
+     * Relie chaque personne \u00e0 son responsable : responsableId, equipe
      * (directe, par nom) et tailleEquipe (tous niveaux). Un responsable
-     * absent de l'annuaire est ignoré ; une boucle est cassée au dernier
-     * lien rencontré dans l'ordre des ID.
+     * absent de l'annuaire est ignor\u00e9 ; une boucle est cass\u00e9e au dernier
+     * lien rencontr\u00e9 dans l'ordre des ID.
      *
-     * @param {Array} personnes personnes triées par nom (modifiées)
+     * @param {Array} personnes personnes tri\u00e9es par nom (modifi\u00e9es)
      * @param {object} parId personnes par ID
      * @returns {void}
      */
@@ -1028,7 +1026,7 @@ var regles = (function () {
             p.equipe = [];
             delete p.responsableDemande;
         });
-        // Les personnes sont triées par nom : les équipes directes aussi
+        // Les personnes sont tri\u00e9es par nom : les \u00e9quipes directes aussi
         personnes.forEach(function (p) {
             if (p.responsableId !== null) {
                 parId[p.responsableId].equipe.push(p.id);
@@ -1036,7 +1034,7 @@ var regles = (function () {
         });
 
         /**
-         * Taille de toute l'équipe d'une personne, mémorisée.
+         * Taille de toute l'\u00e9quipe d'une personne, m\u00e9moris\u00e9e.
          *
          * @param {number} id personne
          * @returns {number} effectif sous elle, tous niveaux
@@ -1060,7 +1058,7 @@ var regles = (function () {
      * Premier responsable retenu au-dessus d'une personne, par-dessus les
      * exclus (repli de l'export du Cockpit, _kept_manager).
      *
-     * @param {object} tous personnes listées, par ID (hiérarchie déjà liée)
+     * @param {object} tous personnes list\u00e9es, par ID (hi\u00e9rarchie d\u00e9j\u00e0 li\u00e9e)
      * @param {object} retenues personnes retenues, par ID
      * @param {number} id personne
      * @returns {number|null} ID du responsable retenu, ou null
@@ -1081,14 +1079,14 @@ var regles = (function () {
     }
 
     /**
-     * Assemble l'annuaire à partir des fiches et des cercles bruts.
+     * Assemble l'annuaire \u00e0 partir des fiches et des cercles bruts.
      *
      * @param {Array} fiches fiches Collaborateur (liste blanche)
-     * @param {Array} cercles objets Cercle/rôle { id, nom, enfants }
+     * @param {Array} cercles objets Cercle/r\u00f4le { id, nom, enfants }
      * @returns {object} { personnes, parId } ; n'y figurent que les
-     *     personnes aux étapes listées ET rattachées à un cercle de
-     *     l'organisation, triées par nom ; aucune autre n'est mentionnée,
-     *     pas même comme responsable ou membre d'une équipe
+     *     personnes aux \u00e9tapes list\u00e9es ET rattach\u00e9es \u00e0 un cercle de
+     *     l'organisation, tri\u00e9es par nom ; aucune autre n'est mentionn\u00e9e,
+     *     pas m\u00eame comme responsable ou membre d'une \u00e9quipe
      */
     function construireAnnuaire(fiches, cercles) {
         var listees = fiches.filter(estListee).map(personneDe).sort(parNom);
@@ -1101,7 +1099,7 @@ var regles = (function () {
             p.recherche = texteRecherche(p);
         });
         poserCercles(listees, construireOrganisation(cercles || []));
-        // Hiérarchie de toutes les personnes listées, pour pouvoir remonter
+        // Hi\u00e9rarchie de toutes les personnes list\u00e9es, pour pouvoir remonter
         // par-dessus un responsable exclu
         lierHierarchie(listees, tous);
 
@@ -1119,11 +1117,11 @@ var regles = (function () {
     /**
      * Texte de recherche d'une personne : nom, initiales, titre, /Titre,
      * fonctions, succursale, cercle principal et partie locale de
-     * l'e-mail, repliés. Le nom du responsable n'y est pas : chercher un
-     * nom ne doit pas ramener son équipe.
+     * l'e-mail, repli\u00e9s. Le nom du responsable n'y est pas : chercher un
+     * nom ne doit pas ramener son \u00e9quipe.
      *
      * @param {object} p personne
-     * @returns {string} texte replié
+     * @returns {string} texte repli\u00e9
      */
     function texteRecherche(p) {
         var parties = [p.nomComplet, p.initiales, p.titre, p.fonctionPrincipale, p.succursale, p.cercle,
@@ -1138,9 +1136,9 @@ var regles = (function () {
     var AUCUN = "__aucun__";
 
     /**
-     * Les quatre informations par lesquelles on filtre (pas l'étape). `valeurs` rend ce
+     * Les quatre informations par lesquelles on filtre (pas l'\u00e9tape). `valeurs` rend ce
      * qu'une personne porte : [{ valeur, libelle }] (le cercle est retenu
-     * par son ID, deux cercles de même nom restant distincts).
+     * par son ID, deux cercles de m\u00eame nom restant distincts).
      */
     var FACETTES = {
         cercle: { libelle: "Cercle", aucun: "Sans cercle", valeurs: function (p) {
@@ -1159,7 +1157,7 @@ var regles = (function () {
     var CLES_FACETTES = ["cercle", "succursale", "titre", "fonction"];
 
     /**
-     * État vide : aucune recherche, aucun filtre.
+     * \u00c9tat vide : aucune recherche, aucun filtre.
      *
      * @returns {object} { q, cercle, succursale, titre, fonction }
      */
@@ -1168,8 +1166,8 @@ var regles = (function () {
     }
 
     /**
-     * Mots d'une saisie, repliés ; une adresse e-mail ne garde que sa
-     * partie locale (le domaine, commun à tous, n'est pas indexé).
+     * Mots d'une saisie, repli\u00e9s ; une adresse e-mail ne garde que sa
+     * partie locale (le domaine, commun \u00e0 tous, n'est pas index\u00e9).
      *
      * @param {string} q saisie
      * @returns {Array} mots non vides
@@ -1184,7 +1182,7 @@ var regles = (function () {
      * Vrai si une personne porte la valeur retenue pour une facette.
      *
      * @param {object} p personne
-     * @param {string} cle clé de FACETTES
+     * @param {string} cle cl\u00e9 de FACETTES
      * @param {string} retenue valeur, ou AUCUN
      * @returns {boolean} correspondance
      */
@@ -1198,13 +1196,13 @@ var regles = (function () {
     }
 
     /**
-     * Personnes qui répondent à la recherche et aux filtres.
+     * Personnes qui r\u00e9pondent \u00e0 la recherche et aux filtres.
      *
      * @param {Array} personnes personnes de l'annuaire
      * @param {object} etat recherche et filtres (null : pas de filtre)
-     * @param {string} [sauf] facette dont le filtre est ignoré, pour des
+     * @param {string} [sauf] facette dont le filtre est ignor\u00e9, pour des
      *     effectifs qui montrent ce que les autres valeurs donneraient
-     * @returns {Array} personnes retenues, dans l'ordre reçu
+     * @returns {Array} personnes retenues, dans l'ordre re\u00e7u
      */
     function filtrer(personnes, etat, sauf) {
         var mots = motsDe(etat.q);
@@ -1228,11 +1226,11 @@ var regles = (function () {
      *
      * @param {Array} personnes personnes de l'annuaire
      * @param {object} etat recherche et filtres courants
-     * @param {string} cle clé de FACETTES
+     * @param {string} cle cl\u00e9 de FACETTES
      * @returns {object} { options: [{ valeur, libelle, effectif }], aucun:
      *     { libelle, effectif } ou null, total } ; options : les valeurs
-     *     portées par au moins une personne de l'annuaire, des plus portées
-     *     aux moins portées puis par nom (ordre qui ne bouge pas avec les
+     *     port\u00e9es par au moins une personne de l'annuaire, des plus port\u00e9es
+     *     aux moins port\u00e9es puis par nom (ordre qui ne bouge pas avec les
      *     filtres) ; effectif : personnes retenues par la recherche et les
      *     AUTRES filtres ; aucun n'existe que si quelqu'un n'a pas de valeur
      */
@@ -1279,7 +1277,7 @@ var regles = (function () {
     /**
      * Vrai si une recherche ou un filtre restreint la liste.
      *
-     * @param {object} etat état courant
+     * @param {object} etat \u00e9tat courant
      * @returns {boolean} filtrage actif
      */
     function filtreActif(etat) {
@@ -1287,11 +1285,11 @@ var regles = (function () {
     }
 
     /**
-     * Copie triée des personnes.
+     * Copie tri\u00e9e des personnes.
      *
      * @param {Array} personnes personnes
      * @param {string} cle nom, prenom, titre, succursale ou cercle (autre : par nom)
-     * @returns {Array} nouveau tableau ; l'original n'est pas modifié
+     * @returns {Array} nouveau tableau ; l'original n'est pas modifi\u00e9
      */
     function trier(personnes, cle) {
         var ordres = {
@@ -1307,17 +1305,17 @@ var regles = (function () {
 
     // ---- Vue d'une personne et fiche ---------------------------------------
 
-    /** Fonctions montrées sur une carte ; les autres se résument en « +n ». */
+    /** Fonctions montr\u00e9es sur une carte ; les autres se r\u00e9sument en \u00ab +n \u00bb. */
     var FONCTIONS_MONTREES = 2;
 
     /**
-     * Personne prête pour l'affichage (grille, liste, fiche, onglet) :
-     * trigramme, fonctions courtes, responsable nommé, cercle principal
-     * filtrable s'il est un cercle de l'organisation. Pas d'étape.
+     * Personne pr\u00eate pour l'affichage (grille, liste, fiche, onglet) :
+     * trigramme, fonctions courtes, responsable nomm\u00e9, cercle principal
+     * filtrable s'il est un cercle de l'organisation. Pas d'\u00e9tape.
      *
      * @param {object} annuaire annuaire construit
      * @param {object} p personne de l'annuaire
-     * @returns {object} personne pour la vue (données simples)
+     * @returns {object} personne pour la vue (donn\u00e9es simples)
      */
     function personneVue(annuaire, p) {
         var responsable = p.responsableId !== null ? annuaire.parId[p.responsableId] : null;
@@ -1345,8 +1343,8 @@ var regles = (function () {
     }
 
     /**
-     * Fiche d'une personne : elle, son responsable retenu et son équipe
-     * directe, prêts à afficher.
+     * Fiche d'une personne : elle, son responsable retenu et son \u00e9quipe
+     * directe, pr\u00eats \u00e0 afficher.
      *
      * @param {object} annuaire annuaire construit
      * @param {number} id ID du collaborateur
@@ -1387,18 +1385,18 @@ var regles = (function () {
 <script>
 /* exported coffre */
 /* =====================================================================
-   VAULT-COM — accès au coffre en UIX v1 (API COM synchrone, ES5)
+   VAULT-COM \u2014 acc\u00e8s au coffre en UIX v1 (API COM synchrone, ES5)
 
-   Couche model. Isole toutes les particularités COM (collections base 1,
+   Couche model. Isole toutes les particularit\u00e9s COM (collections base 1,
    constructeurs MFiles.*, recherches par conditions) et rend des objets
-   JavaScript simples aux règles (regles.js).
+   JavaScript simples aux r\u00e8gles (regles.js).
 
-   Lecture seule : ce module n'écrit rien dans le coffre.
+   Lecture seule : ce module n'\u00e9crit rien dans le coffre.
 
-   CONFIDENTIALITÉ : une fiche n'est lue que propriété par propriété, par
+   CONFIDENTIALIT\u00c9 : une fiche n'est lue que propri\u00e9t\u00e9 par propri\u00e9t\u00e9, par
    SearchForProperty sur les identifiants de la liste blanche
    (PARAMETRAGE.proprietes). Les PropertyValues ne sont jamais parcourues :
-   une propriété qui n'est pas nommée ici n'est jamais lue, donc ne peut
+   une propri\u00e9t\u00e9 qui n'est pas nomm\u00e9e ici n'est jamais lue, donc ne peut
    pas fuiter vers la page.
    ===================================================================== */
 
@@ -1409,7 +1407,7 @@ var coffre = (function () {
      * Convertit une collection COM (base 1, .Count/.Item) en tableau.
      *
      * @param {object} collection collection COM
-     * @returns {Array} éléments, dans l'ordre
+     * @returns {Array} \u00e9l\u00e9ments, dans l'ordre
      */
     function enTableau(collection) {
         var sortie = [];
@@ -1425,7 +1423,7 @@ var coffre = (function () {
     }
 
     /**
-     * Condition sur une valeur de statut (type d'objet, supprimé).
+     * Condition sur une valeur de statut (type d'objet, supprim\u00e9).
      *
      * @param {number} statut MF.STATUS_*
      * @param {number} datatype MF.DT_*
@@ -1442,10 +1440,10 @@ var coffre = (function () {
     }
 
     /**
-     * Condition « propriété lookup égale à un élément ».
+     * Condition \u00ab propri\u00e9t\u00e9 lookup \u00e9gale \u00e0 un \u00e9l\u00e9ment \u00bb.
      *
-     * @param {number} propriete identifiant de la propriété
-     * @param {number} valeur identifiant de l'élément
+     * @param {number} propriete identifiant de la propri\u00e9t\u00e9
+     * @param {number} valeur identifiant de l'\u00e9l\u00e9ment
      * @returns {object} MFiles.SearchCondition
      */
     function conditionLookup(propriete, valeur) {
@@ -1458,13 +1456,13 @@ var coffre = (function () {
     }
 
     /**
-     * Lance une recherche ; un résultat plafonné est une erreur franche :
-     * un annuaire amputé sans le dire serait pire qu'un échec.
+     * Lance une recherche ; un r\u00e9sultat plafonn\u00e9 est une erreur franche :
+     * un annuaire amput\u00e9 sans le dire serait pire qu'un \u00e9chec.
      *
      * @param {object} vault coffre COM
      * @param {Array} liste conditions
-     * @param {string} quoi ce qui est cherché, pour le message
-     * @returns {Array} ObjectVersion trouvées
+     * @param {string} quoi ce qui est cherch\u00e9, pour le message
+     * @returns {Array} ObjectVersion trouv\u00e9es
      */
     function chercher(vault, liste, quoi) {
         var conditions = new MFiles.SearchConditions();
@@ -1473,7 +1471,7 @@ var coffre = (function () {
         liste.forEach(function (c) {
             conditions.Add(-1, c);
         });
-        // Délai de 30 s, comme le code v1 éprouvé (skill m-files-ui-ext-v1)
+        // D\u00e9lai de 30 s, comme le code v1 \u00e9prouv\u00e9 (skill m-files-ui-ext-v1)
         res = vault.ObjectSearchOperations.SearchForObjectsByConditionsEx(
             conditions, MF.SEARCH_FLAG_NONE, false, PARAMETRAGE.limiteRecherche, PARAMETRAGE.delaiRecherche);
 
@@ -1485,24 +1483,24 @@ var coffre = (function () {
     }
 
     /**
-     * Collaborateurs d'une étape de workflow (non supprimés).
+     * Collaborateurs d'une \u00e9tape de workflow (non supprim\u00e9s).
      *
      * @param {object} vault coffre COM
-     * @param {number} idEtape identifiant de l'étape
-     * @returns {Array} ObjVer trouvés
+     * @param {number} idEtape identifiant de l'\u00e9tape
+     * @returns {Array} ObjVer trouv\u00e9s
      */
     function chercherCollaborateurs(vault, idEtape) {
         return chercher(vault, [
             conditionStatut(MF.STATUS_OBJECT_TYPE_ID, MF.DT_LOOKUP, PARAMETRAGE.typeCollaborateur),
             conditionLookup(PARAMETRAGE.proprietes.etape, idEtape),
             conditionStatut(MF.STATUS_DELETED, MF.DT_BOOLEAN, false)
-        ], "collaborateurs à cette étape").map(function (v) {
+        ], "collaborateurs \u00e0 cette \u00e9tape").map(function (v) {
             return v.ObjVer;
         });
     }
 
     /**
-     * Tous les objets Cercle/rôle (non supprimés), avec leur titre.
+     * Tous les objets Cercle/r\u00f4le (non supprim\u00e9s), avec leur titre.
      *
      * @param {object} vault coffre COM
      * @returns {Array} [{ objVer, id, nom }]
@@ -1511,16 +1509,16 @@ var coffre = (function () {
         return chercher(vault, [
             conditionStatut(MF.STATUS_OBJECT_TYPE_ID, MF.DT_LOOKUP, PARAMETRAGE.typeCercle),
             conditionStatut(MF.STATUS_DELETED, MF.DT_BOOLEAN, false)
-        ], "cercles et rôles").map(function (v) {
+        ], "cercles et r\u00f4les").map(function (v) {
             return { objVer: v.ObjVer, id: v.ObjVer.ID, nom: v.Title };
         });
     }
 
     /**
-     * TypedValue d'une propriété nommée, ou null si absente ou vide.
+     * TypedValue d'une propri\u00e9t\u00e9 nomm\u00e9e, ou null si absente ou vide.
      *
      * @param {object} pvs PropertyValues de l'objet
-     * @param {number} id identifiant de la propriété (liste blanche)
+     * @param {number} id identifiant de la propri\u00e9t\u00e9 (liste blanche)
      * @returns {object|null} TypedValue
      */
     function valeurDe(pvs, id) {
@@ -1536,11 +1534,11 @@ var coffre = (function () {
     }
 
     /**
-     * Texte d'une propriété.
+     * Texte d'une propri\u00e9t\u00e9.
      *
      * @param {object} pvs PropertyValues
-     * @param {number} id propriété
-     * @returns {string|null} texte affiché, null si vide
+     * @param {number} id propri\u00e9t\u00e9
+     * @returns {string|null} texte affich\u00e9, null si vide
      */
     function texte(pvs, id) {
         var tv = valeurDe(pvs, id);
@@ -1548,10 +1546,10 @@ var coffre = (function () {
     }
 
     /**
-     * Lookup simple d'une propriété.
+     * Lookup simple d'une propri\u00e9t\u00e9.
      *
      * @param {object} pvs PropertyValues
-     * @param {number} id propriété
+     * @param {number} id propri\u00e9t\u00e9
      * @returns {object|null} { id, nom }
      */
     function lookup(pvs, id) {
@@ -1566,11 +1564,11 @@ var coffre = (function () {
     }
 
     /**
-     * Lookups d'une propriété à sélection multiple, sans les éléments
-     * supprimés.
+     * Lookups d'une propri\u00e9t\u00e9 \u00e0 s\u00e9lection multiple, sans les \u00e9l\u00e9ments
+     * supprim\u00e9s.
      *
      * @param {object} pvs PropertyValues
-     * @param {number} id propriété
+     * @param {number} id propri\u00e9t\u00e9
      * @returns {Array} [{ id, nom }]
      */
     function lookups(pvs, id) {
@@ -1640,7 +1638,7 @@ var coffre = (function () {
     }
 
     /**
-     * Lit un lot de cercles et rôles : ce que chacun contient.
+     * Lit un lot de cercles et r\u00f4les : ce que chacun contient.
      *
      * @param {object} vault coffre COM
      * @param {Array} cercles [{ objVer, id, nom }] (voir chercherCercles)
@@ -1679,8 +1677,8 @@ var coffre = (function () {
     }
 
     /**
-     * Documents de portrait d'un collaborateur, le plus récent d'abord
-     * (un ID de document plus grand est un document créé plus tard), avec
+     * Documents de portrait d'un collaborateur, le plus r\u00e9cent d'abord
+     * (un ID de document plus grand est un document cr\u00e9\u00e9 plus tard), avec
      * leurs fichiers. Rien d'autre n'est lu du document.
      *
      * @param {object} vault coffre COM
@@ -1710,9 +1708,9 @@ var coffre = (function () {
     }
 
     /**
-     * Contenu d'un fichier en URI data: base64, en mémoire (aucun fichier
+     * Contenu d'un fichier en URI data: base64, en m\u00e9moire (aucun fichier
      * sur disque). DownloadFileAsDataURI(ObjVer, File, FileVersion), dont la
-     * référence de l'API COM dit l'intérêt pour l'UI Extensibility
+     * r\u00e9f\u00e9rence de l'API COM dit l'int\u00e9r\u00eat pour l'UI Extensibility
      * Framework (petites images d'un tableau de bord).
      *
      * @param {object} vault coffre COM
@@ -1727,11 +1725,11 @@ var coffre = (function () {
 
     /**
      * Affiche la fiche native d'un objet absent du listing. Collection
-     * ObjOrFileVers (référence v1) : ObjectVersions échoue toujours.
+     * ObjOrFileVers (r\u00e9f\u00e9rence v1) : ObjectVersions \u00e9choue toujours.
      *
      * @param {object} cadre ShellFrame
      * @param {object} objVer ObjVer de l'objet
-     * @returns {boolean} vrai si acceptée
+     * @returns {boolean} vrai si accept\u00e9e
      */
     function selectionVirtuelle(cadre, objVer) {
         var selection;
@@ -1751,7 +1749,7 @@ var coffre = (function () {
             (listing || cadre.Listing).SetVirtualSelection(selection);
             return true;
         } catch (e) {
-            console.log(PREFIXE_JOURNAL + " sélection virtuelle refusée : " + (e.message || e.description || e));
+            console.log(PREFIXE_JOURNAL + " s\u00e9lection virtuelle refus\u00e9e : " + (e.message || e.description || e));
             return false;
         }
     }
@@ -1772,32 +1770,32 @@ var coffre = (function () {
 <script>
 /* exported rendu */
 /* =====================================================================
-   RENDU DE LA PAGE — couche view (ES5, contrôle web IE11)
+   RENDU DE LA PAGE \u2014 couche view (ES5, contr\u00f4le web IE11)
 
-   Vue pure : elle reçoit du présentateur un modèle prêt (personnes déjà
-   filtrées et triées, effectifs, fiche) et construit le DOM avec
+   Vue pure : elle re\u00e7oit du pr\u00e9sentateur un mod\u00e8le pr\u00eat (personnes d\u00e9j\u00e0
+   filtr\u00e9es et tri\u00e9es, effectifs, fiche) et construit le DOM avec
    createElement et textContent seulement : un nom ou un titre venu de
-   M-Files ne peut pas injecter de HTML. Les éléments portent des
-   attributs data-* que des écouteurs délégués traduisent en actions.
-   Aucune règle métier ici, aucun accès au coffre.
+   M-Files ne peut pas injecter de HTML. Les \u00e9l\u00e9ments portent des
+   attributs data-* que des \u00e9couteurs d\u00e9l\u00e9gu\u00e9s traduisent en actions.
+   Aucune r\u00e8gle m\u00e9tier ici, aucun acc\u00e8s au coffre.
    ===================================================================== */
 
 var rendu = (function () {
     "use strict";
 
-    // Délai de saisie avant de relancer la recherche (ms)
+    // D\u00e9lai de saisie avant de relancer la recherche (ms)
     var DELAI_RECHERCHE = 120;
-    // Durée d'affichage d'un message (ms)
+    // Dur\u00e9e d'affichage d'un message (ms)
     var DUREE_MESSAGE = 5000;
-    // Seule image acceptée pour un portrait : une URI data: d'un type affichable
+    // Seule image accept\u00e9e pour un portrait : une URI data: d'un type affichable
     var MOTIF_PHOTO = /^data:image\/(jpeg|png|gif|bmp);base64,[A-Za-z0-9+\/=\r\n]+$/;
 
     /**
-     * Crée la vue d'une page.
+     * Cr\u00e9e la vue d'une page.
      *
      * @param {object} doc document de la page
-     * @param {object} actions actions du présentateur
-     * @param {string} [mode] « onglet » pour l'onglet du volet de droite
+     * @param {object} actions actions du pr\u00e9sentateur
+     * @param {string} [mode] \u00ab onglet \u00bb pour l'onglet du volet de droite
      * @returns {object} { progression, erreur, refuser, rendre, rendreOnglet, message }
      */
     function creer(doc, actions, mode) {
@@ -1809,12 +1807,12 @@ var rendu = (function () {
         var ficheOuverte = false;
 
         /**
-         * Crée un élément.
+         * Cr\u00e9e un \u00e9l\u00e9ment.
          *
          * @param {string} balise nom de la balise
          * @param {object} [options] { classe, texte, attrs }
-         * @param {Array} [enfants] nœuds ou textes (null ignorés)
-         * @returns {object} élément
+         * @param {Array} [enfants] n\u0153uds ou textes (null ignor\u00e9s)
+         * @returns {object} \u00e9l\u00e9ment
          */
         function el(balise, options, enfants) {
             var e = doc.createElement(balise);
@@ -1844,9 +1842,9 @@ var rendu = (function () {
         }
 
         /**
-         * Vide un élément.
+         * Vide un \u00e9l\u00e9ment.
          *
-         * @param {object} e élément
+         * @param {object} e \u00e9l\u00e9ment
          * @returns {void}
          */
         function vider(e) {
@@ -1859,7 +1857,7 @@ var rendu = (function () {
          * Ajoute ou retire une classe (IE11 : classList partiel, on passe
          * par className).
          *
-         * @param {object} e élément
+         * @param {object} e \u00e9l\u00e9ment
          * @param {string} classe classe
          * @param {boolean} presente vrai pour l'ajouter
          * @returns {void}
@@ -1870,11 +1868,11 @@ var rendu = (function () {
         }
 
         /**
-         * Avatar à trigramme, teinté par la personne.
+         * Avatar \u00e0 trigramme, teint\u00e9 par la personne.
          *
          * @param {object} p personne (trigramme, teinte)
-         * @param {string} [taille] « petit » ou « grand »
-         * @returns {object} élément
+         * @param {string} [taille] \u00ab petit \u00bb ou \u00ab grand \u00bb
+         * @returns {object} \u00e9l\u00e9ment
          */
         function avatar(p, taille) {
             var a = el("span", { classe: "avatar" + (taille ? " " + taille : ""), texte: p.trigramme,
@@ -1886,10 +1884,10 @@ var rendu = (function () {
         }
 
         /**
-         * Nom en deux temps : prénom léger, nom de famille en gras.
+         * Nom en deux temps : pr\u00e9nom l\u00e9ger, nom de famille en gras.
          *
          * @param {object} p personne
-         * @returns {object} élément
+         * @returns {object} \u00e9l\u00e9ment
          */
         function nom(p) {
             return el("span", { classe: "nom" }, [
@@ -1899,10 +1897,10 @@ var rendu = (function () {
         }
 
         /**
-         * Fonctions courtes d'une personne, puis « +n ».
+         * Fonctions courtes d'une personne, puis \u00ab +n \u00bb.
          *
          * @param {object} p personne
-         * @returns {object|null} élément, ou null sans fonction
+         * @returns {object|null} \u00e9l\u00e9ment, ou null sans fonction
          */
         function fonctions(p) {
             if (!p.fonctions.length) {
@@ -1917,9 +1915,9 @@ var rendu = (function () {
         /**
          * Grille de cartes.
          *
-         * @param {Array} personnes personnes affichées
+         * @param {Array} personnes personnes affich\u00e9es
          * @param {number|null} ouverte ID de la fiche ouverte
-         * @returns {object} élément
+         * @returns {object} \u00e9l\u00e9ment
          */
         function grille(personnes, ouverte) {
             return el("div", { classe: "grille" }, personnes.map(function (p) {
@@ -1932,7 +1930,7 @@ var rendu = (function () {
                     el("span", { classe: "carte-haut" }, [avatar(p), nom(p)]),
                     p.titre ? el("span", { classe: "titre", texte: p.titre }) : null,
                     p.cercle ? el("span", { classe: "badge-cercle", texte: p.cercle }) : null,
-                    el("span", { classe: "meta", texte: [p.succursale, p.trigramme].filter(function (x) { return x; }).join(" · ") }),
+                    el("span", { classe: "meta", texte: [p.succursale, p.trigramme].filter(function (x) { return x; }).join(" \u00b7 ") }),
                     fonctions(p)
                 ]);
             }));
@@ -1941,9 +1939,9 @@ var rendu = (function () {
         /**
          * Liste en tableau, colonnes triables.
          *
-         * @param {Array} personnes personnes affichées
-         * @param {object} modele modèle (tri, fiche)
-         * @returns {object} élément
+         * @param {Array} personnes personnes affich\u00e9es
+         * @param {object} modele mod\u00e8le (tri, fiche)
+         * @returns {object} \u00e9l\u00e9ment
          */
         function liste(personnes, modele) {
             var ouverte = modele.fiche ? modele.fiche.personne.id : null;
@@ -1952,12 +1950,12 @@ var rendu = (function () {
                     classe: modele.affichage.tri === tri ? "est-actif" : "", texte: libelle,
                     attrs: { type: "button", "data-tri": tri } }) : libelle]);
             };
-            var tiret = "–";
+            var tiret = "\u2013";
 
             return el("table", { classe: "tableau" }, [
                 el("thead", {}, [el("tr", {}, [
                     entete("Nom", "nom"), entete("Titre", "titre"), entete("Fonctions"),
-                    entete("Succursale", "succursale"), entete("Cercle/rôle", "cercle"), entete("Trigramme"),
+                    entete("Succursale", "succursale"), entete("Cercle/r\u00f4le", "cercle"), entete("Trigramme"),
                     entete("Responsable"), entete("E-mail")
                 ])]),
                 el("tbody", {}, personnes.map(function (p) {
@@ -1981,7 +1979,7 @@ var rendu = (function () {
          * Puce cliquable d'une personne.
          *
          * @param {object} p personne
-         * @returns {object} élément
+         * @returns {object} \u00e9l\u00e9ment
          */
         function pucePersonne(p) {
             return el("button", { classe: "puce-personne", attrs: { type: "button", "data-personne": p.id } },
@@ -1994,7 +1992,7 @@ var rendu = (function () {
          * @param {string} cle facette
          * @param {string} valeur valeur du filtre
          * @param {string} libelle texte
-         * @returns {object} élément
+         * @returns {object} \u00e9l\u00e9ment
          */
         function boutonFiltre(cle, valeur, libelle) {
             return el("button", { classe: "bouton-filtre", texte: libelle,
@@ -2004,12 +2002,12 @@ var rendu = (function () {
 
         /**
          * Grand avatar, avec la photo par-dessus quand il y en a une. La
-         * photo est un fond (background-size: cover) : IE11 ne connaît pas
+         * photo est un fond (background-size: cover) : IE11 ne conna\u00eet pas
          * object-fit ; si elle ne se charge pas, le trigramme reste visible.
          *
          * @param {object} p personne
-         * @param {object|null} photo { dataUri, note } passée par le module
-         * @returns {object} élément
+         * @param {object|null} photo { dataUri, note } pass\u00e9e par le module
+         * @returns {object} \u00e9l\u00e9ment
          */
         function avatarAvecPhoto(p, photo) {
             var a = avatar(p, "grand");
@@ -2024,16 +2022,16 @@ var rendu = (function () {
         }
 
         /**
-         * Contenu de la fiche (volet latéral du tableau de bord, ou onglet).
+         * Contenu de la fiche (volet lat\u00e9ral du tableau de bord, ou onglet).
          *
-         * @param {object} f fiche du modèle
+         * @param {object} f fiche du mod\u00e8le
          * @param {object} [photo] { dataUri, note }, onglet seulement
-         * @returns {Array} éléments
+         * @returns {Array} \u00e9l\u00e9ments
          */
         function contenuFiche(f, photo) {
             var p = f.personne;
             var faits = [];
-            var plus = p.tailleEquipe > f.equipe.length ? " · " + p.tailleEquipe + " au total" : "";
+            var plus = p.tailleEquipe > f.equipe.length ? " \u00b7 " + p.tailleEquipe + " au total" : "";
 
             if (p.fonctions.length) {
                 faits.push(["Fonctions", p.fonctions.map(function (x) { return boutonFiltre("fonction", x, x); })]);
@@ -2042,28 +2040,28 @@ var rendu = (function () {
                 faits.push(["Succursale", [boutonFiltre("succursale", p.succursale, p.succursale)]]);
             }
             if (p.cercle) {
-                // Filtrable seulement s'il est un cercle de l'organisation (un rôle n'a pas de filtre)
-                faits.push(["Cercle/rôle principal", [p.cercleFiltrable ?
+                // Filtrable seulement s'il est un cercle de l'organisation (un r\u00f4le n'a pas de filtre)
+                faits.push(["Cercle/r\u00f4le principal", [p.cercleFiltrable ?
                     boutonFiltre("cercle", String(p.cercleId), p.cercle) :
                     el("span", { classe: "badge-cercle", texte: p.cercle })]]);
             }
             if (p.email) {
-                // Texte à sélectionner, sans lien mailto: : le tableau de bord refuse de naviguer
-                // vers un autre schéma que le sien (boîte d'erreur du client, docs/adr/0004)
+                // Texte \u00e0 s\u00e9lectionner, sans lien mailto: : le tableau de bord refuse de naviguer
+                // vers un autre sch\u00e9ma que le sien (bo\u00eete d'erreur du client, docs/adr/0004)
                 faits.push(["E-mail", [el("span", { classe: "email", texte: p.email })]]);
             }
             if (p.cerclesEtRoles.length) {
-                faits.push(["Cercles et rôles (" + p.cerclesEtRoles.length + ")", p.cerclesEtRoles.map(function (c) {
+                faits.push(["Cercles et r\u00f4les (" + p.cerclesEtRoles.length + ")", p.cerclesEtRoles.map(function (c) {
                     return c.estCercle ? boutonFiltre("cercle", String(c.id), c.nom) :
                         el("span", { classe: "role" + (c.horsOrganisation ? " hors-organisation" : ""), texte: c.nom,
-                            attrs: { title: c.horsOrganisation ? "Hors organisation" : "Rôle" } });
+                            attrs: { title: c.horsOrganisation ? "Hors organisation" : "R\u00f4le" } });
                 })]);
             }
             if (f.responsable) {
                 faits.push(["Responsable", [pucePersonne(f.responsable)]]);
             }
             if (f.equipe.length) {
-                faits.push(["Équipe directe (" + f.equipe.length + plus + ")", f.equipe.map(pucePersonne)]);
+                faits.push(["\u00c9quipe directe (" + f.equipe.length + plus + ")", f.equipe.map(pucePersonne)]);
             }
 
             return [
@@ -2083,7 +2081,7 @@ var rendu = (function () {
                 el("div", { classe: "fiche-actions" }, [
                     f.dansMFiles ? el("button", { classe: "bouton bouton-primaire", texte: "Afficher la fiche M-Files",
                         attrs: { type: "button", "data-action": "mfiles", "data-id": p.id,
-                            title: "Affiche les propriétés du collaborateur dans le volet de droite du client" } }) : null
+                            title: "Affiche les propri\u00e9t\u00e9s du collaborateur dans le volet de droite du client" } }) : null
                 ])
             ];
         }
@@ -2091,9 +2089,9 @@ var rendu = (function () {
         /**
          * Pastilles de filtre par cercle.
          *
-         * @param {object} f facette cercle du modèle
+         * @param {object} f facette cercle du mod\u00e8le
          * @param {string|null} courant filtre courant
-         * @param {string} aucun valeur « sans cercle »
+         * @param {string} aucun valeur \u00ab sans cercle \u00bb
          * @returns {Array} boutons
          */
         function pastilles(f, courant, aucun) {
@@ -2111,13 +2109,13 @@ var rendu = (function () {
         }
 
         /**
-         * Remplit une liste déroulante de facette sans la recréer (le
-         * focus reste) ; IE11 gère mal innerHTML sur un select.
+         * Remplit une liste d\u00e9roulante de facette sans la recr\u00e9er (le
+         * focus reste) ; IE11 g\u00e8re mal innerHTML sur un select.
          *
-         * @param {object} select élément select
-         * @param {object} f facette du modèle
+         * @param {object} select \u00e9l\u00e9ment select
+         * @param {object} f facette du mod\u00e8le
          * @param {string|null} courant valeur retenue
-         * @param {string} aucun valeur « sans valeur »
+         * @param {string} aucun valeur \u00ab sans valeur \u00bb
          * @returns {void}
          */
         function remplirSelect(select, f, courant, aucun) {
@@ -2137,9 +2135,9 @@ var rendu = (function () {
         }
 
         /**
-         * Rend toute la page à partir du modèle.
+         * Rend toute la page \u00e0 partir du mod\u00e8le.
          *
-         * @param {object} m modèle du présentateur
+         * @param {object} m mod\u00e8le du pr\u00e9sentateur
          * @returns {void}
          */
         function rendre(m) {
@@ -2171,7 +2169,7 @@ var rendu = (function () {
             vider(resultats);
             if (!m.personnes.length) {
                 resultats.appendChild(el("div", { classe: "vide" }, [
-                    el("h2", { texte: m.etat.q ? "Aucun résultat pour « " + m.etat.q + " »" : "Aucun résultat" }),
+                    el("h2", { texte: m.etat.q ? "Aucun r\u00e9sultat pour \u00ab " + m.etat.q + " \u00bb" : "Aucun r\u00e9sultat" }),
                     el("p", { texte: "Essayez un autre nom, une fonction ou un trigramme." }),
                     el("button", { classe: "bouton bouton-secondaire", texte: "Effacer la recherche et les filtres",
                         attrs: { type: "button", "data-action": "reinitialiser" } })
@@ -2223,15 +2221,15 @@ var rendu = (function () {
         /**
          * Progression de la lecture du coffre.
          *
-         * @param {string} texte étape en cours
-         * @param {number} fait éléments lus
-         * @param {number} total éléments à lire (0 : inconnu)
+         * @param {string} texte \u00e9tape en cours
+         * @param {number} fait \u00e9l\u00e9ments lus
+         * @param {number} total \u00e9l\u00e9ments \u00e0 lire (0 : inconnu)
          * @returns {void}
          */
         function progression(texte, fait, total) {
             basculer($("erreur"), "est-visible", false);
             basculer($("progression"), "est-visible", true);
-            $("progressionTexte").textContent = total ? texte + " : " + fait + " sur " + total + "…" : texte;
+            $("progressionTexte").textContent = total ? texte + " : " + fait + " sur " + total + "\u2026" : texte;
             $("progressionBarre").style.width = (total ? Math.round(100 * fait / total) : 0) + "%";
         }
 
@@ -2248,7 +2246,7 @@ var rendu = (function () {
         }
 
         /**
-         * Refus d'accès : message neutre, sans recherche, filtres ni
+         * Refus d'acc\u00e8s : message neutre, sans recherche, filtres ni
          * annuaire.
          *
          * @param {string} texte message
@@ -2260,7 +2258,7 @@ var rendu = (function () {
             basculer(doc.body.firstElementChild || $("controles").parentNode, "est-refusee", true);
             vider($("resultats"));
             basculer($("fiche"), "est-ouverte", false);
-            // Rien de l'annuaire ne reste à l'écran : ni compteur, ni bandeau
+            // Rien de l'annuaire ne reste \u00e0 l'\u00e9cran : ni compteur, ni bandeau
             $("compteur").textContent = "";
             $("bandeau").textContent = "";
             $("refusTexte").textContent = texte;
@@ -2283,11 +2281,11 @@ var rendu = (function () {
         }
 
         /**
-         * Premier ancêtre (ou l'élément) qui porte un attribut.
+         * Premier anc\u00eatre (ou l'\u00e9l\u00e9ment) qui porte un attribut.
          *
-         * @param {object} e élément de départ
+         * @param {object} e \u00e9l\u00e9ment de d\u00e9part
          * @param {string} attribut nom de l'attribut
-         * @returns {object|null} élément trouvé
+         * @returns {object|null} \u00e9l\u00e9ment trouv\u00e9
          */
         function porteur(e, attribut) {
             while (e && e.getAttribute) {
@@ -2300,7 +2298,7 @@ var rendu = (function () {
         }
 
         /**
-         * Lance la recherche si la saisie a changé, après un court délai.
+         * Lance la recherche si la saisie a chang\u00e9, apr\u00e8s un court d\u00e9lai.
          *
          * @returns {void}
          */
@@ -2315,7 +2313,7 @@ var rendu = (function () {
             }, DELAI_RECHERCHE);
         }
 
-        // ---- Écouteurs (posés une fois, délégués) ----------------------
+        // ---- \u00c9couteurs (pos\u00e9s une fois, d\u00e9l\u00e9gu\u00e9s) ----------------------
 
         $("version").textContent = "v" + VERSION_PAQUET;
         if (mode === "onglet") {
@@ -2402,16 +2400,16 @@ var rendu = (function () {
 <script>
 /* exported presentateur, OnNewDashboard */
 /* =====================================================================
-   PRÉSENTATEUR DE LA PAGE — UIX v1 (ES5)
+   PR\u00c9SENTATEUR DE LA PAGE \u2014 UIX v1 (ES5)
 
-   En v1 la page tient son coffre (dashboard.Vault) : ce présentateur tourne
+   En v1 la page tient son coffre (dashboard.Vault) : ce pr\u00e9sentateur tourne
    DANS la page. Il lit le coffre par lots (vault-com.js), en rendant la
-   main au navigateur entre chaque lot (sinon l'écran se fige), construit
-   l'annuaire (regles.js), garde l'état de la page (recherche, filtres,
-   vue, tri, fiche ouverte) et donne à la vue un modèle prêt à afficher.
+   main au navigateur entre chaque lot (sinon l'\u00e9cran se fige), construit
+   l'annuaire (regles.js), garde l'\u00e9tat de la page (recherche, filtres,
+   vue, tri, fiche ouverte) et donne \u00e0 la vue un mod\u00e8le pr\u00eat \u00e0 afficher.
 
-   La vue ne connaît ni le coffre ni les règles : elle reçoit un modèle et
-   appelle les actions. La page ne règle jamais la visibilité de
+   La vue ne conna\u00eet ni le coffre ni les r\u00e8gles : elle re\u00e7oit un mod\u00e8le et
+   appelle les actions. La page ne r\u00e8gle jamais la visibilit\u00e9 de
    dashboard.Parent (le volet entier).
    ===================================================================== */
 
@@ -2419,7 +2417,7 @@ var presentateur = (function () {
     "use strict";
 
     var VUES = ["grille", "liste"];
-    // Pas de tri par étape : l'étape n'apparaît nulle part (docs/adr/0005)
+    // Pas de tri par \u00e9tape : l'\u00e9tape n'appara\u00eet nulle part (docs/adr/0005)
     var TRIS = ["nom", "prenom", "titre", "succursale", "cercle"];
 
     /**
@@ -2433,24 +2431,24 @@ var presentateur = (function () {
     }
 
     /**
-     * Libellé accordé en nombre.
+     * Libell\u00e9 accord\u00e9 en nombre.
      *
      * @param {number} n effectif
-     * @returns {string} « 1 personne », « 12 personnes »
+     * @returns {string} \u00ab 1 personne \u00bb, \u00ab 12 personnes \u00bb
      */
     function personnes(n) {
         return n + (n > 1 ? " personnes" : " personne");
     }
 
     /**
-     * Crée le présentateur d'une page.
+     * Cr\u00e9e le pr\u00e9sentateur d'une page.
      *
      * @param {object} services { vault, cadre, etatCadre, actionInitiale,
      *     planifier(fn) } ; planifier rend la main au navigateur avant
-     *     d'appeler fn (setTimeout) ; etatCadre est l'état du cadre tenu par
+     *     d'appeler fn (setTimeout) ; etatCadre est l'\u00e9tat du cadre tenu par
      *     le module ; actionInitiale ({ filtre: { cle, valeur } } ou
      *     { ouvrir: id }) vient d'un lien de l'onglet du volet de droite
-     * @param {Function} fabriqueVue reçoit les actions, rend la vue
+     * @param {Function} fabriqueVue re\u00e7oit les actions, rend la vue
      *     { progression(texte, fait, total), erreur(m), refuser(m), rendre(modele), message(m) }
      * @returns {object} { demarrer }
      */
@@ -2460,13 +2458,13 @@ var presentateur = (function () {
         var ouverte = null;
         var annuaire = null;
         var objVers = {};
-        // Numéro de la lecture en cours : une lecture relancée arrête la précédente
+        // Num\u00e9ro de la lecture en cours : une lecture relanc\u00e9e arr\u00eate la pr\u00e9c\u00e9dente
         var lectureEnCours = 0;
         var vue = null;
         var actions;
 
         /**
-         * Personnes affichées : filtrées puis triées.
+         * Personnes affich\u00e9es : filtr\u00e9es puis tri\u00e9es.
          *
          * @returns {Array} personnes de l'annuaire
          */
@@ -2475,9 +2473,9 @@ var presentateur = (function () {
         }
 
         /**
-         * Modèle complet de la page.
+         * Mod\u00e8le complet de la page.
          *
-         * @returns {object} modèle pour vue.rendre
+         * @returns {object} mod\u00e8le pour vue.rendre
          */
         function modele() {
             var liste = affichees();
@@ -2504,8 +2502,8 @@ var presentateur = (function () {
                 facettes: facettes,
                 etat: { q: etat.q, cercle: etat.cercle, succursale: etat.succursale,
                     titre: etat.titre, fonction: etat.fonction },
-                // Même mention que l'export du Cockpit (model/export_page.py)
-                bandeau: "Données internes : collaborateurs rattachés à un cercle (" + personnes(total) + ").",
+                // M\u00eame mention que l'export du Cockpit (model/export_page.py)
+                bandeau: "Donn\u00e9es internes : collaborateurs rattach\u00e9s \u00e0 un cercle (" + personnes(total) + ").",
                 filtreActif: regles.filtreActif(etat),
                 affichage: { vue: affichage.vue, tri: affichage.tri },
                 fiche: fiche,
@@ -2526,8 +2524,8 @@ var presentateur = (function () {
 
         /**
          * Applique, une seule fois, l'action venue d'un lien de l'onglet :
-         * un filtre déjà posé, ou la fiche d'une personne ouverte. Une clé
-         * ou une personne inconnue est ignorée.
+         * un filtre d\u00e9j\u00e0 pos\u00e9, ou la fiche d'une personne ouverte. Une cl\u00e9
+         * ou une personne inconnue est ignor\u00e9e.
          *
          * @returns {void}
          */
@@ -2545,12 +2543,12 @@ var presentateur = (function () {
                     ouverte = Number(a.ouvrir);
                 }
             } catch (e) {
-                console.log(PREFIXE_JOURNAL + " action du lien ignorée : " + messageDe(e));
+                console.log(PREFIXE_JOURNAL + " action du lien ignor\u00e9e : " + messageDe(e));
             }
         }
 
         /**
-         * Arrête la lecture sur une erreur et l'explique.
+         * Arr\u00eate la lecture sur une erreur et l'explique.
          *
          * @param {*} e erreur
          * @returns {void}
@@ -2563,20 +2561,20 @@ var presentateur = (function () {
         }
 
         /**
-         * Enchaîne des étapes en rendant la main au navigateur entre
-         * chacune ; la première erreur arrête tout, et une lecture
-         * relancée entre-temps (« Relire ») arrête celle-ci.
+         * Encha\u00eene des \u00e9tapes en rendant la main au navigateur entre
+         * chacune ; la premi\u00e8re erreur arr\u00eate tout, et une lecture
+         * relanc\u00e9e entre-temps (\u00ab Relire \u00bb) arr\u00eate celle-ci.
          *
-         * @param {number} lecture numéro de la lecture qui enchaîne
+         * @param {number} lecture num\u00e9ro de la lecture qui encha\u00eene
          * @param {Array} etapes fonctions sans argument
-         * @param {Function} fin appelée après la dernière étape
+         * @param {Function} fin appel\u00e9e apr\u00e8s la derni\u00e8re \u00e9tape
          * @returns {void}
          */
         function enchainer(lecture, etapes, fin) {
             var i = 0;
 
             /**
-             * Exécute l'étape courante puis planifie la suivante.
+             * Ex\u00e9cute l'\u00e9tape courante puis planifie la suivante.
              *
              * @returns {void}
              */
@@ -2600,9 +2598,9 @@ var presentateur = (function () {
         }
 
         /**
-         * Découpe un tableau en lots.
+         * D\u00e9coupe un tableau en lots.
          *
-         * @param {Array} tableau éléments
+         * @param {Array} tableau \u00e9l\u00e9ments
          * @param {number} taille taille d'un lot
          * @returns {Array} lots
          */
@@ -2617,8 +2615,8 @@ var presentateur = (function () {
         }
 
         /**
-         * Lit le coffre : collaborateurs des étapes listées, leurs fiches
-         * par lots, puis les cercles et rôles par lots ; construit
+         * Lit le coffre : collaborateurs des \u00e9tapes list\u00e9es, leurs fiches
+         * par lots, puis les cercles et r\u00f4les par lots ; construit
          * l'annuaire et rend la page.
          *
          * @returns {void}
@@ -2634,17 +2632,17 @@ var presentateur = (function () {
 
             lectureEnCours += 1;
             lecture = lectureEnCours;
-            // Défense en profondeur : la commande n'est posée qu'aux membres,
+            // D\u00e9fense en profondeur : la commande n'est pos\u00e9e qu'aux membres,
             // mais une page ouverte autrement ne lit ni n'affiche rien.
             if (!verdict.autorise) {
-                console.log(PREFIXE_JOURNAL + " annuaire non affiché : " + verdict.raison);
+                console.log(PREFIXE_JOURNAL + " annuaire non affich\u00e9 : " + verdict.raison);
                 annuaire = null;
                 vue.refuser("Cette application n'est pas disponible pour votre compte.");
                 return;
             }
             annuaire = null;
             objVers = {};
-            vue.progression("Recherche des collaborateurs…", 0, 0);
+            vue.progression("Recherche des collaborateurs\u2026", 0, 0);
 
             enchainer(lecture, PARAMETRAGE.etapes.map(function (etape) {
                 return function () {
@@ -2656,11 +2654,11 @@ var presentateur = (function () {
                     });
                 };
             }).concat([function () {
-                // Un annuaire vide dit plutôt que les identifiants d'étape ont changé dans le coffre
+                // Un annuaire vide dit plut\u00f4t que les identifiants d'\u00e9tape ont chang\u00e9 dans le coffre
                 if (!trouves.length) {
-                    throw new Error("M-Files ne rend aucun collaborateur aux étapes " + PARAMETRAGE.etapes.map(function (e) {
-                        return "« " + e.nom + " »";
-                    }).join(", ") + " : leurs identifiants ont peut-être changé (src/model/parametrage.js).");
+                    throw new Error("M-Files ne rend aucun collaborateur aux \u00e9tapes " + PARAMETRAGE.etapes.map(function (e) {
+                        return "\u00ab " + e.nom + " \u00bb";
+                    }).join(", ") + " : leurs identifiants ont peut-\u00eatre chang\u00e9 (src/model/parametrage.js).");
                 }
             }]), function () {
                 var lotsFiches = lots(trouves, PARAMETRAGE.tailleLot);
@@ -2673,18 +2671,18 @@ var presentateur = (function () {
                     };
                 }).concat([function () {
                     cerclesTrouves = coffre.chercherCercles(services.vault);
-                    vue.progression("Lecture des cercles et rôles", 0, cerclesTrouves.length);
+                    vue.progression("Lecture des cercles et r\u00f4les", 0, cerclesTrouves.length);
                 }]), function () {
                     enchainer(lecture, lots(cerclesTrouves, PARAMETRAGE.tailleLot * 5).map(function (lot) {
                         return function () {
                             cercles = cercles.concat(coffre.lireCercles(services.vault, lot));
-                            vue.progression("Lecture des cercles et rôles", cercles.length, cerclesTrouves.length);
+                            vue.progression("Lecture des cercles et r\u00f4les", cercles.length, cerclesTrouves.length);
                         };
                     }), function () {
                         annuaire = regles.construireAnnuaire(fiches, cercles);
                         appliquerActionInitiale();
                         console.log(PREFIXE_JOURNAL + " annuaire lu : " + annuaire.personnes.length + " personnes, " +
-                            cercles.length + " cercles et rôles, " + (new Date().getTime() - debut) + " ms");
+                            cercles.length + " cercles et r\u00f4les, " + (new Date().getTime() - debut) + " ms");
                         rendre();
                     });
                 });
@@ -2692,8 +2690,8 @@ var presentateur = (function () {
         }
 
         /**
-         * Note dans l'état du cadre (objet du module) la personne d'une
-         * sélection virtuelle ; sans état du cadre, rien.
+         * Note dans l'\u00e9tat du cadre (objet du module) la personne d'une
+         * s\u00e9lection virtuelle ; sans \u00e9tat du cadre, rien.
          *
          * @param {number|null} id personne, ou null pour effacer
          * @returns {void}
@@ -2704,18 +2702,18 @@ var presentateur = (function () {
                     services.etatCadre.selectionVirtuelle = id;
                 }
             } catch (e) {
-                console.log(PREFIXE_JOURNAL + " état du cadre inaccessible : " + messageDe(e));
+                console.log(PREFIXE_JOURNAL + " \u00e9tat du cadre inaccessible : " + messageDe(e));
             }
         }
 
-        // Actions appelées par la vue ; chacune met l'état à jour puis rend la page.
+        // Actions appel\u00e9es par la vue ; chacune met l'\u00e9tat \u00e0 jour puis rend la page.
         actions = {
-            /** Relit tout le coffre (une lecture en cours s'arrête). @returns {void} */
+            /** Relit tout le coffre (une lecture en cours s'arr\u00eate). @returns {void} */
             relire: function () {
                 demarrer();
             },
             /**
-             * Recherche instantanée.
+             * Recherche instantan\u00e9e.
              * @param {string} q saisie
              * @returns {void}
              */
@@ -2724,7 +2722,7 @@ var presentateur = (function () {
                 rendre();
             },
             /**
-             * Pose ou retire le filtre d'une facette ; une clé inconnue est ignorée.
+             * Pose ou retire le filtre d'une facette ; une cl\u00e9 inconnue est ignor\u00e9e.
              * @param {string} cle facette (cercle, succursale, titre, fonction)
              * @param {string} valeur valeur retenue, regles.AUCUN, ou "" pour retirer
              * @returns {void}
@@ -2742,7 +2740,7 @@ var presentateur = (function () {
             },
             /**
              * Bascule entre grille et liste.
-             * @param {string} v « grille » ou « liste »
+             * @param {string} v \u00ab grille \u00bb ou \u00ab liste \u00bb
              * @returns {void}
              */
             changerVue: function (v) {
@@ -2777,7 +2775,7 @@ var presentateur = (function () {
                 rendre();
             },
             /**
-             * Passe à la personne précédente ou suivante, dans l'ordre affiché.
+             * Passe \u00e0 la personne pr\u00e9c\u00e9dente ou suivante, dans l'ordre affich\u00e9.
              * @param {number} sens -1 ou 1
              * @returns {void}
              */
@@ -2793,7 +2791,7 @@ var presentateur = (function () {
                     }
                 }
             },
-            /** « Vue M-Files » : rend la zone de listage au client (ShowDefaultContent). @returns {void} */
+            /** \u00ab Vue M-Files \u00bb : rend la zone de listage au client (ShowDefaultContent). @returns {void} */
             revenir: function () {
                 try {
                     services.cadre.ShowDefaultContent();
@@ -2803,21 +2801,21 @@ var presentateur = (function () {
             },
             /**
              * Montre la fiche native du collaborateur dans le volet de droite
-             * (sélection virtuelle sur l'ObjVer de la recherche).
+             * (s\u00e9lection virtuelle sur l'ObjVer de la recherche).
              * @param {number} id ID du collaborateur
              * @returns {void}
              */
             afficherDansMFiles: function (id) {
                 var ok;
 
-                // Le module, voyant ce collaborateur sélectionné, affichera son
-                // onglet sans le rendre actif : l'utilisateur a demandé la fiche M-Files
+                // Le module, voyant ce collaborateur s\u00e9lectionn\u00e9, affichera son
+                // onglet sans le rendre actif : l'utilisateur a demand\u00e9 la fiche M-Files
                 signalerSelectionVirtuelle(Number(id));
                 ok = Boolean(services.cadre) && objVers.hasOwnProperty(id) &&
                     coffre.selectionVirtuelle(services.cadre, objVers[id]);
                 if (!ok) {
                     signalerSelectionVirtuelle(null);
-                    vue.message("La fiche ne peut pas être affichée dans M-Files depuis cette fenêtre.");
+                    vue.message("La fiche ne peut pas \u00eatre affich\u00e9e dans M-Files depuis cette fen\u00eatre.");
                 }
             }
         };
@@ -2830,14 +2828,14 @@ var presentateur = (function () {
 }());
 
 /* =====================================================================
-   PRÉSENTATEUR DE L'ONGLET « TROMBINOSCOPE » (volet de droite)
+   PR\u00c9SENTATEUR DE L'ONGLET \u00ab TROMBINOSCOPE \u00bb (volet de droite)
 
-   Le module a déjà lu la fiche et la photo du collaborateur sélectionné et
-   les passe en texte JSON : la page ne lit rien du coffre, elle vérifie
-   l'accès (défense en profondeur), rend la fiche, et transforme chaque
+   Le module a d\u00e9j\u00e0 lu la fiche et la photo du collaborateur s\u00e9lectionn\u00e9 et
+   les passe en texte JSON : la page ne lit rien du coffre, elle v\u00e9rifie
+   l'acc\u00e8s (d\u00e9fense en profondeur), rend la fiche, et transforme chaque
    lien (fonction, succursale, titre, cercle, personne) en ouverture du
    trombinoscope dans la zone de listage, par le cadre que le module a
-   transmis, avec le filtre ou la fiche déjà posés. Aucune navigation de la
+   transmis, avec le filtre ou la fiche d\u00e9j\u00e0 pos\u00e9s. Aucune navigation de la
    page (docs/adr/0004).
    ===================================================================== */
 
@@ -2847,10 +2845,10 @@ var presentateurOnglet = (function () {
     var REFUS = "Cette application n'est pas disponible pour votre compte.";
 
     /**
-     * Crée le présentateur de l'onglet.
+     * Cr\u00e9e le pr\u00e9sentateur de l'onglet.
      *
      * @param {object} services { vault, cadre, etatCadre, donnees (texte JSON du module) }
-     * @param {Function} fabriqueVue reçoit les actions, rend la vue
+     * @param {Function} fabriqueVue re\u00e7oit les actions, rend la vue
      *     { rendreOnglet(modele), refuser(m), message(m) }
      * @returns {object} { demarrer, actions }
      */
@@ -2877,7 +2875,7 @@ var presentateurOnglet = (function () {
         }
 
         /**
-         * Rend la fiche, après contrôle d'accès et lecture des données.
+         * Rend la fiche, apr\u00e8s contr\u00f4le d'acc\u00e8s et lecture des donn\u00e9es.
          *
          * @returns {void}
          */
@@ -2886,7 +2884,7 @@ var presentateurOnglet = (function () {
             var modele;
 
             if (!verdict.autorise) {
-                console.log(PREFIXE_JOURNAL + " onglet non affiché : " + verdict.raison);
+                console.log(PREFIXE_JOURNAL + " onglet non affich\u00e9 : " + verdict.raison);
                 vue.refuser(REFUS);
                 return;
             }
@@ -2896,7 +2894,7 @@ var presentateurOnglet = (function () {
                 modele = null;
             }
             if (!modele || !modele.fiche || !modele.fiche.personne) {
-                console.log(PREFIXE_JOURNAL + " onglet non affiché : données du module illisibles");
+                console.log(PREFIXE_JOURNAL + " onglet non affich\u00e9 : donn\u00e9es du module illisibles");
                 vue.refuser("Fiche indisponible.");
                 return;
             }
@@ -2905,7 +2903,7 @@ var presentateurOnglet = (function () {
 
         actions = {
             /**
-             * Ouvre le trombinoscope filtré sur une valeur de la fiche.
+             * Ouvre le trombinoscope filtr\u00e9 sur une valeur de la fiche.
              * @param {string} cle facette (cercle, succursale, titre, fonction)
              * @param {string} valeur valeur
              * @returns {void}
@@ -2933,11 +2931,11 @@ var presentateurOnglet = (function () {
 }());
 
 /**
- * Point d'entrée appelé par le client à chaque affichage du tableau de
- * bord. Coffre et cadre d'abord, données ensuite : dans l'autre ordre,
- * la page démarrait sans coffre.
+ * Point d'entr\u00e9e appel\u00e9 par le client \u00e0 chaque affichage du tableau de
+ * bord. Coffre et cadre d'abord, donn\u00e9es ensuite : dans l'autre ordre,
+ * la page d\u00e9marrait sans coffre.
  *
- * @param {object} dashboard dashboard créé par le client
+ * @param {object} dashboard dashboard cr\u00e9\u00e9 par le client
  * @returns {void}
  */
 function OnNewDashboard(dashboard) {
@@ -2961,7 +2959,7 @@ function OnNewDashboard(dashboard) {
 
     // Onglet du volet de droite : la fiche vient du module, la page ne lit rien
     if (donnees.mode === "onglet") {
-        console.log(PREFIXE_JOURNAL + " version " + VERSION_PAQUET + " — onglet ouvert");
+        console.log(PREFIXE_JOURNAL + " version " + VERSION_PAQUET + " \u2014 onglet ouvert");
         presentateurOnglet.creer({
             vault: vault,
             cadre: cadreDuDashboard(dashboard, donnees),
@@ -2973,7 +2971,7 @@ function OnNewDashboard(dashboard) {
         return;
     }
 
-    console.log(PREFIXE_JOURNAL + " version " + VERSION_PAQUET + " — page ouverte");
+    console.log(PREFIXE_JOURNAL + " version " + VERSION_PAQUET + " \u2014 page ouverte");
     p = presentateur.creer({
         vault: vault,
         cadre: cadreDuDashboard(dashboard, donnees),
@@ -2986,16 +2984,16 @@ function OnNewDashboard(dashboard) {
         return rendu.creer(document, actions);
     });
 
-    // Sans coffre, le contrôle d'accès refuse (échec fermé) : la page le dit
+    // Sans coffre, le contr\u00f4le d'acc\u00e8s refuse (\u00e9chec ferm\u00e9) : la page le dit
     p.demarrer();
 }
 
 /**
  * Retrouve le cadre du client. Un objet ActiveX n'expose pas ses membres
- * à l'inspection : chaque candidat est éprouvé en LISANT une propriété.
+ * \u00e0 l'inspection : chaque candidat est \u00e9prouv\u00e9 en LISANT une propri\u00e9t\u00e9.
  *
  * @param {object} dashboard dashboard
- * @param {object} donnees données du module
+ * @param {object} donnees donn\u00e9es du module
  * @returns {object|null} cadre
  */
 function cadreDuDashboard(dashboard, donnees) {
@@ -3011,7 +3009,7 @@ function cadreDuDashboard(dashboard, donnees) {
     for (i = 0; i < voies.length; i += 1) {
         try {
             candidat = voies[i]();
-            // Lecture d'une propriété : lève si ce n'est pas un cadre.
+            // Lecture d'une propri\u00e9t\u00e9 : l\u00e8ve si ce n'est pas un cadre.
             if (candidat && typeof candidat.CurrentPath !== "undefined") {
                 return candidat;
             }

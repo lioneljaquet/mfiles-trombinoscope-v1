@@ -32,5 +32,5 @@ Vocabulaire du domaine, partagé par le code, les tests et la documentation.
   collaborateur seul de l'annuaire ; il porte la fiche, la **photo** et des **liens** qui ouvrent le trombinoscope
   filtré (docs/adr/0007).
 - **Photo** : l'image du document « !! Photo collaborateur » le plus récent qui soit affichable (JPEG, PNG, GIF, BMP,
-  4 Mo au plus), lue en mémoire en URI data: (docs/adr/0008).
+  sans plafond de taille), lue en mémoire en URI data: (docs/adr/0008).
 - **Vue M-Files** : le bouton qui rend la zone de listage au client (ShowDefaultContent).

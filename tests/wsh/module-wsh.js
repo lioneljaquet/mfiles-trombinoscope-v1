@@ -9,10 +9,12 @@
    un membre qui sélectionne un collaborateur (onglet et photo), un
    non-membre (ni commande ni onglet). Il écrit « OK » ou « ECHEC : … ».
 
-   Usage : cscript //nologo //E:jscript tests\wsh\module-wsh.js <dossier src>
+   Usage : cscript //nologo //E:jscript tests\wsh\module-wsh.js <dossier> [jeu de caractères]
+   (par défaut windows-1252 : la façon dont le client lit un script sans BOM)
    ===================================================================== */
 
 var RACINE = WScript.Arguments.Item(0);
+var JEU = WScript.Arguments.length > 1 ? WScript.Arguments.Item(1) : "windows-1252";
 var FICHIERS = ["model/compat.js", "model/parametrage.js", "model/acces.js", "model/regles.js",
     "model/vault-com.js", "model/portraits.js", "presenter/onglet.js", "presenter/shellui.js"];
 
@@ -33,7 +35,7 @@ function lire(chemin) {
     var flux = new ActiveXObject("ADODB.Stream");
     var texte;
     flux.Type = 2;
-    flux.Charset = "utf-8";
+    flux.Charset = JEU;
     flux.Open();
     flux.LoadFromFile(chemin);
     texte = flux.ReadText();
@@ -75,7 +77,9 @@ var OBJETS = [
     { type: 362, id: 500, titre: "tebicom SA", props: { 2926: val(10, [{ id: 501, nom: "INFRA" }]) } },
     { type: 362, id: 501, titre: "INFRA", props: {} },
     { type: 0, id: 900, titre: "Photo", props: { 100: val(9, { id: 88, nom: "!! Photo collaborateur" }),
-        1077: val(9, { id: 1, nom: "x" }) }, fichiers: [{ id: 30, version: 1, extension: "jpg", taille: 1000 }] }
+        1077: val(9, { id: 1, nom: "x" }) }, fichiers: [{ id: 30, version: 1, extension: "jpg", taille: 1000 }] },
+    { type: 0, id: 901, titre: "Photo PDF", props: { 100: val(9, { id: 88, nom: "!! Photo collaborateur" }),
+        1077: val(9, { id: 2, nom: "x" }) }, fichiers: [{ id: 31, version: 1, extension: "pdf", taille: 1000 }] }
 ];
 
 /**
@@ -308,6 +312,13 @@ try {
         verifier(d.photo.dataUri === "data:image/jpeg;base64,QUJD", "membre : photo absente");
         verifier(o.donnees.donnees.indexOf("POISON") < 0, "membre : donnée hors liste blanche");
     }
+
+    // Accents : la note du portrait PDF, construite par le module, doit arriver intacte
+    // (texte attendu écrit en échappements : ce fichier-ci est lu en ANSI par cscript)
+    membre.j.selection({ ObjectVersions: collection([{ ObjVer: { Type: 104, ID: 2, Version: 1 } }]) });
+    var d2 = eval("(" + membre.j.onglets[0].donnees.donnees + ")");
+    verifier(d2.photo.note === "Portrait non affich\u00e9 : format PDF non pris en charge.",
+        "accents : note inattendue (" + d2.photo.note + ")");
 
     var autre = demarrer(false);
     verifier(autre.j.commandes === 0, "non-membre : commande créée");

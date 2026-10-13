@@ -1,21 +1,21 @@
 /* exported onglet */
 /* =====================================================================
-   ONGLET « TROMBINOSCOPE » DU VOLET DE DROITE — présentateur du module
-   (UIX v1, moteur JScript du module : ES5 grâce à model/compat.js)
+   ONGLET \u00ab TROMBINOSCOPE \u00bb DU VOLET DE DROITE \u2014 pr\u00e9sentateur du module
+   (UIX v1, moteur JScript du module : ES5 gr\u00e2ce \u00e0 model/compat.js)
 
-   Quand la sélection du listing est UN objet Collaborateur d'une personne
-   du trombinoscope (étape listée et cercle de l'organisation, mêmes règles
+   Quand la s\u00e9lection du listing est UN objet Collaborateur d'une personne
+   du trombinoscope (\u00e9tape list\u00e9e et cercle de l'organisation, m\u00eames r\u00e8gles
    que la page), le module affiche dans le volet de droite un onglet qui
    porte sa fiche et sa photo, et le rend actif ; sinon il le masque.
 
-   Règles v1 suivies (skill m-files-ui-ext-v1) :
-   - seul le module règle la visibilité de l'onglet qu'il a créé ; la page
+   R\u00e8gles v1 suivies (skill m-files-ui-ext-v1) :
+   - seul le module r\u00e8gle la visibilit\u00e9 de l'onglet qu'il a cr\u00e9\u00e9 ; la page
      de l'onglet n'y touche jamais (dashboard.Parent = volet entier) ;
-   - un état par cadre (onglet, dernière personne, cache des photos) ;
-   - un cadre sans volet droit (boîte de dialogue) est toléré ;
+   - un \u00e9tat par cadre (onglet, derni\u00e8re personne, cache des photos) ;
+   - un cadre sans volet droit (bo\u00eete de dialogue) est tol\u00e9r\u00e9 ;
    - lectures COM synchrones : le module n'a pas de setTimeout. L'annuaire
-     est lu une fois pour la session (ShellUI) et gardé DUREE_ANNUAIRE ;
-     chaque sélection ne lit ensuite que les documents de portrait.
+     est lu une fois pour la session (ShellUI) et gard\u00e9 DUREE_ANNUAIRE ;
+     chaque s\u00e9lection ne lit ensuite que les documents de portrait.
    ===================================================================== */
 
 var onglet = (function () {
@@ -23,11 +23,11 @@ var onglet = (function () {
 
     var ID_ONGLET = "trombinoscope-fiche";
     var TITRE_ONGLET = "Trombinoscope";
-    // Durée de validité de l'annuaire lu par le module (ms)
+    // Dur\u00e9e de validit\u00e9 de l'annuaire lu par le module (ms)
     var DUREE_ANNUAIRE = 10 * 60 * 1000;
 
     /**
-     * Journalise avec le préfixe de l'application.
+     * Journalise avec le pr\u00e9fixe de l'application.
      *
      * @param {string} message texte
      * @returns {void}
@@ -36,7 +36,7 @@ var onglet = (function () {
         try {
             console.log(PREFIXE_JOURNAL + " " + message);
         } catch (e) {
-            // Console absente : rien à faire.
+            // Console absente : rien \u00e0 faire.
         }
     }
 
@@ -51,10 +51,10 @@ var onglet = (function () {
     }
 
     /**
-     * Annuaire de la session : lu en entier (comme la page) à la première
-     * sélection d'un collaborateur, puis gardé DUREE_ANNUAIRE.
+     * Annuaire de la session : lu en entier (comme la page) \u00e0 la premi\u00e8re
+     * s\u00e9lection d'un collaborateur, puis gard\u00e9 DUREE_ANNUAIRE.
      *
-     * @param {object} session état partagé du ShellUI { annuaire, luA }
+     * @param {object} session \u00e9tat partag\u00e9 du ShellUI { annuaire, luA }
      * @param {object} vault coffre COM
      * @returns {object} annuaire (regles.construireAnnuaire)
      */
@@ -95,9 +95,9 @@ var onglet = (function () {
     }
 
     /**
-     * ObjVer du collaborateur seul sélectionné, ou null.
+     * ObjVer du collaborateur seul s\u00e9lectionn\u00e9, ou null.
      *
-     * @param {object} selection éléments sélectionnés (ShellItems)
+     * @param {object} selection \u00e9l\u00e9ments s\u00e9lectionn\u00e9s (ShellItems)
      * @returns {object|null} ObjVer
      */
     function collaborateurSeul(selection) {
@@ -117,8 +117,8 @@ var onglet = (function () {
     }
 
     /**
-     * Crée l'onglet, position « _last » puis « _home » (squelette du skill,
-     * d'après le Project Dashboard v1).
+     * Cr\u00e9e l'onglet, position \u00ab _last \u00bb puis \u00ab _home \u00bb (squelette du skill,
+     * d'apr\u00e8s le Project Dashboard v1).
      *
      * @param {object} volet RightPane
      * @returns {object} onglet
@@ -134,7 +134,7 @@ var onglet = (function () {
     /**
      * Masque l'onglet de ce cadre, s'il existe.
      *
-     * @param {object} etat état du cadre
+     * @param {object} etat \u00e9tat du cadre
      * @returns {void}
      */
     function masquer(etat) {
@@ -143,16 +143,16 @@ var onglet = (function () {
             try {
                 etat.onglet.Visible = false;
             } catch (e) {
-                journal("onglet non masqué : " + messageDe(e));
+                journal("onglet non masqu\u00e9 : " + messageDe(e));
             }
         }
     }
 
     /**
-     * Réagit à une sélection : affiche (et active) ou masque l'onglet.
+     * R\u00e9agit \u00e0 une s\u00e9lection : affiche (et active) ou masque l'onglet.
      *
      * @param {object} contexte { shellFrame, etat, session, vault }
-     * @param {object} selection éléments sélectionnés
+     * @param {object} selection \u00e9l\u00e9ments s\u00e9lectionn\u00e9s
      * @returns {void}
      */
     function surSelection(contexte, selection) {
@@ -166,15 +166,15 @@ var onglet = (function () {
             masquer(etat);
             return;
         }
-        // Même personne déjà affichée (fiche enregistrée, liste rafraîchie) :
-        // rien à relire, et surtout pas de vol du focus
+        // M\u00eame personne d\u00e9j\u00e0 affich\u00e9e (fiche enregistr\u00e9e, liste rafra\u00eechie) :
+        // rien \u00e0 relire, et surtout pas de vol du focus
         if (etat.ongletId === ov.ID) {
             return;
         }
         try {
             fiche = regles.ficheDe(annuaireDe(contexte.session, contexte.vault), ov.ID);
         } catch (e) {
-            journal("onglet non affiché : " + messageDe(e));
+            journal("onglet non affich\u00e9 : " + messageDe(e));
             masquer(etat);
             return;
         }
@@ -199,23 +199,23 @@ var onglet = (function () {
                 donnees: compat.versJson({ fiche: fiche, photo: photo })
             });
             // Onglet actif, sauf quand l'utilisateur vient de demander la
-            // fiche M-Files depuis le trombinoscope (sélection virtuelle)
+            // fiche M-Files depuis le trombinoscope (s\u00e9lection virtuelle)
             if (!virtuelle) {
                 etat.onglet.Select();
             }
             etat.ongletId = ov.ID;
         } catch (e) {
-            journal("onglet non affiché : " + messageDe(e));
+            journal("onglet non affich\u00e9 : " + messageDe(e));
             masquer(etat);
         }
     }
 
     /**
-     * Suit la sélection du listing de ce cadre.
+     * Suit la s\u00e9lection du listing de ce cadre.
      *
      * @param {object} shellFrame cadre du client
-     * @param {object} etat état de ce cadre
-     * @param {object} session état partagé du ShellUI
+     * @param {object} etat \u00e9tat de ce cadre
+     * @param {object} session \u00e9tat partag\u00e9 du ShellUI
      * @param {object} vault coffre COM
      * @returns {void}
      */
@@ -231,7 +231,7 @@ var onglet = (function () {
                 surSelection(contexte, selection);
             });
         } catch (e) {
-            journal("sélection non suivie : " + messageDe(e));
+            journal("s\u00e9lection non suivie : " + messageDe(e));
         }
     }
 

@@ -1,31 +1,31 @@
 /* exported rendu */
 /* =====================================================================
-   RENDU DE LA PAGE — couche view (ES5, contrôle web IE11)
+   RENDU DE LA PAGE \u2014 couche view (ES5, contr\u00f4le web IE11)
 
-   Vue pure : elle reçoit du présentateur un modèle prêt (personnes déjà
-   filtrées et triées, effectifs, fiche) et construit le DOM avec
+   Vue pure : elle re\u00e7oit du pr\u00e9sentateur un mod\u00e8le pr\u00eat (personnes d\u00e9j\u00e0
+   filtr\u00e9es et tri\u00e9es, effectifs, fiche) et construit le DOM avec
    createElement et textContent seulement : un nom ou un titre venu de
-   M-Files ne peut pas injecter de HTML. Les éléments portent des
-   attributs data-* que des écouteurs délégués traduisent en actions.
-   Aucune règle métier ici, aucun accès au coffre.
+   M-Files ne peut pas injecter de HTML. Les \u00e9l\u00e9ments portent des
+   attributs data-* que des \u00e9couteurs d\u00e9l\u00e9gu\u00e9s traduisent en actions.
+   Aucune r\u00e8gle m\u00e9tier ici, aucun acc\u00e8s au coffre.
    ===================================================================== */
 
 var rendu = (function () {
     "use strict";
 
-    // Délai de saisie avant de relancer la recherche (ms)
+    // D\u00e9lai de saisie avant de relancer la recherche (ms)
     var DELAI_RECHERCHE = 120;
-    // Durée d'affichage d'un message (ms)
+    // Dur\u00e9e d'affichage d'un message (ms)
     var DUREE_MESSAGE = 5000;
-    // Seule image acceptée pour un portrait : une URI data: d'un type affichable
+    // Seule image accept\u00e9e pour un portrait : une URI data: d'un type affichable
     var MOTIF_PHOTO = /^data:image\/(jpeg|png|gif|bmp);base64,[A-Za-z0-9+\/=\r\n]+$/;
 
     /**
-     * Crée la vue d'une page.
+     * Cr\u00e9e la vue d'une page.
      *
      * @param {object} doc document de la page
-     * @param {object} actions actions du présentateur
-     * @param {string} [mode] « onglet » pour l'onglet du volet de droite
+     * @param {object} actions actions du pr\u00e9sentateur
+     * @param {string} [mode] \u00ab onglet \u00bb pour l'onglet du volet de droite
      * @returns {object} { progression, erreur, refuser, rendre, rendreOnglet, message }
      */
     function creer(doc, actions, mode) {
@@ -37,12 +37,12 @@ var rendu = (function () {
         var ficheOuverte = false;
 
         /**
-         * Crée un élément.
+         * Cr\u00e9e un \u00e9l\u00e9ment.
          *
          * @param {string} balise nom de la balise
          * @param {object} [options] { classe, texte, attrs }
-         * @param {Array} [enfants] nœuds ou textes (null ignorés)
-         * @returns {object} élément
+         * @param {Array} [enfants] n\u0153uds ou textes (null ignor\u00e9s)
+         * @returns {object} \u00e9l\u00e9ment
          */
         function el(balise, options, enfants) {
             var e = doc.createElement(balise);
@@ -72,9 +72,9 @@ var rendu = (function () {
         }
 
         /**
-         * Vide un élément.
+         * Vide un \u00e9l\u00e9ment.
          *
-         * @param {object} e élément
+         * @param {object} e \u00e9l\u00e9ment
          * @returns {void}
          */
         function vider(e) {
@@ -87,7 +87,7 @@ var rendu = (function () {
          * Ajoute ou retire une classe (IE11 : classList partiel, on passe
          * par className).
          *
-         * @param {object} e élément
+         * @param {object} e \u00e9l\u00e9ment
          * @param {string} classe classe
          * @param {boolean} presente vrai pour l'ajouter
          * @returns {void}
@@ -98,11 +98,11 @@ var rendu = (function () {
         }
 
         /**
-         * Avatar à trigramme, teinté par la personne.
+         * Avatar \u00e0 trigramme, teint\u00e9 par la personne.
          *
          * @param {object} p personne (trigramme, teinte)
-         * @param {string} [taille] « petit » ou « grand »
-         * @returns {object} élément
+         * @param {string} [taille] \u00ab petit \u00bb ou \u00ab grand \u00bb
+         * @returns {object} \u00e9l\u00e9ment
          */
         function avatar(p, taille) {
             var a = el("span", { classe: "avatar" + (taille ? " " + taille : ""), texte: p.trigramme,
@@ -114,10 +114,10 @@ var rendu = (function () {
         }
 
         /**
-         * Nom en deux temps : prénom léger, nom de famille en gras.
+         * Nom en deux temps : pr\u00e9nom l\u00e9ger, nom de famille en gras.
          *
          * @param {object} p personne
-         * @returns {object} élément
+         * @returns {object} \u00e9l\u00e9ment
          */
         function nom(p) {
             return el("span", { classe: "nom" }, [
@@ -127,10 +127,10 @@ var rendu = (function () {
         }
 
         /**
-         * Fonctions courtes d'une personne, puis « +n ».
+         * Fonctions courtes d'une personne, puis \u00ab +n \u00bb.
          *
          * @param {object} p personne
-         * @returns {object|null} élément, ou null sans fonction
+         * @returns {object|null} \u00e9l\u00e9ment, ou null sans fonction
          */
         function fonctions(p) {
             if (!p.fonctions.length) {
@@ -145,9 +145,9 @@ var rendu = (function () {
         /**
          * Grille de cartes.
          *
-         * @param {Array} personnes personnes affichées
+         * @param {Array} personnes personnes affich\u00e9es
          * @param {number|null} ouverte ID de la fiche ouverte
-         * @returns {object} élément
+         * @returns {object} \u00e9l\u00e9ment
          */
         function grille(personnes, ouverte) {
             return el("div", { classe: "grille" }, personnes.map(function (p) {
@@ -160,7 +160,7 @@ var rendu = (function () {
                     el("span", { classe: "carte-haut" }, [avatar(p), nom(p)]),
                     p.titre ? el("span", { classe: "titre", texte: p.titre }) : null,
                     p.cercle ? el("span", { classe: "badge-cercle", texte: p.cercle }) : null,
-                    el("span", { classe: "meta", texte: [p.succursale, p.trigramme].filter(function (x) { return x; }).join(" · ") }),
+                    el("span", { classe: "meta", texte: [p.succursale, p.trigramme].filter(function (x) { return x; }).join(" \u00b7 ") }),
                     fonctions(p)
                 ]);
             }));
@@ -169,9 +169,9 @@ var rendu = (function () {
         /**
          * Liste en tableau, colonnes triables.
          *
-         * @param {Array} personnes personnes affichées
-         * @param {object} modele modèle (tri, fiche)
-         * @returns {object} élément
+         * @param {Array} personnes personnes affich\u00e9es
+         * @param {object} modele mod\u00e8le (tri, fiche)
+         * @returns {object} \u00e9l\u00e9ment
          */
         function liste(personnes, modele) {
             var ouverte = modele.fiche ? modele.fiche.personne.id : null;
@@ -180,12 +180,12 @@ var rendu = (function () {
                     classe: modele.affichage.tri === tri ? "est-actif" : "", texte: libelle,
                     attrs: { type: "button", "data-tri": tri } }) : libelle]);
             };
-            var tiret = "–";
+            var tiret = "\u2013";
 
             return el("table", { classe: "tableau" }, [
                 el("thead", {}, [el("tr", {}, [
                     entete("Nom", "nom"), entete("Titre", "titre"), entete("Fonctions"),
-                    entete("Succursale", "succursale"), entete("Cercle/rôle", "cercle"), entete("Trigramme"),
+                    entete("Succursale", "succursale"), entete("Cercle/r\u00f4le", "cercle"), entete("Trigramme"),
                     entete("Responsable"), entete("E-mail")
                 ])]),
                 el("tbody", {}, personnes.map(function (p) {
@@ -209,7 +209,7 @@ var rendu = (function () {
          * Puce cliquable d'une personne.
          *
          * @param {object} p personne
-         * @returns {object} élément
+         * @returns {object} \u00e9l\u00e9ment
          */
         function pucePersonne(p) {
             return el("button", { classe: "puce-personne", attrs: { type: "button", "data-personne": p.id } },
@@ -222,7 +222,7 @@ var rendu = (function () {
          * @param {string} cle facette
          * @param {string} valeur valeur du filtre
          * @param {string} libelle texte
-         * @returns {object} élément
+         * @returns {object} \u00e9l\u00e9ment
          */
         function boutonFiltre(cle, valeur, libelle) {
             return el("button", { classe: "bouton-filtre", texte: libelle,
@@ -232,12 +232,12 @@ var rendu = (function () {
 
         /**
          * Grand avatar, avec la photo par-dessus quand il y en a une. La
-         * photo est un fond (background-size: cover) : IE11 ne connaît pas
+         * photo est un fond (background-size: cover) : IE11 ne conna\u00eet pas
          * object-fit ; si elle ne se charge pas, le trigramme reste visible.
          *
          * @param {object} p personne
-         * @param {object|null} photo { dataUri, note } passée par le module
-         * @returns {object} élément
+         * @param {object|null} photo { dataUri, note } pass\u00e9e par le module
+         * @returns {object} \u00e9l\u00e9ment
          */
         function avatarAvecPhoto(p, photo) {
             var a = avatar(p, "grand");
@@ -252,16 +252,16 @@ var rendu = (function () {
         }
 
         /**
-         * Contenu de la fiche (volet latéral du tableau de bord, ou onglet).
+         * Contenu de la fiche (volet lat\u00e9ral du tableau de bord, ou onglet).
          *
-         * @param {object} f fiche du modèle
+         * @param {object} f fiche du mod\u00e8le
          * @param {object} [photo] { dataUri, note }, onglet seulement
-         * @returns {Array} éléments
+         * @returns {Array} \u00e9l\u00e9ments
          */
         function contenuFiche(f, photo) {
             var p = f.personne;
             var faits = [];
-            var plus = p.tailleEquipe > f.equipe.length ? " · " + p.tailleEquipe + " au total" : "";
+            var plus = p.tailleEquipe > f.equipe.length ? " \u00b7 " + p.tailleEquipe + " au total" : "";
 
             if (p.fonctions.length) {
                 faits.push(["Fonctions", p.fonctions.map(function (x) { return boutonFiltre("fonction", x, x); })]);
@@ -270,28 +270,28 @@ var rendu = (function () {
                 faits.push(["Succursale", [boutonFiltre("succursale", p.succursale, p.succursale)]]);
             }
             if (p.cercle) {
-                // Filtrable seulement s'il est un cercle de l'organisation (un rôle n'a pas de filtre)
-                faits.push(["Cercle/rôle principal", [p.cercleFiltrable ?
+                // Filtrable seulement s'il est un cercle de l'organisation (un r\u00f4le n'a pas de filtre)
+                faits.push(["Cercle/r\u00f4le principal", [p.cercleFiltrable ?
                     boutonFiltre("cercle", String(p.cercleId), p.cercle) :
                     el("span", { classe: "badge-cercle", texte: p.cercle })]]);
             }
             if (p.email) {
-                // Texte à sélectionner, sans lien mailto: : le tableau de bord refuse de naviguer
-                // vers un autre schéma que le sien (boîte d'erreur du client, docs/adr/0004)
+                // Texte \u00e0 s\u00e9lectionner, sans lien mailto: : le tableau de bord refuse de naviguer
+                // vers un autre sch\u00e9ma que le sien (bo\u00eete d'erreur du client, docs/adr/0004)
                 faits.push(["E-mail", [el("span", { classe: "email", texte: p.email })]]);
             }
             if (p.cerclesEtRoles.length) {
-                faits.push(["Cercles et rôles (" + p.cerclesEtRoles.length + ")", p.cerclesEtRoles.map(function (c) {
+                faits.push(["Cercles et r\u00f4les (" + p.cerclesEtRoles.length + ")", p.cerclesEtRoles.map(function (c) {
                     return c.estCercle ? boutonFiltre("cercle", String(c.id), c.nom) :
                         el("span", { classe: "role" + (c.horsOrganisation ? " hors-organisation" : ""), texte: c.nom,
-                            attrs: { title: c.horsOrganisation ? "Hors organisation" : "Rôle" } });
+                            attrs: { title: c.horsOrganisation ? "Hors organisation" : "R\u00f4le" } });
                 })]);
             }
             if (f.responsable) {
                 faits.push(["Responsable", [pucePersonne(f.responsable)]]);
             }
             if (f.equipe.length) {
-                faits.push(["Équipe directe (" + f.equipe.length + plus + ")", f.equipe.map(pucePersonne)]);
+                faits.push(["\u00c9quipe directe (" + f.equipe.length + plus + ")", f.equipe.map(pucePersonne)]);
             }
 
             return [
@@ -311,7 +311,7 @@ var rendu = (function () {
                 el("div", { classe: "fiche-actions" }, [
                     f.dansMFiles ? el("button", { classe: "bouton bouton-primaire", texte: "Afficher la fiche M-Files",
                         attrs: { type: "button", "data-action": "mfiles", "data-id": p.id,
-                            title: "Affiche les propriétés du collaborateur dans le volet de droite du client" } }) : null
+                            title: "Affiche les propri\u00e9t\u00e9s du collaborateur dans le volet de droite du client" } }) : null
                 ])
             ];
         }
@@ -319,9 +319,9 @@ var rendu = (function () {
         /**
          * Pastilles de filtre par cercle.
          *
-         * @param {object} f facette cercle du modèle
+         * @param {object} f facette cercle du mod\u00e8le
          * @param {string|null} courant filtre courant
-         * @param {string} aucun valeur « sans cercle »
+         * @param {string} aucun valeur \u00ab sans cercle \u00bb
          * @returns {Array} boutons
          */
         function pastilles(f, courant, aucun) {
@@ -339,13 +339,13 @@ var rendu = (function () {
         }
 
         /**
-         * Remplit une liste déroulante de facette sans la recréer (le
-         * focus reste) ; IE11 gère mal innerHTML sur un select.
+         * Remplit une liste d\u00e9roulante de facette sans la recr\u00e9er (le
+         * focus reste) ; IE11 g\u00e8re mal innerHTML sur un select.
          *
-         * @param {object} select élément select
-         * @param {object} f facette du modèle
+         * @param {object} select \u00e9l\u00e9ment select
+         * @param {object} f facette du mod\u00e8le
          * @param {string|null} courant valeur retenue
-         * @param {string} aucun valeur « sans valeur »
+         * @param {string} aucun valeur \u00ab sans valeur \u00bb
          * @returns {void}
          */
         function remplirSelect(select, f, courant, aucun) {
@@ -365,9 +365,9 @@ var rendu = (function () {
         }
 
         /**
-         * Rend toute la page à partir du modèle.
+         * Rend toute la page \u00e0 partir du mod\u00e8le.
          *
-         * @param {object} m modèle du présentateur
+         * @param {object} m mod\u00e8le du pr\u00e9sentateur
          * @returns {void}
          */
         function rendre(m) {
@@ -399,7 +399,7 @@ var rendu = (function () {
             vider(resultats);
             if (!m.personnes.length) {
                 resultats.appendChild(el("div", { classe: "vide" }, [
-                    el("h2", { texte: m.etat.q ? "Aucun résultat pour « " + m.etat.q + " »" : "Aucun résultat" }),
+                    el("h2", { texte: m.etat.q ? "Aucun r\u00e9sultat pour \u00ab " + m.etat.q + " \u00bb" : "Aucun r\u00e9sultat" }),
                     el("p", { texte: "Essayez un autre nom, une fonction ou un trigramme." }),
                     el("button", { classe: "bouton bouton-secondaire", texte: "Effacer la recherche et les filtres",
                         attrs: { type: "button", "data-action": "reinitialiser" } })
@@ -451,15 +451,15 @@ var rendu = (function () {
         /**
          * Progression de la lecture du coffre.
          *
-         * @param {string} texte étape en cours
-         * @param {number} fait éléments lus
-         * @param {number} total éléments à lire (0 : inconnu)
+         * @param {string} texte \u00e9tape en cours
+         * @param {number} fait \u00e9l\u00e9ments lus
+         * @param {number} total \u00e9l\u00e9ments \u00e0 lire (0 : inconnu)
          * @returns {void}
          */
         function progression(texte, fait, total) {
             basculer($("erreur"), "est-visible", false);
             basculer($("progression"), "est-visible", true);
-            $("progressionTexte").textContent = total ? texte + " : " + fait + " sur " + total + "…" : texte;
+            $("progressionTexte").textContent = total ? texte + " : " + fait + " sur " + total + "\u2026" : texte;
             $("progressionBarre").style.width = (total ? Math.round(100 * fait / total) : 0) + "%";
         }
 
@@ -476,7 +476,7 @@ var rendu = (function () {
         }
 
         /**
-         * Refus d'accès : message neutre, sans recherche, filtres ni
+         * Refus d'acc\u00e8s : message neutre, sans recherche, filtres ni
          * annuaire.
          *
          * @param {string} texte message
@@ -488,7 +488,7 @@ var rendu = (function () {
             basculer(doc.body.firstElementChild || $("controles").parentNode, "est-refusee", true);
             vider($("resultats"));
             basculer($("fiche"), "est-ouverte", false);
-            // Rien de l'annuaire ne reste à l'écran : ni compteur, ni bandeau
+            // Rien de l'annuaire ne reste \u00e0 l'\u00e9cran : ni compteur, ni bandeau
             $("compteur").textContent = "";
             $("bandeau").textContent = "";
             $("refusTexte").textContent = texte;
@@ -511,11 +511,11 @@ var rendu = (function () {
         }
 
         /**
-         * Premier ancêtre (ou l'élément) qui porte un attribut.
+         * Premier anc\u00eatre (ou l'\u00e9l\u00e9ment) qui porte un attribut.
          *
-         * @param {object} e élément de départ
+         * @param {object} e \u00e9l\u00e9ment de d\u00e9part
          * @param {string} attribut nom de l'attribut
-         * @returns {object|null} élément trouvé
+         * @returns {object|null} \u00e9l\u00e9ment trouv\u00e9
          */
         function porteur(e, attribut) {
             while (e && e.getAttribute) {
@@ -528,7 +528,7 @@ var rendu = (function () {
         }
 
         /**
-         * Lance la recherche si la saisie a changé, après un court délai.
+         * Lance la recherche si la saisie a chang\u00e9, apr\u00e8s un court d\u00e9lai.
          *
          * @returns {void}
          */
@@ -543,7 +543,7 @@ var rendu = (function () {
             }, DELAI_RECHERCHE);
         }
 
-        // ---- Écouteurs (posés une fois, délégués) ----------------------
+        // ---- \u00c9couteurs (pos\u00e9s une fois, d\u00e9l\u00e9gu\u00e9s) ----------------------
 
         $("version").textContent = "v" + VERSION_PAQUET;
         if (mode === "onglet") {

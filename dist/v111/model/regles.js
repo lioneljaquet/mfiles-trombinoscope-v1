@@ -1,59 +1,59 @@
 /* exported regles */
 /* =====================================================================
-   RÈGLES DU TROMBINOSCOPE — couche model, pure (ES5)
+   R\u00c8GLES DU TROMBINOSCOPE \u2014 couche model, pure (ES5)
 
-   Des fiches Collaborateur et des objets Cercle/rôle déjà réduits à la
+   Des fiches Collaborateur et des objets Cercle/r\u00f4le d\u00e9j\u00e0 r\u00e9duits \u00e0 la
    liste blanche (vault-com.js), ce module construit l'annuaire que la
    page affiche, puis filtre, cherche et trie.
 
-   Population limitée comme l'export autonome du Cockpit (ADR 0013 du
-   Cockpit, docs/adr/0005) : seules les personnes rattachées à un cercle
-   de l'organisation ; l'étape de workflow ne sert qu'à l'inclusion et
-   n'apparaît nulle part (ni clé, ni filtre, ni tri) ; un responsable
-   exclu est remplacé par le premier responsable retenu au-dessus. Aucun DOM, aucun accès au
-   coffre : tout ce qui se teste sans M-Files est ici. Règles reprises du
+   Population limit\u00e9e comme l'export autonome du Cockpit (ADR 0013 du
+   Cockpit, docs/adr/0005) : seules les personnes rattach\u00e9es \u00e0 un cercle
+   de l'organisation ; l'\u00e9tape de workflow ne sert qu'\u00e0 l'inclusion et
+   n'appara\u00eet nulle part (ni cl\u00e9, ni filtre, ni tri) ; un responsable
+   exclu est remplac\u00e9 par le premier responsable retenu au-dessus. Aucun DOM, aucun acc\u00e8s au
+   coffre : tout ce qui se teste sans M-Files est ici. R\u00e8gles reprises du
    Cockpit PRO (model/directory.py, model/organization.py,
    model/titles.py, trombinoscope/model/directory.js).
 
-   ES5 strict : le contrôle web du client classique est IE11. Pas de
+   ES5 strict : le contr\u00f4le web du client classique est IE11. Pas de
    String.prototype.normalize : le repli des accents passe par une table.
    ===================================================================== */
 
 var regles = (function () {
     "use strict";
 
-    // Fiche modèle de M-Files : un collaborateur « actif » qui n'est pas une personne
+    // Fiche mod\u00e8le de M-Files : un collaborateur \u00ab actif \u00bb qui n'est pas une personne
     var INITIALES_MODELE = "ZZZ";
     var PREFIXE_MODELE = "_";
     // Particules d'un nom de famille : elles ne donnent pas la lettre du monogramme
     var PARTICULES = ["de", "du", "des", "van", "von", "der", "den", "da", "das", "di", "dos", "del",
         "della", "le", "la", "el", "al", "ten", "ter", "zu"];
-    // Écart de teinte entre deux ID : l'angle d'or répartit les couleurs sans cycle visible
+    // \u00c9cart de teinte entre deux ID : l'angle d'or r\u00e9partit les couleurs sans cycle visible
     var PAS_TEINTE = 137.508;
     // Adresse simple : rien qui plie un lien mailto: (? & % # /) ni qui en cumule plusieurs (; , espace).
-    // Les segments du domaine sont séparés par des points obligatoires : pas de retour arrière
-    // exponentiel ; la longueur est de plus bornée avant le test (LONGUEUR_EMAIL).
+    // Les segments du domaine sont s\u00e9par\u00e9s par des points obligatoires : pas de retour arri\u00e8re
+    // exponentiel ; la longueur est de plus born\u00e9e avant le test (LONGUEUR_EMAIL).
     var LONGUEUR_EMAIL = 254;
     // eslint-disable-next-line security/detect-unsafe-regex
     var MOTIF_EMAIL = /^[A-Za-z0-9._+'-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
-    // Trois lettres exactement (latin étendu, sans × ni ÷)
+    // Trois lettres exactement (latin \u00e9tendu, sans \u00d7 ni \u00f7)
     var MOTIF_TRIGRAMME = /^[A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u024F]{3}$/;
-    // Une lettre, pour la casse des noms (mêmes plages)
+    // Une lettre, pour la casse des noms (m\u00eames plages)
     var MOTIF_LETTRE = /[A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u024F]/;
 
-    // Repli des accents : chaque lettre accentuée vers sa base, en minuscules
+    // Repli des accents : chaque lettre accentu\u00e9e vers sa base, en minuscules
     var TABLE_REPLI = construireTableRepli({
-        a: "àáâãäåāăą", c: "çćĉċč", d: "ďđ", e: "èéêëēĕėęě", g: "ĝğġģ", h: "ĥħ",
-        i: "ìíîïĩīĭįı", j: "ĵ", k: "ķ", l: "ĺļľŀł", n: "ñńņňŉ", o: "òóôõöøōŏő",
-        r: "ŕŗř", s: "śŝşš", t: "ţťŧ", u: "ùúûüũūŭůűų", w: "ŵ", y: "ýÿŷ", z: "źżž",
-        ae: "æ", oe: "œ", ss: "ß"
+        a: "\u00e0\u00e1\u00e2\u00e3\u00e4\u00e5\u0101\u0103\u0105", c: "\u00e7\u0107\u0109\u010b\u010d", d: "\u010f\u0111", e: "\u00e8\u00e9\u00ea\u00eb\u0113\u0115\u0117\u0119\u011b", g: "\u011d\u011f\u0121\u0123", h: "\u0125\u0127",
+        i: "\u00ec\u00ed\u00ee\u00ef\u0129\u012b\u012d\u012f\u0131", j: "\u0135", k: "\u0137", l: "\u013a\u013c\u013e\u0140\u0142", n: "\u00f1\u0144\u0146\u0148\u0149", o: "\u00f2\u00f3\u00f4\u00f5\u00f6\u00f8\u014d\u014f\u0151",
+        r: "\u0155\u0157\u0159", s: "\u015b\u015d\u015f\u0161", t: "\u0163\u0165\u0167", u: "\u00f9\u00fa\u00fb\u00fc\u0169\u016b\u016d\u016f\u0171\u0173", w: "\u0175", y: "\u00fd\u00ff\u0177", z: "\u017a\u017c\u017e",
+        ae: "\u00e6", oe: "\u0153", ss: "\u00df"
     });
 
     /**
-     * Construit la table de repli lettre accentuée → base.
+     * Construit la table de repli lettre accentu\u00e9e \u2192 base.
      *
-     * @param {object} groupes base → lettres accentuées qui s'y replient
-     * @returns {object} lettre accentuée → base
+     * @param {object} groupes base \u2192 lettres accentu\u00e9es qui s'y replient
+     * @returns {object} lettre accentu\u00e9e \u2192 base
      */
     function construireTableRepli(groupes) {
         var table = {};
@@ -74,7 +74,7 @@ var regles = (function () {
      * Texte sans accents ni capitales, pour trier et chercher.
      *
      * @param {string|null} texte texte quelconque
-     * @returns {string} le texte replié ("" pour null)
+     * @returns {string} le texte repli\u00e9 ("" pour null)
      */
     function plier(texte) {
         return String(texte === null || texte === undefined ? "" : texte).toLowerCase()
@@ -87,7 +87,7 @@ var regles = (function () {
      * Texte sans blancs de bord, ou null s'il est vide.
      *
      * @param {*} texte valeur lue
-     * @returns {string|null} texte nettoyé
+     * @returns {string|null} texte nettoy\u00e9
      */
     function nettoyer(texte) {
         var t = String(texte === null || texte === undefined ? "" : texte).replace(/^\s+|\s+$/g, "");
@@ -98,20 +98,20 @@ var regles = (function () {
      * Vrai si un tableau contient une valeur.
      *
      * @param {Array} tableau tableau
-     * @param {*} valeur valeur cherchée
-     * @returns {boolean} présence
+     * @param {*} valeur valeur cherch\u00e9e
+     * @returns {boolean} pr\u00e9sence
      */
     function contient(tableau, valeur) {
         return tableau.indexOf(valeur) >= 0;
     }
 
     /**
-     * Nom saisi en capitales ramené à la casse normale ; une casse mixte
-     * reste telle quelle (« MARTIN-DUPRÉ » → « Martin-Dupré », « van
-     * Delta » inchangé).
+     * Nom saisi en capitales ramen\u00e9 \u00e0 la casse normale ; une casse mixte
+     * reste telle quelle (\u00ab MARTIN-DUPR\u00c9 \u00bb \u2192 \u00ab Martin-Dupr\u00e9 \u00bb, \u00ab van
+     * Delta \u00bb inchang\u00e9).
      *
-     * @param {string|null} texte prénom ou nom
-     * @returns {string} texte à afficher
+     * @param {string|null} texte pr\u00e9nom ou nom
+     * @returns {string} texte \u00e0 afficher
      */
     function casseAffichage(texte) {
         var t = nettoyer(texte) || "";
@@ -124,7 +124,7 @@ var regles = (function () {
             return t;
         }
 
-        // Majuscule en début de mot, minuscule ailleurs (comme str.title)
+        // Majuscule en d\u00e9but de mot, minuscule ailleurs (comme str.title)
         for (i = 0; i < t.length; i += 1) {
             c = t.charAt(i);
             sortie += debutMot ? c.toUpperCase() : c.toLowerCase();
@@ -134,18 +134,18 @@ var regles = (function () {
     }
 
     /**
-     * Lettres de l'avatar de repli : initiale du prénom et du nom, sans
-     * les particules (« van Delta » : D).
+     * Lettres de l'avatar de repli : initiale du pr\u00e9nom et du nom, sans
+     * les particules (\u00ab van Delta \u00bb : D).
      *
-     * @param {string} prenom prénom affiché
-     * @param {string} nom nom affiché
+     * @param {string} prenom pr\u00e9nom affich\u00e9
+     * @param {string} nom nom affich\u00e9
      * @returns {string} une ou deux lettres majuscules
      */
     function monogramme(prenom, nom) {
         var mots = nom.split(/\s+/).filter(function (m) { return m; });
         var significatifs = mots.filter(function (m) { return !contient(PARTICULES, m.toLowerCase()); });
 
-        // Un nom réduit à une particule reste utilisable
+        // Un nom r\u00e9duit \u00e0 une particule reste utilisable
         if (!significatifs.length) {
             significatifs = mots;
         }
@@ -153,18 +153,18 @@ var regles = (function () {
     }
 
     /**
-     * Lettres de l'avatar : le trigramme de M-Files (« Initiales ») s'il
-     * a trois lettres exactement, sinon le monogramme calculé.
+     * Lettres de l'avatar : le trigramme de M-Files (\u00ab Initiales \u00bb) s'il
+     * a trois lettres exactement, sinon le monogramme calcul\u00e9.
      *
      * @param {object} personne personne de l'annuaire
-     * @returns {string} lettres à afficher
+     * @returns {string} lettres \u00e0 afficher
      */
     function trigrammeDe(personne) {
         return MOTIF_TRIGRAMME.test(personne.initiales || "") ? personne.initiales : personne.monogramme;
     }
 
     /**
-     * Titre : « Titre (manuel) », à défaut « Titre », à défaut « /Titre ».
+     * Titre : \u00ab Titre (manuel) \u00bb, \u00e0 d\u00e9faut \u00ab Titre \u00bb, \u00e0 d\u00e9faut \u00ab /Titre \u00bb.
      *
      * @param {string|null} manuel titre manuel
      * @param {string|null} titre titre
@@ -176,9 +176,9 @@ var regles = (function () {
     }
 
     /**
-     * Adresse e-mail de forme sûre, ou null.
+     * Adresse e-mail de forme s\u00fbre, ou null.
      *
-     * @param {string|null} texte champ « Email prof. » (texte libre)
+     * @param {string|null} texte champ \u00ab Email prof. \u00bb (texte libre)
      * @returns {string|null} adresse
      */
     function emailValide(texte) {
@@ -187,10 +187,10 @@ var regles = (function () {
     }
 
     /**
-     * Étape listée d'une fiche, d'après son ID.
+     * \u00c9tape list\u00e9e d'une fiche, d'apr\u00e8s son ID.
      *
      * @param {object|null} etape { id, nom } lue sur la fiche
-     * @returns {object|null} étape du paramétrage, ou null si non listée
+     * @returns {object|null} \u00e9tape du param\u00e9trage, ou null si non list\u00e9e
      */
     function etapeListee(etape) {
         var trouvee = null;
@@ -207,8 +207,8 @@ var regles = (function () {
     }
 
     /**
-     * Vrai si la fiche est celle d'une personne à une étape listée : ni
-     * la fiche modèle, ni une fiche sans nom.
+     * Vrai si la fiche est celle d'une personne \u00e0 une \u00e9tape list\u00e9e : ni
+     * la fiche mod\u00e8le, ni une fiche sans nom.
      *
      * @param {object} fiche fiche brute
      * @returns {boolean} figure dans l'annuaire
@@ -224,7 +224,7 @@ var regles = (function () {
     }
 
     /**
-     * Valeurs nettoyées, sans vide ni doublon, dans l'ordre reçu.
+     * Valeurs nettoy\u00e9es, sans vide ni doublon, dans l'ordre re\u00e7u.
      *
      * @param {Array} valeurs textes
      * @returns {Array} textes retenus
@@ -242,10 +242,10 @@ var regles = (function () {
     }
 
     /**
-     * Entrée d'un collaborateur dans l'annuaire.
+     * Entr\u00e9e d'un collaborateur dans l'annuaire.
      *
      * @param {object} fiche fiche brute (liste blanche)
-     * @returns {object} personne affichée par la page
+     * @returns {object} personne affich\u00e9e par la page
      */
     function personneDe(fiche) {
         var prenom = casseAffichage(fiche.prenom);
@@ -274,12 +274,12 @@ var regles = (function () {
     }
 
     /**
-     * Compare deux textes sans égard aux accents ; une valeur absente
-     * passe après toute valeur.
+     * Compare deux textes sans \u00e9gard aux accents ; une valeur absente
+     * passe apr\u00e8s toute valeur.
      *
      * @param {string|null} a premier texte
      * @param {string|null} b second texte
-     * @returns {number} négatif, nul ou positif
+     * @returns {number} n\u00e9gatif, nul ou positif
      */
     function comparerTextes(a, b) {
         var pa;
@@ -297,11 +297,11 @@ var regles = (function () {
     }
 
     /**
-     * Ordre par nom de famille puis prénom.
+     * Ordre par nom de famille puis pr\u00e9nom.
      *
      * @param {object} a personne
      * @param {object} b personne
-     * @returns {number} négatif, nul ou positif
+     * @returns {number} n\u00e9gatif, nul ou positif
      */
     function parNom(a, b) {
         return comparerTextes(a.nom, b.nom) || comparerTextes(a.prenom, b.prenom) || a.id - b.id;
@@ -310,9 +310,9 @@ var regles = (function () {
     /**
      * ID de `depart` et de tout ce qu'on atteint en descendant depuis lui.
      *
-     * @param {number} depart ID de départ
+     * @param {number} depart ID de d\u00e9part
      * @param {object} enfants contenu de chaque objet, par ID
-     * @returns {object} ID atteints (clés), chacun visité une fois
+     * @returns {object} ID atteints (cl\u00e9s), chacun visit\u00e9 une fois
      */
     function atteints(depart, enfants) {
         var vus = {};
@@ -330,10 +330,10 @@ var regles = (function () {
     }
 
     /**
-     * Nombre de clés d'un objet.
+     * Nombre de cl\u00e9s d'un objet.
      *
      * @param {object} objet objet
-     * @returns {number} nombre de clés propres
+     * @returns {number} nombre de cl\u00e9s propres
      */
     function taille(objet) {
         var n = 0;
@@ -348,13 +348,13 @@ var regles = (function () {
     }
 
     /**
-     * Organisation : l'arbre sous le cercle « tebicom SA ». Un objet qu'on
+     * Organisation : l'arbre sous le cercle \u00ab tebicom SA \u00bb. Un objet qu'on
      * atteint en descendant depuis lui est dans l'organisation ; un cercle
      * de l'organisation contient d'autres objets, ou se tient directement
-     * sous l'ancre ; les feuilles sont des rôles. Les cercles racines
-     * (« CA ») se placent sous l'ancre s'ils n'y sont pas déjà.
+     * sous l'ancre ; les feuilles sont des r\u00f4les. Les cercles racines
+     * (\u00ab CA \u00bb) se placent sous l'ancre s'ils n'y sont pas d\u00e9j\u00e0.
      *
-     * @param {Array} cercles objets Cercle/rôle { id, nom, enfants }
+     * @param {Array} cercles objets Cercle/r\u00f4le { id, nom, enfants }
      * @returns {object} { noms, dansOrganisation, estCercle }, par ID
      */
     function construireOrganisation(cercles) {
@@ -380,7 +380,7 @@ var regles = (function () {
             });
         });
 
-        // Ancre : le cercle de ce nom qui contient le plus ; à égalité, le plus petit ID
+        // Ancre : le cercle de ce nom qui contient le plus ; \u00e0 \u00e9galit\u00e9, le plus petit ID
         cercles.forEach(function (c) {
             var n;
             if (noms[c.id] === PARAMETRAGE.ancre) {
@@ -412,10 +412,10 @@ var regles = (function () {
 
     /**
      * Pose sur chaque personne ses cercles de l'organisation (ce que
-     * propose le filtre) et tous ses cercles et rôles (ce que montre la
-     * fiche) : ~Cercles/rôles auto plus le cercle principal.
+     * propose le filtre) et tous ses cercles et r\u00f4les (ce que montre la
+     * fiche) : ~Cercles/r\u00f4les auto plus le cercle principal.
      *
-     * @param {Array} personnes personnes de l'annuaire (modifiées)
+     * @param {Array} personnes personnes de l'annuaire (modifi\u00e9es)
      * @param {object} org organisation (voir construireOrganisation)
      * @returns {void}
      */
@@ -455,9 +455,9 @@ var regles = (function () {
      * rencontre `cible`.
      *
      * @param {object} responsableDe responsable retenu, par ID
-     * @param {number} depart ID de départ
-     * @param {number} cible ID cherché
-     * @returns {boolean} présence dans la chaîne
+     * @param {number} depart ID de d\u00e9part
+     * @param {number} cible ID cherch\u00e9
+     * @returns {boolean} pr\u00e9sence dans la cha\u00eene
      */
     function mene(responsableDe, depart, cible) {
         var vus = {};
@@ -474,12 +474,12 @@ var regles = (function () {
     }
 
     /**
-     * Relie chaque personne à son responsable : responsableId, equipe
+     * Relie chaque personne \u00e0 son responsable : responsableId, equipe
      * (directe, par nom) et tailleEquipe (tous niveaux). Un responsable
-     * absent de l'annuaire est ignoré ; une boucle est cassée au dernier
-     * lien rencontré dans l'ordre des ID.
+     * absent de l'annuaire est ignor\u00e9 ; une boucle est cass\u00e9e au dernier
+     * lien rencontr\u00e9 dans l'ordre des ID.
      *
-     * @param {Array} personnes personnes triées par nom (modifiées)
+     * @param {Array} personnes personnes tri\u00e9es par nom (modifi\u00e9es)
      * @param {object} parId personnes par ID
      * @returns {void}
      */
@@ -500,7 +500,7 @@ var regles = (function () {
             p.equipe = [];
             delete p.responsableDemande;
         });
-        // Les personnes sont triées par nom : les équipes directes aussi
+        // Les personnes sont tri\u00e9es par nom : les \u00e9quipes directes aussi
         personnes.forEach(function (p) {
             if (p.responsableId !== null) {
                 parId[p.responsableId].equipe.push(p.id);
@@ -508,7 +508,7 @@ var regles = (function () {
         });
 
         /**
-         * Taille de toute l'équipe d'une personne, mémorisée.
+         * Taille de toute l'\u00e9quipe d'une personne, m\u00e9moris\u00e9e.
          *
          * @param {number} id personne
          * @returns {number} effectif sous elle, tous niveaux
@@ -532,7 +532,7 @@ var regles = (function () {
      * Premier responsable retenu au-dessus d'une personne, par-dessus les
      * exclus (repli de l'export du Cockpit, _kept_manager).
      *
-     * @param {object} tous personnes listées, par ID (hiérarchie déjà liée)
+     * @param {object} tous personnes list\u00e9es, par ID (hi\u00e9rarchie d\u00e9j\u00e0 li\u00e9e)
      * @param {object} retenues personnes retenues, par ID
      * @param {number} id personne
      * @returns {number|null} ID du responsable retenu, ou null
@@ -553,14 +553,14 @@ var regles = (function () {
     }
 
     /**
-     * Assemble l'annuaire à partir des fiches et des cercles bruts.
+     * Assemble l'annuaire \u00e0 partir des fiches et des cercles bruts.
      *
      * @param {Array} fiches fiches Collaborateur (liste blanche)
-     * @param {Array} cercles objets Cercle/rôle { id, nom, enfants }
+     * @param {Array} cercles objets Cercle/r\u00f4le { id, nom, enfants }
      * @returns {object} { personnes, parId } ; n'y figurent que les
-     *     personnes aux étapes listées ET rattachées à un cercle de
-     *     l'organisation, triées par nom ; aucune autre n'est mentionnée,
-     *     pas même comme responsable ou membre d'une équipe
+     *     personnes aux \u00e9tapes list\u00e9es ET rattach\u00e9es \u00e0 un cercle de
+     *     l'organisation, tri\u00e9es par nom ; aucune autre n'est mentionn\u00e9e,
+     *     pas m\u00eame comme responsable ou membre d'une \u00e9quipe
      */
     function construireAnnuaire(fiches, cercles) {
         var listees = fiches.filter(estListee).map(personneDe).sort(parNom);
@@ -573,7 +573,7 @@ var regles = (function () {
             p.recherche = texteRecherche(p);
         });
         poserCercles(listees, construireOrganisation(cercles || []));
-        // Hiérarchie de toutes les personnes listées, pour pouvoir remonter
+        // Hi\u00e9rarchie de toutes les personnes list\u00e9es, pour pouvoir remonter
         // par-dessus un responsable exclu
         lierHierarchie(listees, tous);
 
@@ -591,11 +591,11 @@ var regles = (function () {
     /**
      * Texte de recherche d'une personne : nom, initiales, titre, /Titre,
      * fonctions, succursale, cercle principal et partie locale de
-     * l'e-mail, repliés. Le nom du responsable n'y est pas : chercher un
-     * nom ne doit pas ramener son équipe.
+     * l'e-mail, repli\u00e9s. Le nom du responsable n'y est pas : chercher un
+     * nom ne doit pas ramener son \u00e9quipe.
      *
      * @param {object} p personne
-     * @returns {string} texte replié
+     * @returns {string} texte repli\u00e9
      */
     function texteRecherche(p) {
         var parties = [p.nomComplet, p.initiales, p.titre, p.fonctionPrincipale, p.succursale, p.cercle,
@@ -610,9 +610,9 @@ var regles = (function () {
     var AUCUN = "__aucun__";
 
     /**
-     * Les quatre informations par lesquelles on filtre (pas l'étape). `valeurs` rend ce
+     * Les quatre informations par lesquelles on filtre (pas l'\u00e9tape). `valeurs` rend ce
      * qu'une personne porte : [{ valeur, libelle }] (le cercle est retenu
-     * par son ID, deux cercles de même nom restant distincts).
+     * par son ID, deux cercles de m\u00eame nom restant distincts).
      */
     var FACETTES = {
         cercle: { libelle: "Cercle", aucun: "Sans cercle", valeurs: function (p) {
@@ -631,7 +631,7 @@ var regles = (function () {
     var CLES_FACETTES = ["cercle", "succursale", "titre", "fonction"];
 
     /**
-     * État vide : aucune recherche, aucun filtre.
+     * \u00c9tat vide : aucune recherche, aucun filtre.
      *
      * @returns {object} { q, cercle, succursale, titre, fonction }
      */
@@ -640,8 +640,8 @@ var regles = (function () {
     }
 
     /**
-     * Mots d'une saisie, repliés ; une adresse e-mail ne garde que sa
-     * partie locale (le domaine, commun à tous, n'est pas indexé).
+     * Mots d'une saisie, repli\u00e9s ; une adresse e-mail ne garde que sa
+     * partie locale (le domaine, commun \u00e0 tous, n'est pas index\u00e9).
      *
      * @param {string} q saisie
      * @returns {Array} mots non vides
@@ -656,7 +656,7 @@ var regles = (function () {
      * Vrai si une personne porte la valeur retenue pour une facette.
      *
      * @param {object} p personne
-     * @param {string} cle clé de FACETTES
+     * @param {string} cle cl\u00e9 de FACETTES
      * @param {string} retenue valeur, ou AUCUN
      * @returns {boolean} correspondance
      */
@@ -670,13 +670,13 @@ var regles = (function () {
     }
 
     /**
-     * Personnes qui répondent à la recherche et aux filtres.
+     * Personnes qui r\u00e9pondent \u00e0 la recherche et aux filtres.
      *
      * @param {Array} personnes personnes de l'annuaire
      * @param {object} etat recherche et filtres (null : pas de filtre)
-     * @param {string} [sauf] facette dont le filtre est ignoré, pour des
+     * @param {string} [sauf] facette dont le filtre est ignor\u00e9, pour des
      *     effectifs qui montrent ce que les autres valeurs donneraient
-     * @returns {Array} personnes retenues, dans l'ordre reçu
+     * @returns {Array} personnes retenues, dans l'ordre re\u00e7u
      */
     function filtrer(personnes, etat, sauf) {
         var mots = motsDe(etat.q);
@@ -700,11 +700,11 @@ var regles = (function () {
      *
      * @param {Array} personnes personnes de l'annuaire
      * @param {object} etat recherche et filtres courants
-     * @param {string} cle clé de FACETTES
+     * @param {string} cle cl\u00e9 de FACETTES
      * @returns {object} { options: [{ valeur, libelle, effectif }], aucun:
      *     { libelle, effectif } ou null, total } ; options : les valeurs
-     *     portées par au moins une personne de l'annuaire, des plus portées
-     *     aux moins portées puis par nom (ordre qui ne bouge pas avec les
+     *     port\u00e9es par au moins une personne de l'annuaire, des plus port\u00e9es
+     *     aux moins port\u00e9es puis par nom (ordre qui ne bouge pas avec les
      *     filtres) ; effectif : personnes retenues par la recherche et les
      *     AUTRES filtres ; aucun n'existe que si quelqu'un n'a pas de valeur
      */
@@ -751,7 +751,7 @@ var regles = (function () {
     /**
      * Vrai si une recherche ou un filtre restreint la liste.
      *
-     * @param {object} etat état courant
+     * @param {object} etat \u00e9tat courant
      * @returns {boolean} filtrage actif
      */
     function filtreActif(etat) {
@@ -759,11 +759,11 @@ var regles = (function () {
     }
 
     /**
-     * Copie triée des personnes.
+     * Copie tri\u00e9e des personnes.
      *
      * @param {Array} personnes personnes
      * @param {string} cle nom, prenom, titre, succursale ou cercle (autre : par nom)
-     * @returns {Array} nouveau tableau ; l'original n'est pas modifié
+     * @returns {Array} nouveau tableau ; l'original n'est pas modifi\u00e9
      */
     function trier(personnes, cle) {
         var ordres = {
@@ -779,17 +779,17 @@ var regles = (function () {
 
     // ---- Vue d'une personne et fiche ---------------------------------------
 
-    /** Fonctions montrées sur une carte ; les autres se résument en « +n ». */
+    /** Fonctions montr\u00e9es sur une carte ; les autres se r\u00e9sument en \u00ab +n \u00bb. */
     var FONCTIONS_MONTREES = 2;
 
     /**
-     * Personne prête pour l'affichage (grille, liste, fiche, onglet) :
-     * trigramme, fonctions courtes, responsable nommé, cercle principal
-     * filtrable s'il est un cercle de l'organisation. Pas d'étape.
+     * Personne pr\u00eate pour l'affichage (grille, liste, fiche, onglet) :
+     * trigramme, fonctions courtes, responsable nomm\u00e9, cercle principal
+     * filtrable s'il est un cercle de l'organisation. Pas d'\u00e9tape.
      *
      * @param {object} annuaire annuaire construit
      * @param {object} p personne de l'annuaire
-     * @returns {object} personne pour la vue (données simples)
+     * @returns {object} personne pour la vue (donn\u00e9es simples)
      */
     function personneVue(annuaire, p) {
         var responsable = p.responsableId !== null ? annuaire.parId[p.responsableId] : null;
@@ -817,8 +817,8 @@ var regles = (function () {
     }
 
     /**
-     * Fiche d'une personne : elle, son responsable retenu et son équipe
-     * directe, prêts à afficher.
+     * Fiche d'une personne : elle, son responsable retenu et son \u00e9quipe
+     * directe, pr\u00eats \u00e0 afficher.
      *
      * @param {object} annuaire annuaire construit
      * @param {number} id ID du collaborateur

@@ -1,16 +1,16 @@
 /* exported compat */
 /* =====================================================================
-   COMPAT — socle ES5 pour le moteur du module (chargé en premier)
+   COMPAT \u2014 socle ES5 pour le moteur du module (charg\u00e9 en premier)
 
-   Le module shellui s'exécute dans l'environnement Windows Script Host
-   (guide du développeur UIX v1, § 2.7), dont le JScript n'a ni
-   Array.prototype.forEach/map/filter/some/every/indexOf ni JSON (constaté
-   sur ce poste avec cscript). Les règles (regles.js, vault-com.js,
+   Le module shellui s'ex\u00e9cute dans l'environnement Windows Script Host
+   (guide du d\u00e9veloppeur UIX v1, \u00a7 2.7), dont le JScript n'a ni
+   Array.prototype.forEach/map/filter/some/every/indexOf ni JSON (constat\u00e9
+   sur ce poste avec cscript). Les r\u00e8gles (regles.js, vault-com.js,
    portraits.js) s'en servent : ce fichier les ajoute s'ils manquent, sans
-   rien changer là où ils existent (page IE11, Node).
+   rien changer l\u00e0 o\u00f9 ils existent (page IE11, Node).
 
-   Il fournit aussi versJson : le module passe la fiche à la page de
-   l'onglet en texte JSON (des données simples plutôt que des objets d'un
+   Il fournit aussi versJson : le module passe la fiche \u00e0 la page de
+   l'onglet en texte JSON (des donn\u00e9es simples plut\u00f4t que des objets d'un
    autre moteur de script).
    ===================================================================== */
 
@@ -87,15 +87,15 @@ var compat = (function () {
         };
     }
 
-    // Caractères à échapper dans une chaîne JSON
+    // Caract\u00e8res \u00e0 \u00e9chapper dans une cha\u00eene JSON
     var A_ECHAPPER = /[\\"\u0000-\u001f\u2028\u2029]/g;
     var COURTS = { "\"": "\\\"", "\\": "\\\\", "\b": "\\b", "\f": "\\f", "\n": "\\n", "\r": "\\r", "\t": "\\t" };
 
     /**
-     * Chaîne JSON d'un texte.
+     * Cha\u00eene JSON d'un texte.
      *
      * @param {string} texte texte
-     * @returns {string} littéral JSON
+     * @returns {string} litt\u00e9ral JSON
      */
     function chaine(texte) {
         return "\"" + texte.replace(A_ECHAPPER, function (c) {
@@ -104,11 +104,11 @@ var compat = (function () {
     }
 
     /**
-     * Texte JSON de données simples (textes, nombres, booléens, null,
-     * tableaux, objets). Une valeur indéfinie ou une fonction dans un objet
+     * Texte JSON de donn\u00e9es simples (textes, nombres, bool\u00e9ens, null,
+     * tableaux, objets). Une valeur ind\u00e9finie ou une fonction dans un objet
      * est omise, comme le fait JSON.stringify.
      *
-     * @param {*} valeur données
+     * @param {*} valeur donn\u00e9es
      * @returns {string} texte JSON
      */
     function versJson(valeur) {

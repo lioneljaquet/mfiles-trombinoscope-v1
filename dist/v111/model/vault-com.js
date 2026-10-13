@@ -1,17 +1,17 @@
 /* exported coffre */
 /* =====================================================================
-   VAULT-COM — accès au coffre en UIX v1 (API COM synchrone, ES5)
+   VAULT-COM \u2014 acc\u00e8s au coffre en UIX v1 (API COM synchrone, ES5)
 
-   Couche model. Isole toutes les particularités COM (collections base 1,
+   Couche model. Isole toutes les particularit\u00e9s COM (collections base 1,
    constructeurs MFiles.*, recherches par conditions) et rend des objets
-   JavaScript simples aux règles (regles.js).
+   JavaScript simples aux r\u00e8gles (regles.js).
 
-   Lecture seule : ce module n'écrit rien dans le coffre.
+   Lecture seule : ce module n'\u00e9crit rien dans le coffre.
 
-   CONFIDENTIALITÉ : une fiche n'est lue que propriété par propriété, par
+   CONFIDENTIALIT\u00c9 : une fiche n'est lue que propri\u00e9t\u00e9 par propri\u00e9t\u00e9, par
    SearchForProperty sur les identifiants de la liste blanche
    (PARAMETRAGE.proprietes). Les PropertyValues ne sont jamais parcourues :
-   une propriété qui n'est pas nommée ici n'est jamais lue, donc ne peut
+   une propri\u00e9t\u00e9 qui n'est pas nomm\u00e9e ici n'est jamais lue, donc ne peut
    pas fuiter vers la page.
    ===================================================================== */
 
@@ -22,7 +22,7 @@ var coffre = (function () {
      * Convertit une collection COM (base 1, .Count/.Item) en tableau.
      *
      * @param {object} collection collection COM
-     * @returns {Array} éléments, dans l'ordre
+     * @returns {Array} \u00e9l\u00e9ments, dans l'ordre
      */
     function enTableau(collection) {
         var sortie = [];
@@ -38,7 +38,7 @@ var coffre = (function () {
     }
 
     /**
-     * Condition sur une valeur de statut (type d'objet, supprimé).
+     * Condition sur une valeur de statut (type d'objet, supprim\u00e9).
      *
      * @param {number} statut MF.STATUS_*
      * @param {number} datatype MF.DT_*
@@ -55,10 +55,10 @@ var coffre = (function () {
     }
 
     /**
-     * Condition « propriété lookup égale à un élément ».
+     * Condition \u00ab propri\u00e9t\u00e9 lookup \u00e9gale \u00e0 un \u00e9l\u00e9ment \u00bb.
      *
-     * @param {number} propriete identifiant de la propriété
-     * @param {number} valeur identifiant de l'élément
+     * @param {number} propriete identifiant de la propri\u00e9t\u00e9
+     * @param {number} valeur identifiant de l'\u00e9l\u00e9ment
      * @returns {object} MFiles.SearchCondition
      */
     function conditionLookup(propriete, valeur) {
@@ -71,13 +71,13 @@ var coffre = (function () {
     }
 
     /**
-     * Lance une recherche ; un résultat plafonné est une erreur franche :
-     * un annuaire amputé sans le dire serait pire qu'un échec.
+     * Lance une recherche ; un r\u00e9sultat plafonn\u00e9 est une erreur franche :
+     * un annuaire amput\u00e9 sans le dire serait pire qu'un \u00e9chec.
      *
      * @param {object} vault coffre COM
      * @param {Array} liste conditions
-     * @param {string} quoi ce qui est cherché, pour le message
-     * @returns {Array} ObjectVersion trouvées
+     * @param {string} quoi ce qui est cherch\u00e9, pour le message
+     * @returns {Array} ObjectVersion trouv\u00e9es
      */
     function chercher(vault, liste, quoi) {
         var conditions = new MFiles.SearchConditions();
@@ -86,7 +86,7 @@ var coffre = (function () {
         liste.forEach(function (c) {
             conditions.Add(-1, c);
         });
-        // Délai de 30 s, comme le code v1 éprouvé (skill m-files-ui-ext-v1)
+        // D\u00e9lai de 30 s, comme le code v1 \u00e9prouv\u00e9 (skill m-files-ui-ext-v1)
         res = vault.ObjectSearchOperations.SearchForObjectsByConditionsEx(
             conditions, MF.SEARCH_FLAG_NONE, false, PARAMETRAGE.limiteRecherche, PARAMETRAGE.delaiRecherche);
 
@@ -98,24 +98,24 @@ var coffre = (function () {
     }
 
     /**
-     * Collaborateurs d'une étape de workflow (non supprimés).
+     * Collaborateurs d'une \u00e9tape de workflow (non supprim\u00e9s).
      *
      * @param {object} vault coffre COM
-     * @param {number} idEtape identifiant de l'étape
-     * @returns {Array} ObjVer trouvés
+     * @param {number} idEtape identifiant de l'\u00e9tape
+     * @returns {Array} ObjVer trouv\u00e9s
      */
     function chercherCollaborateurs(vault, idEtape) {
         return chercher(vault, [
             conditionStatut(MF.STATUS_OBJECT_TYPE_ID, MF.DT_LOOKUP, PARAMETRAGE.typeCollaborateur),
             conditionLookup(PARAMETRAGE.proprietes.etape, idEtape),
             conditionStatut(MF.STATUS_DELETED, MF.DT_BOOLEAN, false)
-        ], "collaborateurs à cette étape").map(function (v) {
+        ], "collaborateurs \u00e0 cette \u00e9tape").map(function (v) {
             return v.ObjVer;
         });
     }
 
     /**
-     * Tous les objets Cercle/rôle (non supprimés), avec leur titre.
+     * Tous les objets Cercle/r\u00f4le (non supprim\u00e9s), avec leur titre.
      *
      * @param {object} vault coffre COM
      * @returns {Array} [{ objVer, id, nom }]
@@ -124,16 +124,16 @@ var coffre = (function () {
         return chercher(vault, [
             conditionStatut(MF.STATUS_OBJECT_TYPE_ID, MF.DT_LOOKUP, PARAMETRAGE.typeCercle),
             conditionStatut(MF.STATUS_DELETED, MF.DT_BOOLEAN, false)
-        ], "cercles et rôles").map(function (v) {
+        ], "cercles et r\u00f4les").map(function (v) {
             return { objVer: v.ObjVer, id: v.ObjVer.ID, nom: v.Title };
         });
     }
 
     /**
-     * TypedValue d'une propriété nommée, ou null si absente ou vide.
+     * TypedValue d'une propri\u00e9t\u00e9 nomm\u00e9e, ou null si absente ou vide.
      *
      * @param {object} pvs PropertyValues de l'objet
-     * @param {number} id identifiant de la propriété (liste blanche)
+     * @param {number} id identifiant de la propri\u00e9t\u00e9 (liste blanche)
      * @returns {object|null} TypedValue
      */
     function valeurDe(pvs, id) {
@@ -149,11 +149,11 @@ var coffre = (function () {
     }
 
     /**
-     * Texte d'une propriété.
+     * Texte d'une propri\u00e9t\u00e9.
      *
      * @param {object} pvs PropertyValues
-     * @param {number} id propriété
-     * @returns {string|null} texte affiché, null si vide
+     * @param {number} id propri\u00e9t\u00e9
+     * @returns {string|null} texte affich\u00e9, null si vide
      */
     function texte(pvs, id) {
         var tv = valeurDe(pvs, id);
@@ -161,10 +161,10 @@ var coffre = (function () {
     }
 
     /**
-     * Lookup simple d'une propriété.
+     * Lookup simple d'une propri\u00e9t\u00e9.
      *
      * @param {object} pvs PropertyValues
-     * @param {number} id propriété
+     * @param {number} id propri\u00e9t\u00e9
      * @returns {object|null} { id, nom }
      */
     function lookup(pvs, id) {
@@ -179,11 +179,11 @@ var coffre = (function () {
     }
 
     /**
-     * Lookups d'une propriété à sélection multiple, sans les éléments
-     * supprimés.
+     * Lookups d'une propri\u00e9t\u00e9 \u00e0 s\u00e9lection multiple, sans les \u00e9l\u00e9ments
+     * supprim\u00e9s.
      *
      * @param {object} pvs PropertyValues
-     * @param {number} id propriété
+     * @param {number} id propri\u00e9t\u00e9
      * @returns {Array} [{ id, nom }]
      */
     function lookups(pvs, id) {
@@ -253,7 +253,7 @@ var coffre = (function () {
     }
 
     /**
-     * Lit un lot de cercles et rôles : ce que chacun contient.
+     * Lit un lot de cercles et r\u00f4les : ce que chacun contient.
      *
      * @param {object} vault coffre COM
      * @param {Array} cercles [{ objVer, id, nom }] (voir chercherCercles)
@@ -292,8 +292,8 @@ var coffre = (function () {
     }
 
     /**
-     * Documents de portrait d'un collaborateur, le plus récent d'abord
-     * (un ID de document plus grand est un document créé plus tard), avec
+     * Documents de portrait d'un collaborateur, le plus r\u00e9cent d'abord
+     * (un ID de document plus grand est un document cr\u00e9\u00e9 plus tard), avec
      * leurs fichiers. Rien d'autre n'est lu du document.
      *
      * @param {object} vault coffre COM
@@ -323,9 +323,9 @@ var coffre = (function () {
     }
 
     /**
-     * Contenu d'un fichier en URI data: base64, en mémoire (aucun fichier
+     * Contenu d'un fichier en URI data: base64, en m\u00e9moire (aucun fichier
      * sur disque). DownloadFileAsDataURI(ObjVer, File, FileVersion), dont la
-     * référence de l'API COM dit l'intérêt pour l'UI Extensibility
+     * r\u00e9f\u00e9rence de l'API COM dit l'int\u00e9r\u00eat pour l'UI Extensibility
      * Framework (petites images d'un tableau de bord).
      *
      * @param {object} vault coffre COM
@@ -340,11 +340,11 @@ var coffre = (function () {
 
     /**
      * Affiche la fiche native d'un objet absent du listing. Collection
-     * ObjOrFileVers (référence v1) : ObjectVersions échoue toujours.
+     * ObjOrFileVers (r\u00e9f\u00e9rence v1) : ObjectVersions \u00e9choue toujours.
      *
      * @param {object} cadre ShellFrame
      * @param {object} objVer ObjVer de l'objet
-     * @returns {boolean} vrai si acceptée
+     * @returns {boolean} vrai si accept\u00e9e
      */
     function selectionVirtuelle(cadre, objVer) {
         var selection;
@@ -364,7 +364,7 @@ var coffre = (function () {
             (listing || cadre.Listing).SetVirtualSelection(selection);
             return true;
         } catch (e) {
-            console.log(PREFIXE_JOURNAL + " sélection virtuelle refusée : " + (e.message || e.description || e));
+            console.log(PREFIXE_JOURNAL + " s\u00e9lection virtuelle refus\u00e9e : " + (e.message || e.description || e));
             return false;
         }
     }

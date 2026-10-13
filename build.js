@@ -8,7 +8,10 @@
    3. intègre CSS et scripts dans chaque page (marqueurs build:css /
       build:js) : un fichier externe se charge mal dans le contrôle web ;
    4. REFUSE de livrer si un script n'est pas de l'ES5 valide, ou si deux
-      scripts d'une même page déclarent le même nom global.
+      scripts d'une même page déclarent le même nom global ;
+   4b. écrit chaque script en ASCII seul (échappements \\uXXXX) : le client
+      lit les scripts du module en ANSI, un texte accentué en UTF-8 y
+      arriverait cassé.
 
    5. empaquette dist/ en trombinoscope-uixv1-X.Y.Z.zip, appdef.xml à la
       racine (tar.exe de Windows, ou zip ailleurs), sauf --sans-zip.
@@ -55,6 +58,21 @@ function copier(de, vers) {
  */
 function jetons(texte) {
     return texte.replace(/\{VERSION\}/g, () => VERSION).replace(/\{DOSSIER\}/g, () => DOSSIER);
+}
+
+/**
+ * Script en ASCII seul : tout autre caractère devient un échappement
+ * \\uXXXX (unité UTF-16). Le client lit les scripts du module comme de
+ * l'ANSI (constaté en 1.1.0 : « Ã© » pour « é ») ; en ASCII, aucun
+ * décodage ne peut plus les abîmer. Valable dans les chaînes, les
+ * expressions régulières et les commentaires ; un identifiant non ASCII
+ * deviendrait un échappement que JavaScript accepte aussi.
+ *
+ * @param {string} code source
+ * @returns {string} source en ASCII
+ */
+function enAscii(code) {
+    return code.replace(/[^\x00-\x7f]/g, (c) => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0"));
 }
 
 /**
@@ -119,7 +137,7 @@ fs.rmSync(path.join(CIBLE, "appdef.xml"));
         const f = path.join(dossier, e.name);
         if (e.isDirectory()) { parcourir(f); return; }
         if (f.endsWith(".js")) {
-            const code = jetons(fs.readFileSync(f, "utf8"));
+            const code = enAscii(jetons(fs.readFileSync(f, "utf8")));
             verifierEs5(code, path.relative(DIST, f));
             fs.writeFileSync(f, code);
         }
@@ -148,6 +166,9 @@ fs.rmSync(path.join(CIBLE, "appdef.xml"));
             });
             return "<script>\n" + code + "\n</script>";
         });
+        // Page en ASCII seul : les scripts le sont déjà, le texte accentué de la page devient une entité
+        // numérique, quel que soit le jeu de caractères qu'applique le client (les commentaires CSS aussi, sans effet)
+        html = html.replace(/[^\x00-\x7f]/gu, (c) => "&#x" + c.codePointAt(0).toString(16) + ";");
         fs.writeFileSync(f, html);
     });
 })(CIBLE);

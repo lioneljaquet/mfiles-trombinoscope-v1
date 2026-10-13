@@ -1,17 +1,17 @@
 /* exported PARAMETRAGE, MF, VERSION_PAQUET, PREFIXE_JOURNAL */
 /* =====================================================================
-   PARAMÉTRAGE — seul fichier dépendant du coffre tebifiles (ES5)
+   PARAM\u00c9TRAGE \u2014 seul fichier d\u00e9pendant du coffre tebifiles (ES5)
 
-   Chargé par le module et intégré dans la page à la construction.
+   Charg\u00e9 par le module et int\u00e9gr\u00e9 dans la page \u00e0 la construction.
    Les identifiants sont ceux des adaptateurs du Cockpit PRO, en service
-   sur le coffre réel (cockpit_pro/model/adapters/mfiles_staff.py et
+   sur le coffre r\u00e9el (cockpit_pro/model/adapters/mfiles_staff.py et
    mfiles_org.py). Les constantes MF* ne sont pas garanties dans un
-   dashboard : leurs valeurs numériques sont fixées ici.
+   dashboard : leurs valeurs num\u00e9riques sont fix\u00e9es ici.
 
-   CONFIDENTIALITÉ (docs/adr/0001) : la fiche Collaborateur porte des
-   données RH (mobile, adresse, naissance, salaire, dossiers). Seules les
-   propriétés listées dans `proprietes` sont lues ; ajouter un champ
-   commence par une décision, puis par une ligne ici. Le mobile
+   CONFIDENTIALIT\u00c9 (docs/adr/0001) : la fiche Collaborateur porte des
+   donn\u00e9es RH (mobile, adresse, naissance, salaire, dossiers). Seules les
+   propri\u00e9t\u00e9s list\u00e9es dans `proprietes` sont lues ; ajouter un champ
+   commence par une d\u00e9cision, puis par une ligne ici. Le mobile
    professionnel (2823) n'est volontairement pas repris.
    ===================================================================== */
 
@@ -31,29 +31,29 @@ var PARAMETRAGE = {
     dashboard: "trombinoscope",
     commande: "Trombinoscope",
 
-    // Groupe d'utilisateurs M-Files auquel l'application est réservée,
-    // désigné par son ALIAS (posé dans M-Files Admin) et résolu à
-    // l'exécution : qui a accès se règle dans le coffre, sans reconstruire.
-    // Groupes imbriqués compris. Alias bien formé exigé par build.js.
+    // Groupe d'utilisateurs M-Files auquel l'application est r\u00e9serv\u00e9e,
+    // d\u00e9sign\u00e9 par son ALIAS (pos\u00e9 dans M-Files Admin) et r\u00e9solu \u00e0
+    // l'ex\u00e9cution : qui a acc\u00e8s se r\u00e8gle dans le coffre, sans reconstruire.
+    // Groupes imbriqu\u00e9s compris. Alias bien form\u00e9 exig\u00e9 par build.js.
     groupeAutorise: "tebifiles.group.trombinoscope",
 
     // Types d'objets (alias tebifiles.ot.collaborateur pour 104)
     typeCollaborateur: 104,
     typeCercle: 362,
 
-    // Étapes du workflow Collaborateur montrées par l'annuaire. Les
-    // collaborateurs des autres étapes ne sont ni cherchés ni lus, et ne
-    // sont mentionnés nulle part (pas même comme responsable).
+    // \u00c9tapes du workflow Collaborateur montr\u00e9es par l'annuaire. Les
+    // collaborateurs des autres \u00e9tapes ne sont ni cherch\u00e9s ni lus, et ne
+    // sont mentionn\u00e9s nulle part (pas m\u00eame comme responsable).
     etapes: [
         { id: 319, nom: "En fonction", partant: false },
-        { id: 1475, nom: "Offboarding démission", partant: true },
+        { id: 1475, nom: "Offboarding d\u00e9mission", partant: true },
         { id: 1478, nom: "Offboarding licenciement", partant: true }
     ],
 
     // Liste blanche de la fiche Collaborateur : rien d'autre n'est lu.
     proprietes: {
-        etape: 39,                 // Etape (état du workflow), filtre de la recherche
-        prenom: 1387,              // Prénom
+        etape: 39,                 // Etape (\u00e9tat du workflow), filtre de la recherche
+        prenom: 1387,              // Pr\u00e9nom
         nom: 1386,                 // Nom de famille
         initiales: 1079,           // Initiales (le trigramme)
         titre: 2376,               // Titre
@@ -61,40 +61,38 @@ var PARAMETRAGE = {
         fonctionPrincipale: 3638,  // /Titre (fonction principale)
         fonctions: 3641,           // >Fonctions (plusieurs)
         succursale: 2414,          // >Succursale (pas sa variante confidentielle 2824)
-        cercle: 2929,              // >Cercle/rôle principal
-        cerclesAuto: 2928,         // ~Cercles/rôles auto (plusieurs)
-        responsable: 1217,         // >Responsable hiérarchique
+        cercle: 2929,              // >Cercle/r\u00f4le principal
+        cerclesAuto: 2928,         // ~Cercles/r\u00f4les auto (plusieurs)
+        responsable: 1217,         // >Responsable hi\u00e9rarchique
         email: 2821                // Email prof.
     },
 
-    // Portraits : documents (type 0) de la classe « !! Photo collaborateur »
-    // (88), liés au collaborateur par >Collaborateur (1077). Seuls ces deux
-    // critères sont lus, plus les fichiers du document (GetFiles).
+    // Portraits : documents (type 0) de la classe \u00ab !! Photo collaborateur \u00bb
+    // (88), li\u00e9s au collaborateur par >Collaborateur (1077). Seuls ces deux
+    // crit\u00e8res sont lus, plus les fichiers du document (GetFiles).
     typeDocument: 0,
     classePhoto: 88,
     proprietesPhoto: {
-        classe: 100,               // Classe (propriété intégrée)
+        classe: 100,               // Classe (propri\u00e9t\u00e9 int\u00e9gr\u00e9e)
         collaborateur: 1077        // >Collaborateur
     },
     portrait: {
-        // Plafond par fichier : 4 Mo (une photo de portrait, pas un scan) ;
-        // au-delà, rien n'est téléchargé et l'avatar reste.
-        tailleMax: 4 * 1024 * 1024,
-        // Formats que le contrôle web IE11 affiche ; PDF, JPEG 2000, WebP,
-        // HEIC… restent à l'avatar.
+        // Pas de plafond de taille (demande de Lionel, 1.1.1).
+        // Formats que le contr\u00f4le web IE11 affiche ; PDF, JPEG 2000, WebP,
+        // HEIC\u2026 restent \u00e0 l'avatar.
         formats: { jpg: "JPEG", jpeg: "JPEG", png: "PNG", gif: "GIF", bmp: "BMP" },
-        // Entrées gardées en mémoire par cadre avant de vider le cache
+        // Entr\u00e9es gard\u00e9es en m\u00e9moire par cadre avant de vider le cache
         cacheMax: 40
     },
 
-    // Liste blanche de l'objet Cercle/rôle : le titre vient du résultat
+    // Liste blanche de l'objet Cercle/r\u00f4le : le titre vient du r\u00e9sultat
     // de recherche, seule la relation de contenu est lue.
     proprietesCercle: {
         membresCercles: 2926       // >Membres (cercles) : ce que l'objet contient
     },
 
-    // Organisation : l'arbre sous le cercle « tebicom SA » ; « CA »
-    // n'est rattaché qu'à un groupe d'autorisations et se place sous
+    // Organisation : l'arbre sous le cercle \u00ab tebicom SA \u00bb ; \u00ab CA \u00bb
+    // n'est rattach\u00e9 qu'\u00e0 un groupe d'autorisations et se place sous
     // l'ancre (ADR 0003 et 0010 du Cockpit PRO).
     ancre: "tebicom SA",
     cerclesRacines: ["CA"],

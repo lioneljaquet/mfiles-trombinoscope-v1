@@ -6,14 +6,14 @@
    Couche model. Règles reprises du Cockpit PRO
    (cockpit_pro/model/portrait_library.py) : un collaborateur peut avoir
    plusieurs documents « !! Photo collaborateur » ; on les essaie du plus
-   récent au plus ancien et on sert le premier qui donne une image ; une
-   note dit pourquoi un document plus récent n'a pas servi.
+   récent au plus ancien et on sert le premier qui donne une image.
 
    Différences avec le Cockpit : aucun fichier sur disque (le fichier est
    lu en URI data: par DownloadFileAsDataURI et gardé en mémoire), pas de
    conversion d'image : seuls les formats que le contrôle web IE11 affiche
-   (JPEG, PNG, GIF, BMP) sont proposés, et la taille est plafonnée
-   (PARAMETRAGE.portrait). Lecture seule.
+   (JPEG, PNG, GIF, BMP) sont proposés, sans plafond de taille (demande de
+   Lionel, 1.1.1). Une note courte n'est donnée que si aucune image ne sert
+   et qu'un format non pris en charge en est la cause. Lecture seule.
    ===================================================================== */
 
 var portraits = (function () {
@@ -21,18 +21,15 @@ var portraits = (function () {
 
     // Seule forme acceptée : une image base64 d'un type que la page affiche
     var MOTIF_DATA_URI = /^data:image\/(jpeg|png|gif|bmp);base64,[A-Za-z0-9+\/=\r\n]+$/;
-    var NOTE_AUCUN = "Aucun portrait dans M-Files : il s'ajoute par un document de la classe « !! Photo collaborateur ».";
-    var NOTE_ERREUR = "Portrait non lu : M-Files n'a pas répondu.";
 
     /**
-     * Taille lisible.
+     * Message lisible d'une erreur COM.
      *
-     * @param {number} octets taille
-     * @returns {string} « 9,0 Mo »
+     * @param {*} e erreur
+     * @returns {string} message
      */
-    function enMo(octets) {
-        var dixiemes = Math.round(octets / 104857.6);
-        return Math.floor(dixiemes / 10) + "," + (dixiemes % 10) + " Mo";
+    function messageDe(e) {
+        return (e && (e.message || e.description)) || String(e);
     }
 
     /**
@@ -60,37 +57,24 @@ var portraits = (function () {
     }
 
     /**
-     * Raison pour laquelle un fichier ne peut pas servir, ou null s'il
-     * peut être lu.
+     * Note d'un portrait non affiché à cause de formats non pris en charge.
      *
-     * @param {object} f fichier { extension, taille }
-     * @returns {string|null} raison
+     * @param {Array} formats extensions écartées, en majuscules, sans doublon
+     * @returns {string|null} « Portrait non affiché : format PDF non pris en charge. », ou null
      */
-    function raisonDEcart(f) {
-        if (!PARAMETRAGE.portrait.formats.hasOwnProperty(f.extension)) {
-            return "fichier ." + (f.extension || "sans extension");
+    function noteFormats(formats) {
+        if (!formats.length) {
+            return null;
         }
-        if (!(f.taille > 0) || f.taille > PARAMETRAGE.portrait.tailleMax) {
-            return "fichier ." + f.extension + " de " + enMo(Math.max(f.taille, 0)) +
-                " (plafond " + enMo(PARAMETRAGE.portrait.tailleMax) + ")";
-        }
-        return null;
-    }
-
-    /**
-     * Note d'un portrait pris dans un document plus ancien.
-     *
-     * @param {Array} ecarts raisons des fichiers plus récents écartés
-     * @returns {string|null} note, ou null si le premier essayé a servi
-     */
-    function noteAncien(ecarts) {
-        return ecarts.length ? "Un document de portrait plus récent n'a pas pu servir (" + ecarts.join(", ") +
-            ") : l'image vient d'un document plus ancien." : null;
+        return "Portrait non affiché : " + (formats.length > 1 ? "formats " : "format ") +
+            (formats.length > 1 ? formats.slice(0, -1).join(", ") + " et " + formats[formats.length - 1] : formats[0]) +
+            " non pris en charge.";
     }
 
     /**
      * Portrait d'un collaborateur : la première image affichable de ses
-     * documents, du plus récent au plus ancien. Toute erreur est rattrapée.
+     * documents, du plus récent au plus ancien. Toute erreur est rattrapée
+     * et journalisée ; elle ne donne pas de note.
      *
      * @param {object} vault coffre COM
      * @param {number} personneId ID du collaborateur
@@ -99,59 +83,54 @@ var portraits = (function () {
      */
     function portraitDe(vault, personneId, cache) {
         var docs;
-        var ecarts = [];
+        var formats = [];
         var i;
         var j;
         var doc;
         var f;
-        var raison;
+        var format;
         var cle;
         var uri;
 
         try {
             docs = coffre.chercherPortraits(vault, personneId);
         } catch (e) {
-            console.log(PREFIXE_JOURNAL + " portraits non lus : " + ((e && (e.message || e.description)) || e));
-            return { dataUri: null, note: NOTE_ERREUR };
-        }
-        if (!docs.length) {
-            return { dataUri: null, note: NOTE_AUCUN };
+            console.log(PREFIXE_JOURNAL + " portraits non lus : " + messageDe(e));
+            return { dataUri: null, note: null };
         }
 
         for (i = 0; i < docs.length; i += 1) {
             doc = docs[i];
-            if (!doc.fichiers.length) {
-                ecarts.push("document sans fichier");
-            }
             for (j = 0; j < doc.fichiers.length; j += 1) {
                 f = doc.fichiers[j];
-                raison = raisonDEcart(f);
-                if (raison) {
-                    ecarts.push(raison);
+                if (!PARAMETRAGE.portrait.formats.hasOwnProperty(f.extension)) {
+                    format = (f.extension || "sans extension").toUpperCase();
+                    if (formats.indexOf(format) < 0) {
+                        formats.push(format);
+                    }
                     continue;
                 }
                 // Même document, même version, même fichier : déjà en mémoire
                 cle = doc.id + "-" + doc.objVer.Version + "-" + f.id + "-" + f.version;
                 if (cache.hasOwnProperty(cle)) {
-                    return { dataUri: cache[cle], note: noteAncien(ecarts) };
+                    return { dataUri: cache[cle], note: null };
                 }
                 try {
                     uri = coffre.lireDataUri(vault, doc.objVer, f.id, f.version);
                 } catch (e) {
-                    ecarts.push("fichier ." + f.extension + " illisible");
+                    console.log(PREFIXE_JOURNAL + " portrait illisible (document " + doc.id + ") : " + messageDe(e));
                     continue;
                 }
                 if (!MOTIF_DATA_URI.test(uri)) {
-                    ecarts.push("fichier ." + f.extension + " qui n'est pas une image");
+                    console.log(PREFIXE_JOURNAL + " portrait écarté (document " + doc.id + ") : pas une image JPEG, PNG, GIF ou BMP");
                     continue;
                 }
                 contenir(cache);
                 cache[cle] = uri;
-                return { dataUri: uri, note: noteAncien(ecarts) };
+                return { dataUri: uri, note: null };
             }
         }
-        return { dataUri: null, note: "Portrait non affiché : " + ecarts.join(", ") +
-            " (formats affichés : JPEG, PNG, GIF, BMP)." };
+        return { dataUri: null, note: noteFormats(formats) };
     }
 
     return { portraitDe: portraitDe, MOTIF_DATA_URI: MOTIF_DATA_URI };
