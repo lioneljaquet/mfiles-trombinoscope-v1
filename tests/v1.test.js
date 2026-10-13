@@ -14,7 +14,7 @@ const { creerCoffreCom } = require("./coffre-com-simule");
 const RACINE = path.join(__dirname, "..");
 const EVENEMENTS = {
     Event_NewShellFrame: "NewShellFrame", Event_Started: "Started", Event_CustomCommand: "CustomCommand",
-    TaskPaneGroup_Main: 1
+    Event_SelectionChanged: "SelectionChanged", TaskPaneGroup_Main: 1
 };
 
 /**
@@ -50,7 +50,8 @@ function cadre(nom, options) {
 function deuxCadres(session) {
     const options = { prochain: { n: 100 }, affichages: [] };
     const c = creerCoffreCom({ session: session || { groupes: [3524] } });
-    const ctx = charger(["model/parametrage.js", "model/acces.js", "presenter/shellui.js"], EVENEMENTS);
+    const ctx = charger(["model/compat.js", "model/parametrage.js", "model/acces.js", "model/regles.js",
+        "model/vault-com.js", "model/portraits.js", "presenter/onglet.js", "presenter/shellui.js"], EVENEMENTS);
     const a = cadre("A", options);
     const b = cadre("B", Object.assign({}, options, { dialogue: true }));
 

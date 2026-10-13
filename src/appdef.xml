@@ -31,8 +31,13 @@
 
     <modules>
         <module environment="shellui" fast-browsing-compatible="true">
+            <file>{DOSSIER}/model/compat.js</file>
             <file>{DOSSIER}/model/parametrage.js</file>
             <file>{DOSSIER}/model/acces.js</file>
+            <file>{DOSSIER}/model/regles.js</file>
+            <file>{DOSSIER}/model/vault-com.js</file>
+            <file>{DOSSIER}/model/portraits.js</file>
+            <file>{DOSSIER}/presenter/onglet.js</file>
             <file>{DOSSIER}/presenter/shellui.js</file>
         </module>
     </modules>

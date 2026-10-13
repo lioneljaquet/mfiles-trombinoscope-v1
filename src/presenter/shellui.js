@@ -6,12 +6,15 @@
    cadre, aux SEULS membres du groupe autorisé (model/acces.js, échec
    fermé) ; un clic affiche le tableau de bord dans la zone de listage
    (ShowDashboard). La page lit elle-même le coffre (dashboard.Vault) :
-   le module ne transmet que son cadre et la version.
+   le module ne transmet que son cadre, son état et la version. Pour les
+   mêmes membres, il pose aussi l'onglet « Trombinoscope » du volet de
+   droite (presenter/onglet.js).
 
    Un état PAR cadre : le client ouvre plusieurs cadres (fenêtres, boîtes
    de dialogue) et un état global faisait réagir chacun au clic d'un
-   autre. Dépend de model/parametrage.js et model/acces.js, chargés avant
-   lui.
+   autre. Dépend de model/compat.js, parametrage.js, acces.js, regles.js,
+   vault-com.js, portraits.js et presenter/onglet.js, chargés avant lui
+   (appdef.xml).
    ===================================================================== */
 
 /**
@@ -25,6 +28,9 @@
  * @returns {void}
  */
 function OnNewShellUI(shellUI) {
+    // Partagé par les cadres de ce ShellUI : l'annuaire lu pour l'onglet
+    var session = { annuaire: null, luA: 0 };
+
     shellUI.Events.Register(Event_NewShellFrame, function (shellFrame) {
         var etat = { commande: null };
 
@@ -39,6 +45,7 @@ function OnNewShellUI(shellUI) {
             }
             journal("accès accordé : " + verdict.raison);
             creerCommande(shellFrame, etat);
+            onglet.suivre(shellFrame, etat, session, coffreDe(shellUI));
         });
     });
 }
@@ -73,7 +80,7 @@ function creerCommande(shellFrame, etat) {
         shellFrame.Commands.Events.Register(Event_CustomCommand, function (id) {
             // Seule la commande DE CE CADRE déclenche l'affichage.
             if (id === etat.commande) {
-                afficher(shellFrame);
+                afficher(shellFrame, etat);
             }
         });
     } catch (e) {
@@ -100,14 +107,17 @@ function creerCommande(shellFrame, etat) {
 /**
  * Affiche le tableau de bord dans la zone de listage. Le cadre voyage
  * dans les données : c'est la voie la plus sûre pour que la page
- * l'atteigne (retour au listage, sélection virtuelle).
+ * l'atteigne (retour au listage, sélection virtuelle). L'état du cadre
+ * aussi : la page y signale une sélection virtuelle, pour que l'onglet ne
+ * prenne pas la place de la fiche M-Files demandée.
  *
  * @param {object} shellFrame cadre du client
+ * @param {object} etat état de ce cadre
  * @returns {void}
  */
-function afficher(shellFrame) {
+function afficher(shellFrame, etat) {
     try {
-        shellFrame.ShowDashboard(PARAMETRAGE.dashboard, { cadre: shellFrame, version: VERSION_PAQUET });
+        shellFrame.ShowDashboard(PARAMETRAGE.dashboard, { cadre: shellFrame, version: VERSION_PAQUET, etatCadre: etat });
     } catch (e) {
         journal("affichage impossible : " + messageDe(e));
     }
