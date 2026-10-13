@@ -1,0 +1,7 @@
+{
+  "name": "mon-app-uixv1-tests",
+  "private": true,
+  "description": "Tests (projet séparé, non livré) : coffre COM simulé.",
+  "scripts": { "test": "node --test", "lint": "cd .. && eslint src build.js" },
+  "devDependencies": { "acorn": "^8.12.0", "eslint": "^9.0.0", "eslint-plugin-security": "^3.0.0" }
+}

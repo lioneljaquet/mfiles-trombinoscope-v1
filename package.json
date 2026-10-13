@@ -1,0 +1,16 @@
+{
+  "name": "mfiles-trombinoscope-v1",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Trombinoscope tebicom dans le client classique M-Files (UI Extensibility Framework v1).",
+  "scripts": {
+    "build": "node build.js",
+    "test": "node --test \"tests/**/*.test.js\"",
+    "lint": "eslint src build.js tests"
+  },
+  "devDependencies": {
+    "acorn": "^8.12.0",
+    "eslint": "^9.0.0",
+    "eslint-plugin-security": "^3.0.0"
+  }
+}

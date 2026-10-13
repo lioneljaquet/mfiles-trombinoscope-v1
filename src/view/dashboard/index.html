@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<title>Mon application</title>
+<!-- build:css dashboard.css -->
+<!-- Les marqueurs build:* sont remplacés par le contenu intégré : un
+     fichier externe se charge mal dans le contrôle web du client. -->
+</head>
+<body>
+<div class="barre">
+    <span class="titre">Mon application</span>
+    <span class="version" id="version"></span>
+    <button type="button" class="bouton" id="btnFermer">Revenir au listage</button>
+</div>
+<div id="contenu" class="contenu"><div class="attente">Lecture des données…</div></div>
+<div id="statut" class="statut"></div>
+<!-- build:js ../../model/parametrage.js -->
+<!-- build:js ../../model/vault-com.js -->
+<!-- build:js dashboard.js -->
+</body>
+</html>

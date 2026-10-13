@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Manifeste UIX v1 (client classique). Schéma v4.
+    Modèle : {VERSION} et {DOSSIER} sont remplis par build.js.
+    Ordre imposé par le schéma : <files> APRÈS <required-mfiles-version>
+    et AVANT <platforms>. Toute ressource chargée par une page (image,
+    icône) doit y figurer, sinon elle n'est jamais servie.
+    GUID distinct de la version v2 : les deux paquets cohabitent.
+-->
+<application xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="http://www.m-files.com/schemas/appdef-client-v4.xsd">
+
+    <guid>00000000-0000-0000-0000-000000000001</guid>
+    <name>Mon application (UIX v1)</name>
+    <version>{VERSION}</version>
+    <description>À décrire. Client classique.</description>
+    <publisher>tebicom SA</publisher>
+    <copyright>(c) tebicom SA 2026</copyright>
+    <required-mfiles-version>20.12.0.0</required-mfiles-version>
+
+    <files>
+        <file>{DOSSIER}/icones/app.ico</file>
+    </files>
+
+    <platforms>
+        <platform>Desktop</platform>
+    </platforms>
+
+    <enabled-by-default>true</enabled-by-default>
+
+    <modules>
+        <module environment="shellui" fast-browsing-compatible="true">
+            <file>{DOSSIER}/model/parametrage.js</file>
+            <file>{DOSSIER}/presenter/shellui.js</file>
+        </module>
+    </modules>
+
+    <dashboards>
+        <dashboard id="mon-dashboard">
+            <content>{DOSSIER}/view/dashboard/index.html</content>
+            <allow-selection>true</allow-selection>
+        </dashboard>
+    </dashboards>
+
+</application>
