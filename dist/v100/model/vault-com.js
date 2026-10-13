@@ -89,9 +89,9 @@ var coffre = (function () {
         liste.forEach(function (c) {
             conditions.Add(-1, c);
         });
-        // Délai 0 : pas de délai de recherche imposé par l'application
+        // Délai de 30 s, comme le code v1 éprouvé (skill m-files-ui-ext-v1)
         res = vault.ObjectSearchOperations.SearchForObjectsByConditionsEx(
-            conditions, MF.SEARCH_FLAG_NONE, false, PARAMETRAGE.limiteRecherche, 0);
+            conditions, MF.SEARCH_FLAG_NONE, false, PARAMETRAGE.limiteRecherche, PARAMETRAGE.delaiRecherche);
 
         if (res.MoreResults) {
             throw new Error("M-Files compte plus de " + PARAMETRAGE.limiteRecherche + " " + quoi +

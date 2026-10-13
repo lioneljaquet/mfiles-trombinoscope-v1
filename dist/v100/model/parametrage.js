@@ -73,5 +73,6 @@ var PARAMETRAGE = {
     cerclesRacines: ["CA"],
 
     limiteRecherche: 500,
+    delaiRecherche: 30,
     tailleLot: 20
 };

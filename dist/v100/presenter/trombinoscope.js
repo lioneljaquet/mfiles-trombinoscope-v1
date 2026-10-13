@@ -56,6 +56,8 @@ var presentateur = (function () {
         var ouverte = null;
         var annuaire = null;
         var objVers = {};
+        // Numéro de la lecture en cours : une lecture relancée arrête la précédente
+        var lectureEnCours = 0;
         var vue = null;
         var actions;
 
@@ -166,13 +168,15 @@ var presentateur = (function () {
 
         /**
          * Enchaîne des étapes en rendant la main au navigateur entre
-         * chacune ; la première erreur arrête tout.
+         * chacune ; la première erreur arrête tout, et une lecture
+         * relancée entre-temps (« Relire ») arrête celle-ci.
          *
+         * @param {number} lecture numéro de la lecture qui enchaîne
          * @param {Array} etapes fonctions sans argument
          * @param {Function} fin appelée après la dernière étape
          * @returns {void}
          */
-        function enchainer(etapes, fin) {
+        function enchainer(lecture, etapes, fin) {
             var i = 0;
 
             /**
@@ -181,6 +185,9 @@ var presentateur = (function () {
              * @returns {void}
              */
             function suivante() {
+                if (lecture !== lectureEnCours) {
+                    return;
+                }
                 try {
                     if (i < etapes.length) {
                         etapes[i]();
@@ -226,12 +233,15 @@ var presentateur = (function () {
             var cerclesTrouves = [];
             var cercles = [];
             var debut = new Date().getTime();
+            var lecture;
 
+            lectureEnCours += 1;
+            lecture = lectureEnCours;
             annuaire = null;
             objVers = {};
             vue.progression("Recherche des collaborateurs…", 0, 0);
 
-            enchainer(PARAMETRAGE.etapes.map(function (etape) {
+            enchainer(lecture, PARAMETRAGE.etapes.map(function (etape) {
                 return function () {
                     coffre.chercherCollaborateurs(services.vault, etape.id).forEach(function (ov) {
                         if (!objVers.hasOwnProperty(ov.ID)) {
@@ -240,11 +250,18 @@ var presentateur = (function () {
                         }
                     });
                 };
-            }), function () {
+            }).concat([function () {
+                // Un annuaire vide dit plutôt que les identifiants d'étape ont changé dans le coffre
+                if (!trouves.length) {
+                    throw new Error("M-Files ne rend aucun collaborateur aux étapes " + PARAMETRAGE.etapes.map(function (e) {
+                        return "« " + e.nom + " »";
+                    }).join(", ") + " : leurs identifiants ont peut-être changé (src/model/parametrage.js).");
+                }
+            }]), function () {
                 var lotsFiches = lots(trouves, PARAMETRAGE.tailleLot);
 
                 vue.progression("Lecture des fiches", 0, trouves.length);
-                enchainer(lotsFiches.map(function (lot) {
+                enchainer(lecture, lotsFiches.map(function (lot) {
                     return function () {
                         fiches = fiches.concat(coffre.lireFiches(services.vault, lot));
                         vue.progression("Lecture des fiches", fiches.length, trouves.length);
@@ -253,7 +270,7 @@ var presentateur = (function () {
                     cerclesTrouves = coffre.chercherCercles(services.vault);
                     vue.progression("Lecture des cercles et rôles", 0, cerclesTrouves.length);
                 }]), function () {
-                    enchainer(lots(cerclesTrouves, PARAMETRAGE.tailleLot * 5).map(function (lot) {
+                    enchainer(lecture, lots(cerclesTrouves, PARAMETRAGE.tailleLot * 5).map(function (lot) {
                         return function () {
                             cercles = cercles.concat(coffre.lireCercles(services.vault, lot));
                             vue.progression("Lecture des cercles et rôles", cercles.length, cerclesTrouves.length);
@@ -268,44 +285,79 @@ var presentateur = (function () {
             });
         }
 
+        // Actions appelées par la vue ; chacune met l'état à jour puis rend la page.
         actions = {
+            /** Relit tout le coffre (une lecture en cours s'arrête). @returns {void} */
             relire: function () {
                 demarrer();
             },
+            /**
+             * Recherche instantanée.
+             * @param {string} q saisie
+             * @returns {void}
+             */
             rechercher: function (q) {
                 etat.q = String(q || "");
                 rendre();
             },
+            /**
+             * Pose ou retire le filtre d'une facette ; une clé inconnue est ignorée.
+             * @param {string} cle facette (cercle, etape, succursale, titre, fonction)
+             * @param {string} valeur valeur retenue, regles.AUCUN, ou "" pour retirer
+             * @returns {void}
+             */
             filtrer: function (cle, valeur) {
                 if (regles.FACETTES.hasOwnProperty(cle)) {
                     etat[cle] = valeur ? String(valeur) : null;
                     rendre();
                 }
             },
+            /** Efface la recherche et tous les filtres. @returns {void} */
             reinitialiser: function () {
                 etat = regles.etatInitial();
                 rendre();
             },
+            /**
+             * Bascule entre grille et liste.
+             * @param {string} v « grille » ou « liste »
+             * @returns {void}
+             */
             changerVue: function (v) {
                 if (VUES.indexOf(v) >= 0) {
                     affichage.vue = v;
                     rendre();
                 }
             },
+            /**
+             * Change l'ordre d'affichage.
+             * @param {string} cle une valeur de TRIS
+             * @returns {void}
+             */
             trier: function (cle) {
                 if (TRIS.indexOf(cle) >= 0) {
                     affichage.tri = cle;
                     rendre();
                 }
             },
+            /**
+             * Ouvre la fiche d'une personne de l'annuaire.
+             * @param {number} id ID du collaborateur
+             * @returns {void}
+             */
             ouvrir: function (id) {
                 ouverte = annuaire && annuaire.parId.hasOwnProperty(id) ? Number(id) : null;
                 rendre();
             },
+            /** Ferme la fiche. @returns {void} */
             fermer: function () {
                 ouverte = null;
                 rendre();
             },
+            /**
+             * Passe à la personne précédente ou suivante, dans l'ordre affiché.
+             * @param {number} sens -1 ou 1
+             * @returns {void}
+             */
             voisine: function (sens) {
                 var liste = affichees();
                 var i;
@@ -318,6 +370,7 @@ var presentateur = (function () {
                     }
                 }
             },
+            /** Rend la zone de listage au client (ShowDefaultContent). @returns {void} */
             revenir: function () {
                 try {
                     services.cadre.ShowDefaultContent();
@@ -325,6 +378,12 @@ var presentateur = (function () {
                     vue.message("Retour au listage impossible : " + messageDe(e));
                 }
             },
+            /**
+             * Montre la fiche native du collaborateur dans le volet de droite
+             * (sélection virtuelle sur l'ObjVer de la recherche).
+             * @param {number} id ID du collaborateur
+             * @returns {void}
+             */
             afficherDansMFiles: function (id) {
                 var ok = Boolean(services.cadre) && objVers.hasOwnProperty(id) &&
                     coffre.selectionVirtuelle(services.cadre, objVers[id]);
