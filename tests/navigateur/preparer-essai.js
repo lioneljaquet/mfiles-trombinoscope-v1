@@ -63,8 +63,8 @@ function objetsFictifs() {
                 2414: SUCCURSALES[i % 4] ? lk(70 + (i % 4), SUCCURSALES[i % 4]) : txt(null),
                 2929: lk(cercle[0], cercle[1]), 2928: multi(auto),
                 1217: i === 0 ? txt(null) : lk(i < 6 ? 1 : 1 + (i % 6), "responsable"),
-                2821: txt(prenom.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "") + "." +
-                    NOMS[i].toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "") + "@exemple.ch"),
+                2821: txt(prenom.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") + "." +
+                    NOMS[i].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") + "@exemple.ch"),
                 2823: txt("POISON-MOBILE")
             }
         });

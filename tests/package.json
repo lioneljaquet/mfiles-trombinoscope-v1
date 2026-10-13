@@ -1,7 +1,10 @@
 {
-  "name": "mon-app-uixv1-tests",
+  "name": "mfiles-trombinoscope-v1-tests",
   "private": true,
-  "description": "Tests (projet séparé, non livré) : coffre COM simulé.",
-  "scripts": { "test": "node --test", "lint": "cd .. && eslint src build.js" },
-  "devDependencies": { "acorn": "^8.12.0", "eslint": "^9.0.0", "eslint-plugin-security": "^3.0.0" }
+  "description": "Tests (projet séparé, non livré) : règles, accès COM sur coffre simulé, présentateur, module, construction. Dépendances à la racine.",
+  "scripts": {
+    "test": "cd .. && node --test \"tests/**/*.test.js\"",
+    "lint": "cd .. && eslint .",
+    "essai": "cd .. && node build.js --sans-zip && node tests/navigateur/preparer-essai.js"
+  }
 }

@@ -211,3 +211,23 @@ test("page : « Revenir au listage » rend la zone de listage au client", () => 
     vue.actions.revenir();
     assert.strictEqual(rendu, 1);
 });
+
+test("erreur : aucun collaborateur aux étapes listées est une erreur (identifiants d'étape changés ?)", () => {
+    const { p, vue, vider } = preparer({ objets: [collaborateur(1, 999)] });
+
+    p.demarrer();
+    vider();
+    assert.strictEqual(vue.modeles.length, 0);
+    assert.match(vue.erreurs[0], /aucun collaborateur/i);
+});
+
+test("relire pendant une lecture : la lecture précédente s'arrête, une seule aboutit", () => {
+    const { p, vue, file, vider } = preparer();
+
+    p.demarrer();
+    file.shift()();                // première lecture engagée
+    vue.actions.relire();
+    vider();
+    assert.strictEqual(vue.modeles.length, 1);
+    assert.strictEqual(vue.modeles[0].total, 46);
+});

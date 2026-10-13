@@ -31,9 +31,9 @@ var regles = (function () {
     // eslint-disable-next-line security/detect-unsafe-regex
     var MOTIF_EMAIL = /^[A-Za-z0-9._+'-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
     // Trois lettres exactement (latin étendu, sans × ni ÷)
-    var MOTIF_TRIGRAMME = /^[A-Za-zÀ-ÖØ-öø-ɏ]{3}$/;
+    var MOTIF_TRIGRAMME = /^[A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u024F]{3}$/;
     // Une lettre, pour la casse des noms (mêmes plages)
-    var MOTIF_LETTRE = /[A-Za-zÀ-ÖØ-öø-ɏ]/;
+    var MOTIF_LETTRE = /[A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u024F]/;
 
     // Repli des accents : chaque lettre accentuée vers sa base, en minuscules
     var TABLE_REPLI = construireTableRepli({
